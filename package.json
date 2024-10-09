@@ -1,0 +1,16 @@
+{
+  "name": "memoria",
+  "version": "1.0.0",
+  "description": "A website project called memoria",
+  "main": "src/index.html",
+  "scripts": {
+    "start": "http-server -p 3000"
+  },
+  "dependencies": {
+    "http-server": "^0.12.3"
+  },
+  "devDependencies": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

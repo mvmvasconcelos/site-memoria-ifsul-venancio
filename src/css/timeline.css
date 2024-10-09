@@ -1,0 +1,248 @@
+/* Timeline Page Styles */
+.timeline {
+  margin-top: 40px;
+}
+
+.timeline-item {
+  position: relative;
+  padding-left: 40px;
+  margin-bottom: 40px;
+}
+
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #333;
+}
+
+.timeline-item .date {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.timeline-item .description {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Timeline Header Styles */
+.timeline-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.timeline-header h2 {
+  margin-bottom: 10px;
+  color: #2e7d32; /* Greenish color */
+}
+
+.timeline-years {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.timeline-years a {
+  text-decoration: none;
+  color: #2e7d32; /* Greenish color */
+  font-weight: bold;
+}
+
+.timeline-years a:hover {
+  text-decoration: underline;
+}
+
+/* Timeline Styles */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 4px;
+  background-color: #2e7d32; /* Greenish color */
+  transform: translateX(-50%);
+}
+
+.timeline-entry {
+  width: 45%; /* Adjust width to ensure it doesn't cross the middle */
+  padding: 20px;
+  border: 1px solid #2e7d32; /* Greenish color */
+  border-radius: 5px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.timeline-entry:nth-child(odd) {
+  align-self: flex-start;
+  text-align: right;
+}
+
+.timeline-entry:nth-child(even) {
+  align-self: flex-end;
+  text-align: left;
+}
+
+.timeline-entry::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 20px; /* Increased size */
+  height: 20px; /* Increased size */
+  background-color: #2e7d32; /* Greenish color */
+  border-radius: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.timeline-entry:nth-child(odd)::before {
+  left: 100%;
+  margin-left: -8px; /* Adjust to position towards the center */
+}
+
+.timeline-entry:nth-child(even)::before {
+  right: 100%;
+  margin-right: -8px; /* Adjust to position towards the center */
+}
+
+.timeline-entry h3 {
+  margin-top: 0;
+  margin-bottom: 20px; /* Increase bottom margin */
+  color: #2e7d32; /* Greenish color */
+}
+
+.image-container {
+  position: relative;
+}
+
+.image-container .date {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(46, 125, 50, 0.7); /* Greenish color */
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-weight: bold;
+  z-index: 10; /* Ensure the date is on top of the image */
+}
+
+.timeline-entry:nth-child(odd) .image-container .date {
+  right: 10px;
+}
+
+.timeline-entry:nth-child(even) .image-container .date {
+  left: 10px;
+  right: auto;
+}
+
+.timeline-entry img {
+  width: 100%;
+  height: auto;
+  border-radius: 5px;
+}
+
+.timeline-entry .legend {
+  font-style: italic;
+  color: #2e7d32; /* Greenish color */
+  margin-top: 5px; /* Closer to the image */
+  font-size: 0.9em; /* Smaller text */
+  text-align: right;
+}
+
+.timeline-entry:nth-child(even) .legend {
+  text-align: left;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .timeline {
+    align-items: flex-start;
+  }
+
+  .timeline::before {
+    left: 20px;
+    transform: none;
+  }
+
+  .timeline-entry {
+    width: calc(100% - 40px);
+    align-self: flex-start;
+    text-align: left;
+    margin-left: 40px;
+  }
+
+  .timeline-entry::before {
+    left: -20px;
+    transform: translateY(-50%);
+  }
+
+  .timeline-entry:nth-child(even)::before,
+  .timeline-entry:nth-child(odd)::before {
+    left: -20px;
+    transform: translateY(-50%);
+  }
+
+  .timeline-entry .image-container .date {
+    left: 10px;
+    right: auto;
+  }
+
+  .timeline-entry .legend {
+    text-align: left;
+  }
+}
+
+/* Adicione estas regras ao final do arquivo timeline.css */
+
+/* Animações de slide */
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.timeline-entry {
+  opacity: 0; /* Inicialmente invisível */
+  transition: opacity 0.5s ease-in-out;
+}
+
+.timeline-entry.slide-in-left {
+  animation: slideInFromLeft 0.5s forwards;
+}
+
+.timeline-entry.slide-in-right {
+  animation: slideInFromRight 0.5s forwards;
+}
