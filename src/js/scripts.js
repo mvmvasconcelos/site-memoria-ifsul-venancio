@@ -1,30 +1,30 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Carrega o arquivo CSV quando o DOM estiver totalmente carregado
-    fetch('src/timeline.csv')
-      .then(response => response.text())
-      .then(data => {
-        // Analisa os dados do CSV
-        const parsedData = parseCSV(data);
-        // Popula a linha do tempo com os dados analisados
-        populateTimeline(parsedData);
-      })
-      .catch(error => console.error('Erro ao buscar o arquivo CSV:', error));
-  });
-  
-  // Função para analisar os dados do CSV
-  function parseCSV(data) {
-    const lines = data.split('\n');
-    const result = [];
-    for (const line of lines) {
-      // Divide cada linha em campos e remove aspas desnecessárias
-      const [date, title, imageUrl, altText, description] = line.split('","').map(item => item.replace(/(^"|"$)/g, ''));
-      // Verifica se todos os campos estão presentes antes de adicionar ao resultado
-      if (date && title && imageUrl && altText && description) {
-        result.push({ date, title, imageUrl, altText, description });
-      }
+  // Carrega o arquivo CSV quando o DOM estiver totalmente carregado
+  fetch('src/timeline.csv')
+    .then(response => response.text())
+    .then(data => {
+      // Analisa os dados do CSV
+      const parsedData = parseCSV(data);
+      // Popula a linha do tempo com os dados analisados
+      populateTimeline(parsedData);
+    })
+    .catch(error => console.error('Erro ao buscar o arquivo CSV:', error));
+});
+
+// Função para analisar os dados do CSV
+function parseCSV(data) {
+  const lines = data.split('\n');
+  const result = [];
+  for (const line of lines) {
+    // Divide cada linha em campos e remove aspas desnecessárias
+    const [date, title, imageUrl, altText, description] = line.split('","').map(item => item.replace(/(^"|"$)/g, ''));
+    // Verifica se os campos obrigatórios estão presentes antes de adicionar ao resultado
+    if (date && title) {
+      result.push({ date, title, imageUrl: imageUrl || '', altText: altText || '', description: description || '' });
     }
-    return result;
   }
+  return result;
+}
   
   // Função para popular a linha do tempo com os dados analisados
   function populateTimeline(data) {
