@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     // Carrega o arquivo CSV quando o DOM estiver totalmente carregado
-    fetch('../timeline/timeline.csv')
+    fetch('src/timeline.csv')
       .then(response => response.text())
       .then(data => {
         // Analisa os dados do CSV
