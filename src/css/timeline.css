@@ -246,3 +246,161 @@
 .timeline-entry.slide-in-right {
   animation: slideInFromRight 0.5s forwards;
 }
+
+/* Estilos para .territorio */
+.territorio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  margin: 50px 0;
+  padding: 0 20px;
+}
+
+.territorio h2 {
+  padding-bottom: 50px;
+}
+
+.territorio::before {
+  content: '';
+  position: absolute;
+  width: 4px;
+  background-color: #2e7d32; /* Greenish color */
+  top: 70px; /* Ajuste este valor conforme necessário */
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.territorio-entry {
+  position: relative;
+  width: 45%;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+.territorio-entry {
+  opacity: 1; /* Certifique-se de que a opacidade esteja definida como 1 */
+  transition: opacity 0.5s ease-in-out; /* Verifique se há alguma transição que possa estar alterando a opacidade */
+}
+
+.territorio-entry::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: #2e7d32; /* Greenish color */
+  border-radius: 50%;
+  top: 50%; /* Centraliza verticalmente */
+  transform: translateY(-50%);
+}
+
+.territorio-entry:nth-child(odd) {
+  align-self: flex-end;
+  text-align: right;
+}
+
+.territorio-entry:nth-child(odd)::before {
+  left: -10px; /* Mantém o marcador à esquerda */
+}
+
+.territorio-entry:nth-child(even) {
+  align-self: flex-start;
+  text-align: left;
+}
+
+.territorio-entry:nth-child(even)::before {
+  right: -10px; /* Mantém o marcador à direita */
+}
+
+.territorio-entry .image-container {
+  position: relative;
+}
+
+.territorio-entry .image-container .date {
+  position: absolute;
+}
+
+.territorio-entry .image-container .date {
+  position: absolute;
+  top: 10px;
+  background-color: rgba(46, 125, 50, 0.7); /* Greenish color */
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-weight: bold;
+  z-index: 10; /* Ensure the date is on top of the image */
+}
+
+.territorio-entry:nth-child(odd) .image-container .date {
+  right: 10px;
+}
+
+.territorio-entry:nth-child(even) .image-container .date {
+  left: 10px;
+  right: auto;
+}
+
+.territorio-entry img {
+  width: 100%;
+  height: auto;
+  border-radius: 5px;
+}
+
+.territorio-entry .legend {
+  font-style: italic;
+  color: #2e7d32; /* Greenish color */
+  margin-top: 5px; /* Closer to the image */
+  font-size: 0.9em; /* Smaller text */
+  text-align: right;
+}
+
+.territorio-entry:nth-child(even) .legend {
+  text-align: left;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .territorio {
+    align-items: flex-start;
+  }
+  .territorio::before {
+    left: 20px;
+    transform: none;
+  }
+  .territorio-entry {
+    width: calc(100% - 40px);
+    align-self: flex-start;
+    text-align: left;
+    margin-left: 40px;
+  }
+  .territorio-entry::before {
+    left: -20px;
+    transform: translateY(-50%);
+  }
+  .territorio-entry:nth-child(even)::before,
+  .territorio-entry:nth-child(odd)::before {
+    left: -20px;
+    transform: translateY(-50%);
+  }
+  .territorio-entry .image-container .date {
+    left: 10px;
+    right: auto;
+  }
+  .territorio-entry .legend {
+    text-align: left;
+  }
+}
+
+/* Animações de slide */
+.territorio-entry.slide-in-left {
+  animation: slideInFromLeft 0.5s forwards;
+}
+
+.territorio-entry.slide-in-right {
+  animation: slideInFromRight 0.5s forwards;
+}

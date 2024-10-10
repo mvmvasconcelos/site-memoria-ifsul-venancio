@@ -1,30 +1,49 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Território</title>
   <link rel="stylesheet" href="src/css/styles.css">
+  <link rel="stylesheet" href="src/css/timeline.css">
+  <title>Transformações no Território</title>
 </head>
 <body>
   <div id="header-placeholder"></div>
   <main>
-    <section>
-      <h1>Transformações do Território</h1>
-      
-      <p>
-        Este projeto de mestrado tem como objetivo a organização, preservação e divulgação do patrimônio cultural do Instituto Federal de Educação, Ciência e Tecnologia do Rio Grande do Sul – IFSul Campus Venâncio Aires. Nosso trabalho busca garantir que a trajetória da instituição e a evolução da educação profissional no Brasil sejam lembradas e celebradas.
-      </p>
-      <p>
-        Convidamos todos a explorar as coleções e acervos que refletem não apenas a história do IFSul, mas também o impacto que teve na formação de cidadãos e profissionais ao longo dos anos. Este espaço virtual é um convite à reflexão e ao reconhecimento das conquistas que moldaram nossa identidade.
-      </p>
-      <p>
-        Junte-se a nós nesta jornada de descoberta e valorização da memória. A história do IFSul Campus Venâncio Aires é um testemunho de um compromisso contínuo com a educação e a inovação, agora eternizada e acessível a todos.
-      </p>
-    </section>    
+    <section class="timeline-header">
+      <h1>Transformações no Território</h1>
+      <div class="timeline-years" id="timeline-years">
+        <!-- Years will be populated here -->
+      </div>
+    </section>
+    <section class="timeline" id="timeline">
+      <!-- Timeline entries will be populated here -->
+    </section>
+    <section class="territorio" id="territorio-plano-diretor">
+      <h2>Transformações no Plano Diretor do Município</h2>
+      <div class="territorio-entry">
+        <h3>Mapa Zoneamento - Antes da Implantação</h3>
+        <div class="image-container">
+          <img src="src/images/territorio/image6.png" alt="Mapa Zoneamento - Antes da Implantação">
+          <p class="date">2005</p>
+        </div>
+        <p class="legend">Fonte: Secretaria Municipal de Planejamento e Urbanismo de Venâncio Aires</p>
+        <p></p>
+      </div>
+      <div class="territorio-entry">
+        <h3>Mapa Zoneamento – Alteração de Zoneamento em virtude da utilização - Zona Especial (destaque em Rosa)</h3>
+        <div class="image-container">
+          <img src="src/images/territorio/image7.png" alt="Mapa Zoneamento – Alteração de Zoneamento em virtude da utilização - Zona Especial (destaque em Rosa)">
+          <p class="date">2018</p>
+        </div>
+        <p class="legend">Fonte: Secretaria Municipal de Planejamento e Urbanismo de Venâncio Aires</p>
+        <p></p>
+      </div>
+    </section>
   </main>
   <div id="footer-placeholder"></div>
-  <script src="src/js/scripts.js"></script>
+
+  <script src="src/js/territorio.js"></script>
   <script>
     async function loadHeaderFooter() {
       const headerResponse = await fetch('header.html');
@@ -35,8 +54,6 @@
       const footerText = await footerResponse.text();
       document.getElementById('footer-placeholder').innerHTML = footerText;
     }
-
     loadHeaderFooter();
   </script>
 </body>
-</html>
