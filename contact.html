@@ -8,15 +8,7 @@
   <link rel="stylesheet" href="src/css/contact.css">
 </head>
 <body>
-  <header>
-    <nav>
-      <ul>
-        <li><a href="index.html">Início</a></li>
-        <li><a href="timeline.html">Linha do Tempo</a></li>
-        <li><a href="contact.html">Contato</a></li>
-      </ul>
-    </nav>
-  </header>
+  <div id="header-placeholder"></div>
   <main>
     <section>
       <h2>Entre em contato conosco</h2>
@@ -38,8 +30,20 @@
       </form>
     </section>
   </main>
-  <footer>
-    <p>© 2024 IFSul Campus Venâncio Aires. Licenciado sob a <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">Creative Commons</a>.</p>
-  </footer>
+  <div id="footer-placeholder"></div>
+  <script src="src/js/scripts.js"></script>
+  <script>
+    async function loadHeaderFooter() {
+      const headerResponse = await fetch('header.html');
+      const headerText = await headerResponse.text();
+      document.getElementById('header-placeholder').innerHTML = headerText;
+
+      const footerResponse = await fetch('footer.html');
+      const footerText = await footerResponse.text();
+      document.getElementById('footer-placeholder').innerHTML = footerText;
+    }
+
+    loadHeaderFooter();
+  </script>
 </body>
 </html>

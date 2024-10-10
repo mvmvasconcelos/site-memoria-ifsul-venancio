@@ -1,22 +1,14 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Linha do Tempo - Memoria</title>
   <link rel="stylesheet" href="src/css/styles.css">
   <link rel="stylesheet" href="src/css/timeline.css">
+  <title>Linha do Tempo</title>
 </head>
 <body>
-  <header>
-    <nav>
-      <ul>
-        <li><a href="index.html">Início</a></li>
-        <li><a href="timeline.html">Linha do Tempo</a></li>
-        <li><a href="contact.html">Contato</a></li>
-      </ul>
-    </nav>
-  </header>
+  <div id="header-placeholder"></div>
   <main>
     <section class="timeline-header">
       <h1>Linha do Tempo</h1>
@@ -28,9 +20,21 @@
       <!-- Timeline entries will be populated here -->
     </section>
   </main>
-  <footer>
-    <p>© 2024 IFSul Campus Venâncio Aires. Licenciado sob a <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">Creative Commons</a>.</p>
-  </footer>
+  <div id="footer-placeholder"></div>
+  
+
   <script src="src/js/scripts.js"></script>
+  <script>
+    async function loadHeaderFooter() {
+      const headerResponse = await fetch('header.html');
+      const headerText = await headerResponse.text();
+      document.getElementById('header-placeholder').innerHTML = headerText;
+
+      const footerResponse = await fetch('footer.html');
+      const footerText = await footerResponse.text();
+      document.getElementById('footer-placeholder').innerHTML = footerText;
+    }
+    loadHeaderFooter();
+  </script>
 </body>
 </html>

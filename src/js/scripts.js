@@ -72,20 +72,24 @@ document.addEventListener('DOMContentLoaded', function () {
   
       // Converte a data para o formato "1º de janeiro de 1913" ou "8 de maio de 1913"
       const [yyyy, mm, dd] = entry.date.split('-');
-      const months = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-      const day = parseInt(dd) === 1 ? `${parseInt(dd)}º` : parseInt(dd);
-      const formattedDate = `${day} de ${months[parseInt(mm) - 1]} de ${yyyy}`;
-  
+      let formattedDate;
+      if (mm && dd) {
+        const months = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+        const day = parseInt(dd) === 1 ? `${parseInt(dd)}º` : parseInt(dd);
+        formattedDate = `${day} de ${months[parseInt(mm) - 1]} de ${yyyy}`;
+      } else {
+        formattedDate = yyyy;
+      }
       // Define o conteúdo HTML da entrada da linha do tempo
       timelineEntry.innerHTML = `
-        <h3>${entry.title}</h3>
-        <div class="image-container">
-          <img src="${entry.imageUrl}" alt="${entry.altText}">
-          <p class="date">${formattedDate}</p> <!-- Exibe a data completa no formato "1º de janeiro de 1913" ou "8 de maio de 1913" -->
-        </div>
-        <p class="legend">${entry.altText}</p>
-        <p>${entry.description}</p>
-      `;
+      <h3>${entry.title}</h3>
+      <div class="image-container">
+        <img src="src/images/${entry.imageUrl}" alt="${entry.altText}">
+        <p class="date">${formattedDate}</p> <!-- Exibe a data completa no formato "1º de janeiro de 1913" ou "8 de maio de 1913" -->
+      </div>
+      <p class="legend">${entry.altText}</p>
+      <p>${entry.description}</p>
+    `;
   
       // Adiciona a entrada à linha do tempo
       timeline.appendChild(timelineEntry);
