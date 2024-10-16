@@ -133,23 +133,24 @@
 
 .image-container .date {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 0;
+  right: 0;
   background-color: rgba(46, 125, 50, 0.7); /* Greenish color */
   color: #fff;
   padding: 5px 10px;
   border-radius: 3px;
   font-weight: bold;
   z-index: 10; /* Ensure the date is on top of the image */
+  max-width: 150px; /* Add a max-width to prevent it from occupying the full width */
 }
 
 .timeline-entry:nth-child(odd) .image-container .date {
-  right: 10px;
+  right: 0;
 }
 
 .timeline-entry:nth-child(even) .image-container .date {
-  left: 10px;
-  right: auto;
+  left: 0;
+  right: auto; /* Ensure right is not set */
 }
 
 .timeline-entry img {
@@ -200,8 +201,9 @@
   }
 
   .timeline-entry .image-container .date {
-    left: 10px;
-    right: auto;
+    left: 0;
+    width: 50px; /* Defina um tamanho fixo para ambos os elementos .date */
+    text-align: center; /* Centralize o texto dentro do elemento .date */
   }
 
   .timeline-entry .legend {
@@ -368,29 +370,36 @@
   .territorio {
     align-items: flex-start;
   }
+
   .territorio::before {
     left: 20px;
     transform: none;
   }
+
   .territorio-entry {
     width: calc(100% - 40px);
     align-self: flex-start;
     text-align: left;
     margin-left: 40px;
   }
+
   .territorio-entry::before {
     left: -20px;
     transform: translateY(-50%);
   }
+
   .territorio-entry:nth-child(even)::before,
   .territorio-entry:nth-child(odd)::before {
     left: -20px;
     transform: translateY(-50%);
   }
+
   .territorio-entry .image-container .date {
-    left: 10px;
-    right: auto;
+    left: 0;
+    width: 50px; /* Defina um tamanho fixo para ambos os elementos .date */
+    text-align: center; /* Centralize o texto dentro do elemento .date */
   }
+
   .territorio-entry .legend {
     text-align: left;
   }

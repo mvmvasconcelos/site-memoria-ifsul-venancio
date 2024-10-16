@@ -9,7 +9,47 @@ document.addEventListener('DOMContentLoaded', function () {
       populateTimeline(parsedData);
     })
     .catch(error => console.error('Erro ao buscar o arquivo CSV:', error));
+
+  // Adiciona o evento de clique ao menu hamburger
+  const hamburger = document.querySelector('.hamburger');
+  const nav = document.querySelector('header nav');
+
+  if (hamburger && nav) {
+    hamburger.addEventListener('click', function() {
+      console.log('Hamburger menu clicked');
+      this.classList.toggle('active');
+      nav.classList.toggle('active');
+      console.log('Hamburger class:', this.classList);
+      console.log('Nav class:', nav.classList);
+    });
+  } else {
+    console.error('Hamburger menu or navigation not found');
+  }
 });
+
+// Função para carregar o header e o footer
+async function loadHeaderFooter() {
+  const headerResponse = await fetch('header.html');
+  const headerText = await headerResponse.text();
+  document.getElementById('header-placeholder').innerHTML = headerText;
+  
+  const footerResponse = await fetch('footer.html');
+  const footerText = await footerResponse.text();
+  document.getElementById('footer-placeholder').innerHTML = footerText;
+
+  // Adiciona o evento de clique ao menu hamburger após carregar o header
+  const hamburger = document.querySelector('.hamburger');
+  const nav = document.querySelector('header nav');
+
+  if (hamburger && nav) {
+    hamburger.addEventListener('click', function() {
+      this.classList.toggle('active');
+      nav.classList.toggle('active');
+    });
+  } else {
+    console.error('Hamburger menu or navigation not found');
+  }
+}
 
 // Função para analisar os dados do CSV
 function parseCSV(data) {
@@ -126,3 +166,4 @@ function parseCSV(data) {
       }
     });
   }
+  

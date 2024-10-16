@@ -42,18 +42,10 @@
     </section>
   </main>
   <div id="footer-placeholder"></div>
-
-  <script src="src/js/territorio.js"></script>
+  <script src="src/js/scripts.js"></script>
   <script>
-    async function loadHeaderFooter() {
-      const headerResponse = await fetch('header.html');
-      const headerText = await headerResponse.text();
-      document.getElementById('header-placeholder').innerHTML = headerText;
-
-      const footerResponse = await fetch('footer.html');
-      const footerText = await footerResponse.text();
-      document.getElementById('footer-placeholder').innerHTML = footerText;
-    }
     loadHeaderFooter();
   </script>
+
 </body>
+</html>

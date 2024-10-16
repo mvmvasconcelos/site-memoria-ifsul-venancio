@@ -56,8 +56,6 @@ section {
   font-size: 18px;
 }
 
-
-
 /* Contact Page Styles */
 .contact-form {
   margin-top: 40px;
@@ -135,15 +133,34 @@ header nav ul li a:hover {
   border-radius: 5px;
 }
 
-
 /* Mobile Styles */
 @media (max-width: 768px) {
   header {
     height: 200px; /* Reduz a altura do cabeçalho em dispositivos móveis */
     margin-bottom: 135px;
+    position: relative; /* Ensure the hamburger icon is positioned correctly */
+  }
+
+  .hamburger {
+    display: block;
+    cursor: pointer;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 30px;
+    height: 30px;
+    background-color: green;
+  }
+
+  .hamburger div {
+    width: 100%;
+    height: 4px;
+    background-color: white;
+    margin: 6px 0;
   }
 
   header nav {
+    display: none; /* Hide the navigation menu initially */
     margin-bottom: -135px; /* Posiciona o menu logo abaixo do cabeçalho */
     padding: 10px 0; /* Adiciona padding ao menu de navegação */
   }
@@ -159,8 +176,19 @@ header nav ul li a:hover {
   header nav ul li a {
     padding: 10px 20px; /* Aumenta o padding dos links para facilitar o toque */
   }
-}
 
+  /* Show the menu when the hamburger icon is clicked */
+  .hamburger.active + nav {
+    display: block;
+  }
+  .trabalhos img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+.trabalhos {
+  text-align: center;
+}
 /* Footer Styles */
 footer {
   width: 100%;
@@ -183,7 +211,7 @@ main {
   margin-top: 50px; /* Novo valor ajustado */
   margin-bottom: 70px;
   padding: 20px;
-  max-width: 1200px;
+  max-width: 1000px;
   margin-left: auto;
   margin-right: auto;
 }
