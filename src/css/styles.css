@@ -15,7 +15,7 @@ body {
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1000px; /* Diminuído de 1200px para 1000px */
   margin: 0 auto;
   padding: 20px;
 }
@@ -26,10 +26,20 @@ h1 {
   margin-bottom: 20px;
 }
 
+h2 {
+  font-size: 20px; /* Diminuído o tamanho do h2 */
+  font-weight: bold;
+  margin-bottom: 15px; /* Ajuste opcional para o espaçamento inferior */
+}
+
 p {
   font-size: 16px;
   line-height: 1.5;
   margin-bottom: 10px;
+}
+
+section {
+  margin-bottom: 30px; /* Aumentado o espaço entre as sections */
 }
 
 /* Landing Page Styles */

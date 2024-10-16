@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dados publicados em jornal</title>
+  <link rel="stylesheet" href="src/css/styles.css">
+</head>
+<body>
+  <div id="header-placeholder"></div>
+  <main>
+    <section>
+      <h1>Catalogação das Reportagens Publicadas no Jornal entre 2005 à 2012</h1>
+      
+      <p>Você pode baixar o PDF com a pesquisa no link abaixo:</p>
+      <a href="https://drive.google.com/file/d/1y9tC04UFjIj4CGcLfplXEhPfLv37HUIL/view?usp=drive_link" target="_blank">Baixar PDF</a>
+    </section>    
+  </main>
+  <div id="footer-placeholder"></div>
+  <script src="src/js/scripts.js"></script>
+  <script>
+    async function loadHeaderFooter() {
+      const headerResponse = await fetch('header.html');
+      const headerText = await headerResponse.text();
+      document.getElementById('header-placeholder').innerHTML = headerText;
+
+      const footerResponse = await fetch('footer.html');
+      const footerText = await footerResponse.text();
+      document.getElementById('footer-placeholder').innerHTML = footerText;
+    }
+
+    loadHeaderFooter();
+  </script>
+</body>
+</html>
