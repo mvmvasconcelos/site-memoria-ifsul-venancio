@@ -194,6 +194,9 @@ header nav ul li a:hover {
 footer {
   width: 100%;
   height: 50px;
+  position: relative;
+  bottom: 0;
+  left: 0;
   background-color: #fff; /* Adjust the background color as needed */
   display: flex;
   align-items: center;
