@@ -138,7 +138,7 @@ header nav ul li a:hover {
 @media (max-width: 768px) {
   header {
     height: 200px; /* Reduz a altura do cabeçalho em dispositivos móveis */
-    margin-bottom: 135px;
+    
     position: relative; /* Ensure the hamburger icon is positioned correctly */
   }
 
@@ -213,7 +213,7 @@ footer p {
 
 /* Adjust the main content to account for the fixed header and footer */
 main {
-  margin-top: 50px; /* Novo valor ajustado */
+  margin-top: 20px; /* Novo valor ajustado */
   margin-bottom: 70px;
   padding: 20px;
   max-width: 1000px;

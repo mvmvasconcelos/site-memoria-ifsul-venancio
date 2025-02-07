@@ -4,8 +4,6 @@
     flex-direction: column;
     align-items: center;
     position: relative;
-    margin: 50px 0;
-    padding: 0 20px;
 }
 .territorio-header {
     text-align: center;
@@ -82,7 +80,7 @@
         width: calc(100% - 40px);
         align-self: flex-start;
         text-align: left;
-        margin-left: 40px;
+        margin: 20px auto;
     }
 
     .territorio-entry::before {
