@@ -27,10 +27,10 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   
   function populateTimeline(data) {
-    const timeline = document.getElementById('timeline');
+    const timeline = document.getElementById('territorio');
     data.forEach(entry => {
       const timelineEntry = document.createElement('div');
-      timelineEntry.classList.add('timeline-entry');
+      timelineEntry.classList.add('territorio-entry');
       timelineEntry.dataset.year = entry.date.split('-')[0]; // Assume que a data está no formato YYYY-MM-DD ou apenas YYYY
   
       let formattedDate;

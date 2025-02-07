@@ -27,10 +27,10 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   
   function populateTimeline(data) {
-    const timeline = document.getElementById('timeline');
+    const timeline = document.getElementById('territorio');
     data.forEach(entry => {
       const timelineEntry = document.createElement('div');
-      timelineEntry.classList.add('timeline-entry');
+      timelineEntry.classList.add('territorio-entry');
       timelineEntry.dataset.year = entry.date.split('-')[0]; // Assume que a data está no formato YYYY-MM-DD ou apenas YYYY
   
       let formattedDate;
@@ -47,7 +47,6 @@ document.addEventListener('DOMContentLoaded', function () {
         <h3>${entry.title}</h3>
         <div class="image-container">
           <img src="src/images/territorio/${entry.imageUrl}" alt="${entry.altText}">
-          <p class="date">${formattedDate}</p> <!-- Exibe a data completa no formato "1º de janeiro de 1913" ou "8 de maio de 1913" -->
         </div>
         <p class="legend">${entry.altText}</p>
         <p>${entry.description}</p>
