@@ -42,6 +42,50 @@ section {
   margin-bottom: 30px; /* Aumentado o espaço entre as sections */
 }
 
+/* Global link styles */
+a {
+  color: #2e7d32; /* Verde que já é usado no site */
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #1b5e20; /* Verde um pouco mais escuro para hover */
+  text-decoration: underline;
+}
+
+a:visited {
+  color: #2e7d32; /* Mantém a mesma cor mesmo após visitado */
+}
+
+a:active {
+  color: #43a047; /* Verde um pouco mais claro quando clicado */
+}
+
+/* Exceção para links dentro do header que já têm seu próprio estilo */
+header nav ul li a {
+  color: #2e7d32;
+  font-weight: bold;
+  padding: 10px 15px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+header nav ul li a:hover {
+  background-color: #2e7d32;
+  color: #fff;
+  border-radius: 5px;
+  text-decoration: none;
+}
+
+/* Exceção para links no footer que podem precisar de contraste diferente */
+footer a {
+  color: #2e7d32;
+}
+
+footer a:hover {
+  color: #1b5e20;
+}
+
 /* Landing Page Styles */
 .landing-page {
   text-align: center;
