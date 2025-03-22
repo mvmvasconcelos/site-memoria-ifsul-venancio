@@ -6,9 +6,22 @@
     position: relative;
 }
 .territorio-header {
-    text-align: center;
+    text-align: justify;
     margin-bottom: 20px;
-  }
+    max-width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.territorio-header h1 {
+    text-align: center; /* Mantém o título centralizado */
+    margin-bottom: 20px;
+}
+
+.territorio-header p {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
 
 .territorio h2, .territorio h3 {
     padding-bottom: 20px;
