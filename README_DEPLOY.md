@@ -388,124 +388,267 @@ Após validação completa do site em https://ifva.duckdns.org/memoria/
 
 ## 🚀 Planejamento de Refatoração
 
-**Status**: Em planejamento  
-**Objetivo**: Modernizar arquitetura com backend API e banco de dados
+**Status**: Requisitos definidos (4 Mar 2026)  
+**Objetivo**: Sistema CMS completo com área administrativa
 
-### Motivação
+> 📖 Para requisitos detalhados, ver [MIGRACAO_ANALISE.md](MIGRACAO_ANALISE.md#fase-3-refatoração-completa-planejada)
 
-- Substituir CSVs por banco de dados relacional
-- Criar área administrativa funcional e segura
-- Facilitar manutenção e adição de conteúdo
-- Preparar para escalabilidade futura
-
-### Arquitetura Proposta
+### Resumo da Arquitetura
 
 ```
-┌─────────────┐
-│   Frontend  │  HTML/CSS/JS ou React/Vue
-│   (Público)  │
-└──────┬──────┘
-       │ HTTPS/REST API
-┌──────▼──────┐
-│  Backend    │  FastAPI ou Flask
-│  (API REST) │  + JWT Auth
-└──────┬──────┘
-       │ ORM (SQLAlchemy)
-┌──────▼──────┐
-│   Database  │  PostgreSQL ou SQLite
-│   (Dados)   │
-└─────────────┘
+┌───────────────────────────────────────┐
+│  Container Único Docker               │
+│  ┌─────────────────────────────────┐ │
+│  │ React/Vue Admin + Site Público  │ ││  └────────────┬────────────────────┘ │
+│               │                       │
+│  ┌────────────▼────────────────────┐ │
+│  │ Flask API (REST)                │ │
+│  │ - CRUD Pages/Timeline/Cards     │ │
+│  │ - Auth (Session)                │ │
+│  │ - Upload imagens                │ │
+│  └────────────┬────────────────────┘ │
+│               │                       │
+│  ┌────────────▼────────────────────┐ │
+│  │ SQLite (arquivo .db)            │ │
+│  │ - Versionamento de conteúdo     │ │
+│  └─────────────────────────────────┘ │
+└───────────────────────────────────────┘
 ```
 
-### Stack Tecnológica Recomendada
+### Stack Tecnológica
 
-#### Backend
-- **FastAPI** (preferencial) ou **Flask**
-  - FastAPI: performance, validação automática, docs Swagger
-  - Flask: simplicidade, familiaridade
-- **SQLAlchemy**: ORM poderoso e flexível
-- **Pydantic**: Validação de dados
-- **JWT**: Autenticação stateless
-- **Alembic**: Migrations de banco
+| Camada | Tecnologia | Justificativa |
+|--------|------------|---------------|
+| **Frontend Admin** | React Admin ou Vue Admin | Framework pronto, desenvolvimento rápido |
+| **Frontend Público** | React/Vue | Adapta design atual, consume API |
+| **Backend** | Flask | Simples, familiar, Python |
+| **ORM** | SQLAlchemy | Padrão Python, migrations com Alembic |
+| **Banco** | SQLite | Arquivo único, backup fácil, suficiente para o caso |
+| **Editor** | TinyMCE ou CKEditor | WYSIWYG visual e intuitivo |
+| **Container** | Docker (único) | Simplicidade no deploy |
 
-#### Banco de Dados
-- **PostgreSQL**: Produção robusta, escalável
-- **SQLite**: Desenvolvimento e POC rápido
+### Funcionalidades Principais
 
-#### Frontend Admin
-- **React Admin** ou **Vue + Vuetify**
-- **HTML/JS puro**: Opção mais simples
+#### ✅ Páginas Editáveis
+- Timeline (linha do tempo)
+- Território (transformações territoriais)
+- Campus
+- Trabalhos (galeria)
+- Catalogação
+- Home (textos principais)
+- **Contact permanece estática**
 
-#### DevOps
-- **Docker Compose**: Orquestração multi-container
-- **GitHub Actions**: CI/CD
-- **Pytest**: Testes automatizados
+#### ✅ Tipos de Conteúdo
+1. **Timeline**: Tabela de eventos (título, data, imagem, fonte)
+2. **Cards**: Cards com imagem/texto + editor WYSIWYG
+3. **Galeria**: Grid de imagens com legenda
+4. **Lista**: Cards estruturados
 
-### Fases da Refatoração
+#### ✅ Área Administrativa
+- **Autenticação**: Usuário único no banco
+- **CRUD Páginas**: Criar, editar, deletar, reordenar
+- **CRUD Conteúdo**: Gerenciar timeline, cards, galeria
+- **Editor WYSIWYG**: TinyMCE/CKEditor para textos ricos
+- **Upload Imagens**: Interface drag-drop, validação
+- **Menu Editável**: Adicionar/remover/reordenar itens
+- **Drag and Drop**: Reordenação visual de itens
+- **Versionamento**: Histórico de alterações, restauração
 
-#### Fase 1: Design e Preparação
-- [ ] Definir schema do banco de dados
-- [ ] Criar diagramas ER
-- [ ] Definir endpoints da API
-- [ ] Documentar especificação OpenAPI
-- [ ] Definir estratégia de migração de dados
+#### ✅ URLs Limpas
+- `/territorio` ao invés de `/territorio.html`
+- Roteamento pelo backend Flask
 
-#### Fase 2: Backend API (MVP)
-- [ ] Setup projeto FastAPI/Flask
-- [ ] Configurar SQLAlchemy e models
-- [ ] Implementar migrations (Alembic)
-- [ ] Migrar dados CSV → Banco
-- [ ] Endpoints CRUD básicos:
-  - `/api/timeline` - Eventos da linha do tempo
-  - `/api/campus` - Dados do campus
-  - `/api/territorio` - Transformações territoriais
-- [ ] Autenticação JWT
-- [ ] Documentação Swagger
+### Schema do Banco (Resumido)
 
-#### Fase 3: Área Administrativa
-- [ ] Interface de login
-- [ ] Dashboard
-- [ ] CRUD timeline events
-- [ ] CRUD campus data
-- [ ] CRUD territorio data
+```sql
+user              -- Admin único
+page              -- Páginas do site (slug, title, type, menu_order)
+timeline_item     -- Eventos históricos (title*, date*, image, source)
+card_item         -- Cards com texto/imagem (title, description, image)
+gallery_item      -- Imagens da galeria (title, caption, image_path)
+menu_item         -- Itens do menu (label, url, order_index, is_visible)
+content_history   -- Auditoria/versionamento (entity, action, old/new data)
+```
+
+\* Campos obrigatórios
+
+### API REST (Endpoints Principais)
+
+```
+Auth:      POST /api/auth/login, /logout, GET /me
+Pages:     GET|POST|PUT|DELETE /api/pages, PUT /api/pages/reorder
+Timeline:  GET|POST|PUT|DELETE /api/timeline, PUT /api/timeline/reorder
+Cards:     GET|POST|PUT|DELETE /api/cards
+Gallery:   GET|POST|DELETE /api/gallery
+Menu:      GET|PUT /api/menu, PUT /api/menu/reorder
+Upload:    POST /api/upload
+History:   GET /api/history/:type/:id, POST /api/history/restore/:id
+```
+
+### MVP (Prioridade)
+
+**Fase 1 - Essencial** (3-4 semanas)
+- [x] Definir requisitos
+- [ ] Setup Flask + SQLite + SQLAlchemy
+- [ ] Autenticação (login/logout/session)
+- [ ] CRUD Timeline (API + Admin)
+- [ ] CRUD Cards/Páginas (API + Admin + WYSIWYG)
 - [ ] Upload de imagens
-- [ ] Preview antes de salvar
 
-#### Fase 4: Integração Frontend
-- [ ] Adaptar frontend para consumir API
-- [ ] Manter compatibilidade visual
-- [ ] Loading states
-- [ ] Error handling
-- [ ] Otimizações de performance
+**Fase 2 - Importante** (2-3 semanas)
+- [ ] Drag and drop (timeline, cards, menu)
+- [ ] Gerenciamento de menu
+- [ ] Frontend público consumindo API
+- [ ] Migração de dados CSV → SQLite
 
-#### Fase 5: Testes e Deploy
-- [ ] Testes unitários (backend)
-- [ ] Testes de integração
-- [ ] Testes E2E (admin)
-- [ ] Deploy em ambiente de staging
-- [ ] Testes de carga
-- [ ] Deploy em produção
-- [ ] Monitoramento
+**Fase 3 - Desejável** (1-2 semanas)
+- [ ] Versionamento e histórico
+- [ ] Backup automático diário
+- [ ] Preview antes de publicar
+- [ ] Busca/filtros
 
-### Estimativa de Esforço
+**Total estimado**: 8-12 semanas
 
-| Fase | Descrição | Tempo Estimado | Prioridade |
-|------|-----------|----------------|------------|
-| Fase 1 | Design e Preparação | 1-2 semanas | Alta |
-| Fase 2 | Backend API MVP | 3-4 semanas | Alta |
-| Fase 3 | Área Admin | 2-3 semanas | Média |
-| Fase 4 | Integração Frontend | 1-2 semanas | Média |
-| Fase 5 | Testes e Deploy | 1-2 semanas | Alta |
-| **Total** | | **8-13 semanas** | |
+### Roadmap de Implementação
+
+#### Etapa 1: Setup do Projeto
+```bash
+# Criar branch
+git checkout -b refatoracao-cms
+
+# Estrutura
+mkdir -p backend/{app/routes,migrations,uploads}
+mkdir -p frontend/{public,src/{admin,site,api}}
+mkdir -p database/backups
+```
+
+#### Etapa 2: Backend Base
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate
+pip install flask sqlalchemy alembic flask-cors flask-jwt-extended
+
+# Criar models, routes, migrations
+alembic init migrations
+alembic revision --autogenerate -m "Initial schema"
+alembic upgrade head
+```
+
+#### Etapa 3: Frontend Admin
+```bash
+cd frontend
+
+# Opção A: React Admin
+npx create-react-app . --template typescript
+npm install react-admin ra-data-simple-rest
+
+# Opção B: Vue Admin (alternativa)
+npm create vue@latest
+npm install vuetify
+```
+
+#### Etapa 4: Integração e Migração de Dados
+```python
+# Script para migrar CSVs
+python scripts/migrate_csv_to_db.py
+
+# Testar endpoints
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"senha"}'
+```
+
+#### Etapa 5: Container Único
+```dockerfile
+# Dockerfile multi-stage
+FROM node:20-alpine AS frontend-build
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
+FROM python:3.11-alpine
+WORKDIR /app
+COPY backend/requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+COPY backend/ ./backend/
+COPY --from=frontend-build /app/frontend/dist ./frontend/dist
+EXPOSE 5000
+CMD ["python", "backend/run.py"]
+```
+
+```yaml
+# docker-compose.yml
+services:
+  memoria-cms:
+    build: .
+    ports:
+      - "8092:5000"
+    volumes:
+      - ./database:/app/database
+      - ./backend/uploads:/app/backend/uploads
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY}
+    restart: unless-stopped
+```
+
+### Migração de Dados
+
+#### CSVs Atuais
+- `src/campus.csv` (2KB, ~10 itens)
+- `src/territorio.csv` (689B, ~3 itens)
+- `src/timeline.csv` (7KB, ~30 eventos)
+
+#### Script de Migração
+```python
+# scripts/migrate_csv_to_db.py
+import csv
+from app import db
+from app.models import Page, TimelineItem, CardItem
+
+def migrate_timeline():
+    page = Page.query.filter_by(slug='timeline').first()
+    with open('src/timeline.csv', 'r') as f:
+        reader = csv.DictReader(f)
+        for idx, row in enumerate(reader):
+            item = TimelineItem(
+                page_id=page.id,
+                title=row['titulo'],
+                date=row['data'],
+                image_path=row.get('imagem'),
+                source=row.get('fonte'),
+                order_index=idx
+            )
+            db.session.add(item)
+    db.session.commit()
+
+# Similar para campus.csv e territorio.csv
+```
 
 ### Riscos e Mitigações
 
-| Risco | Impacto | Probabilidade | Mitigação |
-|-------|---------|---------------|-----------|
-| Perda de dados na migração | Alto | Baixa | Múltiplos backups, testes |
-| Downtime durante deploy | Médio | Média | Blue-green deployment |
-| Bugs no backend | Médio | Média | Testes automatizados |
-| Mudanças de escopo | Alto | Alta | Definir MVP claro |
+| Risco | Mitigação |
+|-------|-----------|
+| Complexidade do editor WYSIWYG | Usar biblioteca pronta (TinyMCE), testar antes |
+| Perda de dados na migração | Múltiplos backups, ambiente de staging |
+| Performance com imagens grandes | Validar tamanho no upload (max 5MB), comprimir |
+| Container único muito pesado | Monitorar recursos, separar se necessário |
+| Downtime durante deploy | Blue-green deployment ou manutenção programada |
+
+### Checklist Pré-Desenvolvimento
+
+- [x] Requisitos funcionais definidos
+- [x] Arquitetura validada (1 container)
+- [x] Stack tecnológica escolhida
+- [x] Schema do banco desenhado
+- [x] API endpoints mapeados
+- [x] Documentação atualizada
+- [ ] Criar issues/tasks no GitHub
+- [ ] Setup ambiente de desenvolvimento
+- [ ] Protótipo de tela (Figma/wireframe)?
 
 ---
 

@@ -420,34 +420,382 @@ git merge migracao-servidor-docker
 git push origin master
 ```
 
-### Fase 3: Refatoração (Planejada)
+### Fase 3: Refatoração Completa (Planejada)
 
-#### 3.1 Backend e Banco de Dados
-- [ ] Escolher tecnologia (SQLite vs PostgreSQL)
-- [ ] Criar schema do banco de dados
-- [ ] Migrar dados dos CSVs
-- [ ] Criar API REST (Flask ou FastAPI)
-  - Endpoints CRUD para timeline
-  - Endpoints CRUD para campus
-  - Endpoints CRUD para território
-  - Autenticação JWT
-  - Documentação Swagger/OpenAPI
+> **Status**: Requisitos definidos em 4 de Março de 2026  
+> **Objetivo**: Sistema CMS completo para gerenciar todo o conteúdo do site
 
-#### 3.2 Nova Área Administrativa
-- [ ] Interface de login segura
-- [ ] Dashboard administrativo
-- [ ] CRUD de eventos da timeline
-- [ ] CRUD de dados do campus
-- [ ] CRUD de transformações territoriais
-- [ ] Upload de imagens
-- [ ] Gestão de usuários
-- [ ] Logs de auditoria
+---
 
-#### 3.3 Frontend (Opcional)
-- [ ] Avaliar migração para framework moderno (React, Vue, etc.)
-- [ ] Ou manter HTML/JS consumindo API REST
-- [ ] Melhorias de UX/UI
-- [ ] Progressive Web App (PWA)?
+#### 📋 Requisitos Funcionais Detalhados
+
+##### 🔐 Autenticação
+- **Usuário único** (apenas um administrador)
+- Login simples: usuário e senha armazenados no banco SQLite
+- Não haverá multi-usuários ou diferentes níveis de permissão
+
+##### 📄 Gerenciamento de Páginas
+- **CRUD completo de páginas**
+  - Criar novas páginas
+  - Editar páginas existentes
+  - Excluir páginas
+  - Reordenar páginas (drag and drop)
+- **Páginas editáveis**:
+  - ✅ `index.html` - tela inicial (apenas textos principais, mantém estrutura)
+  - ✅ `timeline.html` - linha do tempo
+  - ✅ `territorio.html` - transformações territoriais
+  - ✅ `campus.html` - campus
+  - ✅ `trabalhos.html` - trabalhos acadêmicos
+  - ✅ `catalogacao.html` - catalogação
+  - ❌ `contact.html` - continua estática
+- **Páginas sem extensão**: URLs limpas (`/territorio` ao invés de `/territorio.html`)
+
+##### 🎨 Tipos de Conteúdo
+
+**1. Timeline (Linha do Tempo)**
+- Tabela com lista de eventos
+- Campos por item:
+  - ✅ **Título** (obrigatório)
+  - ✅ **Data** (obrigatório)
+  - ⭕ Imagem (opcional)
+  - ⭕ Fonte (opcional)
+- Botões editar/excluir em cada linha
+- **Drag and drop** para reordenar itens
+- Ordenação customizável pelo admin
+
+**2. Cards com Imagem/Texto** (estilo territorio.html)
+- Para páginas como território, campus
+- Campos por card:
+  - Título
+  - Texto/Descrição (com editor WYSIWYG)
+  - Imagem
+- Editor de texto rico (WYSIWYG)
+
+**3. Galeria de Imagens** (trabalhos.html)
+- Grid de imagens
+- Upload múltiplo
+- Título/legenda por imagem
+
+**4. Lista/Cards de Itens** (catalogacao.html)
+- Cards com informações estruturadas
+- Campos customizáveis
+
+##### ✏️ Editor de Conteúdo
+- **Editor WYSIWYG** (TinyMCE ou CKEditor)
+- Recursos necessários:
+  - Negrito, itálico, sublinhado
+  - Listas (ordenadas e não-ordenadas)
+  - Links
+  - Inserir imagens
+  - Títulos/subtítulos
+  - Alinhamento
+
+##### 🖼️ Gerenciamento de Imagens
+- **Upload via interface admin**
+- **Armazenamento no filesystem** (pasta `uploads/` ou similar)
+- Validação de tipo (PNG, JPG, etc.)
+- Limite de tamanho (ex: 5MB)
+
+##### 🧭 Menu de Navegação
+- **Editável pelo admin**
+- Funcionalidades:
+  - Adicionar/remover itens do menu
+  - Reordenar itens (drag and drop)
+  - Definir título exibido
+  - Definir visibilidade (mostrar/ocultar)
+  - Link para páginas internas
+
+##### 📦 Versionamento e Backup
+- **Histórico de alterações**
+- Rastrear quem editou e quando
+- Possibilidade de restaurar versões anteriores
+- Backup automático do banco SQLite
+
+---
+
+#### 🏗️ Arquitetura Técnica
+
+##### Stack Tecnológica Definida
+```
+┌──────────────────────────────────────┐
+│    CONTAINER ÚNICO (Docker)          │
+│                                      │
+│  ┌────────────────────────────────┐ │
+│  │  Frontend (React Admin/Vue)    │ │
+│  │  - Área pública                │ │
+│  │  - Área administrativa         │ │
+│  └────────────┬───────────────────┘ │
+│               │ HTTP/REST API       │
+│  ┌────────────▼───────────────────┐ │
+│  │  Backend (Flask)               │ │
+│  │  - API REST                    │ │
+│  │  - Autenticação Session/JWT    │ │
+│  │  - Upload de arquivos          │ │
+│  └────────────┬───────────────────┘ │
+│               │ SQLAlchemy ORM      │
+│  ┌────────────▼───────────────────┐ │
+│  │  Banco de Dados (SQLite)       │ │
+│  │  - arquivo .db no volume       │ │
+│  └────────────────────────────────┘ │
+│                                      │
+└──────────────────────────────────────┘
+         │
+         │ Porta 8092
+         ▼
+┌──────────────────────────────────────┐
+│    Nginx Reverse Proxy (Host)        │
+│    - SSL/HTTPS (Let's Encrypt)       │
+│    - Proxy para o container          │
+└──────────────────────────────────────┘
+```
+
+##### Tecnologias
+- **Backend**: Flask (Python)
+- **Frontend Admin**: React Admin ou Vue Admin
+- **Frontend Público**: React/Vue (adaptando design atual)
+- **Banco de Dados**: SQLite (arquivo único, fácil backup)
+- **ORM**: SQLAlchemy
+- **Editor WYSIWYG**: TinyMCE ou CKEditor
+- **Deploy**: 1 container Docker (tudo junto)
+
+##### Estrutura do Banco de Dados (Schema Proposto)
+
+```sql
+-- Usuário admin
+CREATE TABLE user (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Páginas do site
+CREATE TABLE page (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug TEXT UNIQUE NOT NULL,          -- 'timeline', 'territorio', etc
+    title TEXT NOT NULL,                -- título exibido
+    type TEXT NOT NULL,                 -- 'timeline', 'cards', 'gallery', 'list'
+    content TEXT,                       -- conteúdo geral (JSON ou HTML)
+    is_visible BOOLEAN DEFAULT 1,       -- visível no menu?
+    menu_order INTEGER DEFAULT 0,       -- ordem no menu
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Itens de timeline (eventos históricos)
+CREATE TABLE timeline_item (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    page_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    date TEXT NOT NULL,                 -- ou DATE type
+    image_path TEXT,
+    source TEXT,
+    order_index INTEGER DEFAULT 0,      -- para drag and drop
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (page_id) REFERENCES page(id) ON DELETE CASCADE
+);
+
+-- Cards (para território, campus, etc)
+CREATE TABLE card_item (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    page_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,                   -- HTML do editor WYSIWYG
+    image_path TEXT,
+    order_index INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (page_id) REFERENCES page(id) ON DELETE CASCADE
+);
+
+-- Galeria de imagens (para trabalhos)
+CREATE TABLE gallery_item (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    page_id INTEGER NOT NULL,
+    title TEXT,
+    caption TEXT,
+    image_path TEXT NOT NULL,
+    order_index INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (page_id) REFERENCES page(id) ON DELETE CASCADE
+);
+
+-- Menu de navegação
+CREATE TABLE menu_item (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    page_id INTEGER,                    -- pode ser NULL para links externos
+    label TEXT NOT NULL,
+    url TEXT,                           -- URL customizada (ex: /contact)
+    is_visible BOOLEAN DEFAULT 1,
+    order_index INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (page_id) REFERENCES page(id) ON DELETE SET NULL
+);
+
+-- Histórico de alterações (audit log)
+CREATE TABLE content_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    entity_type TEXT NOT NULL,          -- 'page', 'timeline_item', 'card_item', etc
+    entity_id INTEGER NOT NULL,
+    action TEXT NOT NULL,               -- 'create', 'update', 'delete'
+    old_data TEXT,                      -- JSON do estado anterior
+    new_data TEXT,                      -- JSON do estado novo
+    user_id INTEGER NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);
+```
+
+##### API REST (Endpoints Principais)
+
+```
+Autenticação
+POST   /api/auth/login          - Login
+POST   /api/auth/logout         - Logout
+GET    /api/auth/me             - Dados do usuário logado
+
+Páginas
+GET    /api/pages               - Listar todas páginas
+GET    /api/pages/:slug         - Obter página específica
+POST   /api/pages               - Criar página
+PUT    /api/pages/:id           - Atualizar página
+DELETE /api/pages/:id           - Deletar página
+PUT    /api/pages/reorder       - Reordenar páginas
+
+Timeline
+GET    /api/timeline/:page_id   - Listar itens
+POST   /api/timeline            - Criar item
+PUT    /api/timeline/:id        - Atualizar item
+DELETE /api/timeline/:id        - Deletar item
+PUT    /api/timeline/reorder    - Reordenar itens (drag and drop)
+
+Cards
+GET    /api/cards/:page_id      - Listar cards
+POST   /api/cards               - Criar card
+PUT    /api/cards/:id           - Atualizar card
+DELETE /api/cards/:id           - Deletar card
+
+Galeria
+GET    /api/gallery/:page_id    - Listar imagens
+POST   /api/gallery             - Upload imagem
+DELETE /api/gallery/:id         - Deletar imagem
+
+Menu
+GET    /api/menu                - Obter estrutura do menu
+PUT    /api/menu                - Atualizar menu completo
+PUT    /api/menu/reorder        - Reordenar itens
+
+Upload
+POST   /api/upload              - Upload de imagem/arquivo
+
+Histórico
+GET    /api/history/:entity_type/:entity_id  - Histórico de um item
+POST   /api/history/restore/:id              - Restaurar versão anterior
+```
+
+---
+
+#### 🎯 MVP (Mínimo Produto Viável)
+
+##### Prioridade 1 - Essencial
+- [x] Definir requisitos (CONCLUÍDO)
+- [ ] Setup do projeto Flask
+- [ ] Criar schema do banco SQLite
+- [ ] **Autenticação básica**
+  - Login/logout
+  - Session management
+  - Proteção de rotas admin
+- [ ] **CRUD Timeline**
+  - Endpoints API completos
+  - Interface admin para gerenciar eventos
+  - Migrar dados do CSV atual
+- [ ] **CRUD Cards/Páginas**
+  - Editor WYSIWYG integrado (TinyMCE)
+  - Upload de imagens
+  - Sistema de páginas básico
+
+##### Prioridade 2 - Importante
+- [ ] **Drag and drop** para reordenação
+  - Timeline items
+  - Cards
+  - Menu items
+- [ ] **Gerenciamento de menu**
+  - Adicionar/remover itens
+  - Visibilidade
+  - Ordenação
+- [ ] Frontend público consumindo API
+
+##### Prioridade 3 - Desejável
+- [ ] Versionamento e histórico
+- [ ] Backup automático
+- [ ] Galeria de imagens
+- [ ] Busca/filtros na admin
+- [ ] Preview antes de publicar
+
+---
+
+#### 📦 Estrutura do Projeto (Sugestão)
+
+```
+site-memoria-ifsul-venancio/
+├── backend/                    # Flask API
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── models.py          # SQLAlchemy models
+│   │   ├── routes/
+│   │   │   ├── auth.py
+│   │   │   ├── pages.py
+│   │   │   ├── timeline.py
+│   │   │   ├── cards.py
+│   │   │   └── upload.py
+│   │   ├── schemas.py         # Pydantic validation
+│   │   └── database.py        # DB config
+│   ├── migrations/            # Alembic migrations
+│   ├── uploads/               # Imagens uploadadas
+│   ├── requirements.txt
+│   └── run.py
+│
+├── frontend/                   # React/Vue Admin + Público
+│   ├── public/                # Assets públicos
+│   ├── src/
+│   │   ├── admin/             # Área administrativa
+│   │   │   ├── pages/
+│   │   │   ├── components/
+│   │   │   └── App.jsx
+│   │   ├── site/              # Site público
+│   │   │   ├── pages/
+│   │   │   └── components/
+│   │   └── api/               # Cliente API
+│   ├── package.json
+│   └── vite.config.js
+│
+├── database/                   # SQLite database
+│   ├── memoria.db
+│   └── backups/
+│
+├── Dockerfile                  # Build único
+├── docker-compose.yml
+├── nginx/
+│   └── nginx.conf
+└── README_REFATORACAO.md       # Doc técnica detalhada
+```
+
+---
+
+#### ⏱️ Estimativa de Desenvolvimento
+
+| Fase | Descrição | Tempo | Status |
+|------|-----------|-------|--------|
+| **Planejamento** | Requisitos e arquitetura | 1 semana | ✅ Concluído |
+| **Setup** | Projeto Flask + DB + Migrations | 3-5 dias | ⏸️ Aguardando |
+| **Backend MVP** | Auth + CRUD Timeline + Cards | 2-3 semanas | ⏸️ Aguardando |
+| **Frontend Admin** | React Admin / Vue Admin setup | 2-3 semanas | ⏸️ Aguardando |
+| **Integração** | Frontend público + API | 1-2 semanas | ⏸️ Aguardando |
+| **Features Extras** | Drag-drop, menu, histórico | 1-2 semanas | ⏸️ Aguardando |
+| **Testes** | QA, ajustes, bugs | 1 semana | ⏸️ Aguardando |
+| **Deploy** | Container unificado + produção | 2-3 dias | ⏸️ Aguardando |
+| **Total** | | **8-12 semanas** | |
 - [ ] Otimizações de performance
 
 #### 3.4 Infraestrutura
