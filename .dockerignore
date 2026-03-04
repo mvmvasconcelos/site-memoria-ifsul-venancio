@@ -1,0 +1,65 @@
+# .dockerignore - Site Memória IFSul Venâncio Aires
+# Arquivos e diretórios ignorados no build Docker
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+app.py
+*.pyc
+
+# Documentação e análises
+*.md
+!README.md
+MIGRACAO_ANALISE.md
+ADMIN_README.md
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Logs
+*.log
+logs/
+
+# Arquivos temporários
+*.tmp
+*.bak
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-*
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Cache
+.cache/
+*.cache
+
+# Build artifacts
+dist/
+build/
+
+# Secrets (extra cautela)
+.env
+*.key
+*.pem
+secrets/
