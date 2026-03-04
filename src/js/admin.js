@@ -11,7 +11,7 @@ const CONFIG = {
   // GitHub Configuration
   GITHUB_OWNER: 'MVMVASCONCELOS',
   GITHUB_REPO: 'site-memoria-ifsul-venancio',
-  GITHUB_TOKEN: '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',
+  GITHUB_TOKEN: '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',
   GITHUB_BRANCH: 'main',
   
   // File Paths
