@@ -4,7 +4,30 @@
 
 [![Status](https://img.shields.io/badge/status-active-success.svg)]()
 [![Version](https://img.shields.io/badge/version-2.0-blue.svg)]()
+[![Deploy](https://img.shields.io/badge/deploy-subpath-yellow.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
+
+---
+
+## 🎯 Status Atual
+
+**Ambiente**: Servidor IFVA (Docker)  
+**URL Atual**: https://ifva.duckdns.org/memoria/  
+**URL Futura**: https://memoriaifsulvenancio.com.br  
+**Branch Ativa**: `migracao-servidor-docker`  
+**Última Atualização**: 4 de março de 2026
+
+### ✅ Implementado
+- Container Docker rodando (porta 8092)
+- Nginx proxy reverso configurado
+- SSL/HTTPS ativo
+- Site 100% funcional em subpath
+- Área admin desabilitada (segurança)
+
+### ⏯️ Pendente
+- Migração DNS para domínio próprio
+- Merge para branch master
+- Refatoração com backend API
 
 ---
 
@@ -14,7 +37,8 @@ Este site é oriundo da Pesquisa de Mestrado ProfEPT, intitulada: **IMPLANTAÇÃ
 
 O objetivo é resgatar a memória e a história da implantação do câmpus do Instituto Federal de Educação, Ciência e Tecnologia do Rio Grande do Sul, no município de Venâncio Aires, desde o período anterior à sua implantação em 2005 até a inauguração em 2012.
 
-**Acesso**: [https://memoriaifsulvenancio.com.br](https://memoriaifsulvenancio.com.br)
+**Acesso Atual**: [https://ifva.duckdns.org/memoria/](https://ifva.duckdns.org/memoria/)  
+**Acesso Futuro**: [https://memoriaifsulvenancio.com.br](https://memoriaifsulvenancio.com.br)
 
 ---
 
@@ -304,6 +328,184 @@ sudo certbot certificates
 # Testar configuração Nginx
 sudo nginx -t
 ```
+
+---
+
+## 🔄 Migração para Domínio Próprio
+
+**Status**: Planejado (aguardando período de testes)
+
+### Quando Executar
+
+Após validação completa do site em https://ifva.duckdns.org/memoria/
+
+### Checklist de Migração
+
+- [ ] **1. Backup completo**
+  ```bash
+  docker-compose stop
+  tar -czf backup-pre-migracao.tar.gz /home/ifsul/projects/site-memoria-ifsul-venancio
+  ```
+
+- [ ] **2. Alterar DNS no Registro.br**
+  - Remover registros A atuais (185.199.x.x)
+  - Remover registros AAAA (IPv6)
+  - Remover CNAME do www
+  - Adicionar:
+    - `Tipo: A | Nome: @ | Valor: 200.132.86.251`
+    - `Tipo: A | Nome: www | Valor: 200.132.86.251`
+
+- [ ] **3. Aguardar propagação DNS (1-4 horas)**
+  ```bash
+  # Testar propagação
+  nslookup memoriaifsulvenancio.com.br
+  dig memoriaifsulvenancio.com.br
+  ```
+
+- [ ] **4. Reconfigurar Nginx**
+  ```bash
+  sudo ./nginx/setup-nginx.sh  # sem --subpath
+  ```
+
+- [ ] **5. Gerar certificado SSL**
+  ```bash
+  sudo certbot --nginx -d memoriaifsulvenancio.com.br -d www.memoriaifsulvenancio.com.br
+  ```
+
+- [ ] **6. Testar domínio**
+  ```bash
+  curl -I https://memoriaifsulvenancio.com.br
+  ```
+
+- [ ] **7. Merge para master**
+  ```bash
+  git checkout master
+  git merge migracao-servidor-docker
+  git push origin master
+  ```
+
+---
+
+## 🚀 Planejamento de Refatoração
+
+**Status**: Em planejamento  
+**Objetivo**: Modernizar arquitetura com backend API e banco de dados
+
+### Motivação
+
+- Substituir CSVs por banco de dados relacional
+- Criar área administrativa funcional e segura
+- Facilitar manutenção e adição de conteúdo
+- Preparar para escalabilidade futura
+
+### Arquitetura Proposta
+
+```
+┌─────────────┐
+│   Frontend  │  HTML/CSS/JS ou React/Vue
+│   (Público)  │
+└──────┬──────┘
+       │ HTTPS/REST API
+┌──────▼──────┐
+│  Backend    │  FastAPI ou Flask
+│  (API REST) │  + JWT Auth
+└──────┬──────┘
+       │ ORM (SQLAlchemy)
+┌──────▼──────┐
+│   Database  │  PostgreSQL ou SQLite
+│   (Dados)   │
+└─────────────┘
+```
+
+### Stack Tecnológica Recomendada
+
+#### Backend
+- **FastAPI** (preferencial) ou **Flask**
+  - FastAPI: performance, validação automática, docs Swagger
+  - Flask: simplicidade, familiaridade
+- **SQLAlchemy**: ORM poderoso e flexível
+- **Pydantic**: Validação de dados
+- **JWT**: Autenticação stateless
+- **Alembic**: Migrations de banco
+
+#### Banco de Dados
+- **PostgreSQL**: Produção robusta, escalável
+- **SQLite**: Desenvolvimento e POC rápido
+
+#### Frontend Admin
+- **React Admin** ou **Vue + Vuetify**
+- **HTML/JS puro**: Opção mais simples
+
+#### DevOps
+- **Docker Compose**: Orquestração multi-container
+- **GitHub Actions**: CI/CD
+- **Pytest**: Testes automatizados
+
+### Fases da Refatoração
+
+#### Fase 1: Design e Preparação
+- [ ] Definir schema do banco de dados
+- [ ] Criar diagramas ER
+- [ ] Definir endpoints da API
+- [ ] Documentar especificação OpenAPI
+- [ ] Definir estratégia de migração de dados
+
+#### Fase 2: Backend API (MVP)
+- [ ] Setup projeto FastAPI/Flask
+- [ ] Configurar SQLAlchemy e models
+- [ ] Implementar migrations (Alembic)
+- [ ] Migrar dados CSV → Banco
+- [ ] Endpoints CRUD básicos:
+  - `/api/timeline` - Eventos da linha do tempo
+  - `/api/campus` - Dados do campus
+  - `/api/territorio` - Transformações territoriais
+- [ ] Autenticação JWT
+- [ ] Documentação Swagger
+
+#### Fase 3: Área Administrativa
+- [ ] Interface de login
+- [ ] Dashboard
+- [ ] CRUD timeline events
+- [ ] CRUD campus data
+- [ ] CRUD territorio data
+- [ ] Upload de imagens
+- [ ] Preview antes de salvar
+
+#### Fase 4: Integração Frontend
+- [ ] Adaptar frontend para consumir API
+- [ ] Manter compatibilidade visual
+- [ ] Loading states
+- [ ] Error handling
+- [ ] Otimizações de performance
+
+#### Fase 5: Testes e Deploy
+- [ ] Testes unitários (backend)
+- [ ] Testes de integração
+- [ ] Testes E2E (admin)
+- [ ] Deploy em ambiente de staging
+- [ ] Testes de carga
+- [ ] Deploy em produção
+- [ ] Monitoramento
+
+### Estimativa de Esforço
+
+| Fase | Descrição | Tempo Estimado | Prioridade |
+|------|-----------|----------------|------------|
+| Fase 1 | Design e Preparação | 1-2 semanas | Alta |
+| Fase 2 | Backend API MVP | 3-4 semanas | Alta |
+| Fase 3 | Área Admin | 2-3 semanas | Média |
+| Fase 4 | Integração Frontend | 1-2 semanas | Média |
+| Fase 5 | Testes e Deploy | 1-2 semanas | Alta |
+| **Total** | | **8-13 semanas** | |
+
+### Riscos e Mitigações
+
+| Risco | Impacto | Probabilidade | Mitigação |
+|-------|---------|---------------|-----------|
+| Perda de dados na migração | Alto | Baixa | Múltiplos backups, testes |
+| Downtime durante deploy | Médio | Média | Blue-green deployment |
+| Bugs no backend | Médio | Média | Testes automatizados |
+| Mudanças de escopo | Alto | Alta | Definir MVP claro |
 
 ---
 
