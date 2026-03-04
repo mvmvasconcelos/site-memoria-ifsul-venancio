@@ -12,7 +12,7 @@ const CONFIG = {
   GITHUB_OWNER: 'MVMVASCONCELOS',
   GITHUB_REPO: 'site-memoria-ifsul-venancio',
   GITHUB_TOKEN: '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',
-  GITHUB_BRANCH: 'main',
+  GITHUB_BRANCH: 'master',
   
   // File Paths
   CSV_PATH: 'src/timeline.csv',
