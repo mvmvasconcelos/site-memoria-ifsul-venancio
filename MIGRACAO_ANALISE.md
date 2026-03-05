@@ -881,14 +881,16 @@ site-memoria-ifsul-venancio/
 
 ### 🧪 Checklist de Homologação MVP
 
-- [ ] Login no admin com `admin / ifsul2025`
-- [ ] CRUD da timeline (criar, editar, excluir)
-- [ ] Upload e vínculo de imagem na timeline
-- [ ] Edição e salvamento do menu
-- [ ] Edição de conteúdo das páginas `trabalhos` e `catalogacao`
-- [ ] CRUD da galeria de trabalhos (incluindo upload e ordenação)
-- [ ] Consulta de histórico e teste de restauração por registro
-- [ ] Validação pública das páginas em `https://ifva.duckdns.org/memoria/`
+- [x] Login no admin com `admin / ifsul2025`
+- [x] CRUD da timeline (criar, editar, excluir)
+- [x] Upload e vínculo de imagem na timeline
+- [x] Edição e salvamento do menu
+- [x] Edição de conteúdo das páginas `trabalhos` e `catalogacao`
+- [x] CRUD da galeria de trabalhos (incluindo upload e ordenação)
+- [x] Consulta de histórico e teste de restauração por registro
+- [x] Validação pública das páginas em `https://ifva.duckdns.org/memoria/`
+
+> Homologação MVP executada tecnicamente via API remota (05/03/2026), incluindo fluxos autenticados e operações temporárias de create/delete para validação sem impacto permanente.
 
 - [ ] Otimizações de performance
 
