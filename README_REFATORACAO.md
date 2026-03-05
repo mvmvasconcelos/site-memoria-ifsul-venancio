@@ -118,6 +118,29 @@ docker exec -it memoria-cms python backend/scripts/migrate_csv_to_db.py
 - `POST /api/history/<history_id>/restore` (autenticado)
 - `POST /api/upload` (multipart/form-data, até 5MB, PNG/JPG/JPEG/WEBP/GIF)
 
+## Operação crítica (prioridade alta)
+
+Sem aumentar complexidade de segurança, estes são os comandos essenciais para evitar indisponibilidade/perda de conteúdo:
+
+```bash
+# 1) Backup de banco + uploads
+bash scripts/backup_memoria.sh
+
+# 2) Smoke pós-deploy (site e API)
+bash scripts/smoke_memoria.sh
+
+# 3) Restauração (último backup)
+bash scripts/restore_memoria.sh latest
+```
+
+Scripts disponíveis:
+
+- `scripts/backup_memoria.sh`
+- `scripts/restore_memoria.sh`
+- `scripts/smoke_memoria.sh`
+
+Saída dos backups: pasta `backups/` na raiz do projeto.
+
 ## Próximas entregas da fase 3
 
 - Refinos de UX para gestão de galeria (pré-visualização/local upload)
