@@ -67,11 +67,40 @@ function renderDynamicMenu(items) {
     .join('');
 }
 
+function normalizeStaticMenuLinks() {
+  const navLinks = document.querySelectorAll('header nav a[href]');
+  if (!navLinks.length) {
+    return;
+  }
+
+  navLinks.forEach((link) => {
+    const href = (link.getAttribute('href') || '').trim();
+    if (!href || href.startsWith('http://') || href.startsWith('https://') || href.startsWith('#')) {
+      return;
+    }
+
+    if (href === 'index.html' || href === './' || href === '.') {
+      link.setAttribute('href', buildMenuUrl('/'));
+      return;
+    }
+
+    if (href.endsWith('.html')) {
+      const cleanSlug = href.replace(/\.html$/i, '');
+      link.setAttribute('href', buildMenuUrl(`/${cleanSlug}`));
+      return;
+    }
+
+    link.setAttribute('href', buildMenuUrl(href));
+  });
+}
+
 // Função para carregar o header e o footer
 async function loadHeaderFooter() {
   const headerResponse = await fetch(buildAssetUrl('/header.html'));
   const headerText = await headerResponse.text();
   document.getElementById('header-placeholder').innerHTML = headerText;
+
+  normalizeStaticMenuLinks();
 
   const footerResponse = await fetch(buildAssetUrl('/footer.html'));
   const footerText = await footerResponse.text();
