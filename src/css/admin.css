@@ -452,6 +452,10 @@ button {
   white-space: nowrap;
 }
 
+.history-table td:last-child {
+  white-space: normal;
+}
+
 .history-table td:nth-child(3),
 .history-table td:nth-child(5) {
   text-transform: lowercase;

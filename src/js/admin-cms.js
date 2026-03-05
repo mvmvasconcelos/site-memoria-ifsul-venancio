@@ -265,7 +265,7 @@ function renderHistoryTable() {
   if (!state.historyItems.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="5" class="no-image">Sem registros de histórico</td>
+        <td colspan="6" class="no-image">Sem registros de histórico</td>
       </tr>
     `;
     return;
@@ -280,10 +280,31 @@ function renderHistoryTable() {
         <td>${sanitize(item.entity_type || '-')}</td>
         <td>${sanitize(String(item.entity_id ?? '-'))}</td>
         <td>${sanitize(item.action || '-')}</td>
+        <td>
+          <button class="btn-secondary btn-small" data-history-action="restore" data-history-id="${item.id}">Restaurar</button>
+        </td>
       </tr>
     `
     )
     .join('');
+}
+
+async function restoreHistoryEntry(historyId) {
+  const shouldRestore = window.confirm('Deseja restaurar este registro de histórico?');
+  if (!shouldRestore) return;
+
+  try {
+    setSyncStatus('syncing', '⟳ Restaurando...');
+    const result = await apiRequest(`/api/history/${historyId}/restore`, {
+      method: 'POST',
+    });
+    showToast(result?.message || 'Restauração aplicada com sucesso.', 'success');
+    await loadAdminData();
+    setSyncStatus('synced', '✓ Restauração aplicada');
+  } catch (error) {
+    setSyncStatus('error', '⚠ Erro na restauração');
+    showToast(error.message, 'error');
+  }
 }
 
 function buildPageOptions(selectedPageId) {
@@ -1028,6 +1049,15 @@ function attachEventListeners() {
     if (!row) return;
 
     updateGalleryRowPreviewFromPath(row, target.value);
+  });
+
+  document.getElementById('historyTableBody').addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-history-action="restore"]');
+    if (!button) return;
+
+    const historyId = Number(button.dataset.historyId);
+    if (!historyId) return;
+    restoreHistoryEntry(historyId);
   });
 }
 

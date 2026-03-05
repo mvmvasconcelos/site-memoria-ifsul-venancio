@@ -845,6 +845,11 @@ site-memoria-ifsul-venancio/
   - listagem das últimas alterações de conteúdo
   - colunas: data/hora, usuário, entidade, id e ação
   - atualização manual via botão de recarga
+  - restauração básica por registro via botão `Restaurar`
+
+- Restauração backend implementada:
+  - endpoint autenticado `POST /api/history/:id/restore`
+  - suporte inicial para entidades: `timeline_item`, `card_item`, `gallery_item`, `page`
 - Header público integrado ao menu dinâmico:
   - carregamento de `GET /api/menu` em `src/js/main.js`
   - fallback para menu estático em caso de erro da API
