@@ -24,6 +24,9 @@ Este documento inicia a **fase 3** da migração: backend CMS em Flask + SQLite,
 - Fechamento do modal ao clicar fora, com alerta para alterações não salvas
 - Fechamento por tecla `Esc` com a mesma proteção de alterações não salvas
 - Gestão de menu no admin (adicionar, editar, remover, ordenar e salvar)
+- Edição de conteúdo HTML de páginas no admin:
+  - seleção de página (`trabalhos` e `catalogacao`)
+  - salvamento via `PUT /api/pages/:id` (campo `content`)
 - Header público consumindo menu dinâmico via `GET /api/menu`
 - Páginas públicas com consumo de API:
   - `timeline.html` via `/api/pages/timeline` + `/api/timeline/:page_id`

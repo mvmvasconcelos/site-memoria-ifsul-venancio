@@ -828,6 +828,9 @@ site-memoria-ifsul-venancio/
   - visibilidade (mostrar/ocultar)
   - ordenação manual (subir/descer)
   - persistência via `PUT /api/menu`
+- Interface admin para conteúdo de páginas implementada:
+  - edição de `content` para páginas `trabalhos` e `catalogacao`
+  - persistência via `PUT /api/pages/:id`
 - Header público integrado ao menu dinâmico:
   - carregamento de `GET /api/menu` em `src/js/main.js`
   - fallback para menu estático em caso de erro da API

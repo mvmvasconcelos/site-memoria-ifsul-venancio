@@ -359,6 +359,55 @@ button {
   flex-wrap: wrap;
 }
 
+.content-section .menu-actions {
+  flex-wrap: wrap;
+}
+
+.content-page-select {
+  min-width: 280px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.content-editor-wrapper {
+  background: white;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.content-editor-wrapper label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.content-editor-wrapper textarea {
+  width: 100%;
+  min-height: 280px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.content-editor-wrapper textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(44, 95, 45, 0.1);
+}
+
+.content-editor-wrapper small {
+  display: block;
+  margin-top: 8px;
+  color: #666;
+  font-size: 12px;
+}
+
 /* ========================================
    Form
    ======================================== */

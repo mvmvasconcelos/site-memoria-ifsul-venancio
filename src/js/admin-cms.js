@@ -3,6 +3,7 @@ const state = {
   events: [],
   pages: [],
   menuItems: [],
+  editablePageSlugs: ['trabalhos', 'catalogacao'],
   currentEditId: null,
   deleteId: null,
   eventFormInitialState: null,
@@ -254,6 +255,66 @@ function getPageById(pageId) {
   return state.pages.find((page) => Number(page.id) === Number(pageId));
 }
 
+function getEditablePages() {
+  return state.pages.filter((page) => state.editablePageSlugs.includes(page.slug));
+}
+
+function populateContentEditorSelect() {
+  const select = document.getElementById('pageContentPageSelect');
+  if (!select) return;
+
+  const editablePages = getEditablePages();
+  select.innerHTML = editablePages
+    .map((page) => `<option value="${page.id}">${sanitize(page.title)} (${sanitize(page.slug)})</option>`)
+    .join('');
+}
+
+function loadSelectedPageContent() {
+  const select = document.getElementById('pageContentPageSelect');
+  const textarea = document.getElementById('pageContentInput');
+  if (!select || !textarea) return;
+
+  const selectedId = Number(select.value);
+  const page = getPageById(selectedId);
+  textarea.value = page?.content || '';
+}
+
+function initializeContentEditor() {
+  populateContentEditorSelect();
+  loadSelectedPageContent();
+}
+
+async function saveSelectedPageContent() {
+  const select = document.getElementById('pageContentPageSelect');
+  const textarea = document.getElementById('pageContentInput');
+  if (!select || !textarea) return;
+
+  const selectedId = Number(select.value);
+  if (!selectedId) {
+    showToast('Selecione uma página para salvar o conteúdo.', 'error');
+    return;
+  }
+
+  try {
+    setSyncStatus('syncing', '⟳ Salvando conteúdo...');
+    const updated = await apiRequest(`/api/pages/${selectedId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ content: textarea.value }),
+    });
+
+    const index = state.pages.findIndex((page) => Number(page.id) === Number(selectedId));
+    if (index >= 0) {
+      state.pages[index] = updated;
+    }
+
+    setSyncStatus('synced', '✓ Conteúdo salvo');
+    showToast('Conteúdo da página salvo com sucesso.', 'success');
+  } catch (error) {
+    setSyncStatus('error', '⚠ Erro ao salvar conteúdo');
+    showToast(error.message, 'error');
+  }
+}
+
 function renderMenuTable() {
   const tbody = document.getElementById('menuTableBody');
   if (!tbody) return;
@@ -354,6 +415,7 @@ async function saveMenu() {
 
 async function loadAdminData() {
   await Promise.all([loadPages(), loadEvents(), loadMenu()]);
+  initializeContentEditor();
 }
 
 function renderEvents(events) {
@@ -540,6 +602,8 @@ function attachEventListeners() {
 
   document.getElementById('addMenuItemBtn').addEventListener('click', addMenuItem);
   document.getElementById('saveMenuBtn').addEventListener('click', saveMenu);
+  document.getElementById('savePageContentBtn').addEventListener('click', saveSelectedPageContent);
+  document.getElementById('pageContentPageSelect').addEventListener('change', loadSelectedPageContent);
 
   document.getElementById('menuTableBody').addEventListener('click', (event) => {
     const button = event.target.closest('button[data-menu-action]');
