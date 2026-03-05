@@ -835,6 +835,7 @@ site-memoria-ifsul-venancio/
 - Interface admin para galeria de trabalhos implementada:
   - edição inline de itens (título, imagem e legenda)
   - adicionar/remover item
+  - limpar imagem por item (com confirmação)
   - ordenação manual (subir/descer)
   - upload de imagem por item (integração com `POST /api/upload`, pasta `trabalhos`)
   - pré-visualização imediata da imagem na linha ao selecionar arquivo/caminho

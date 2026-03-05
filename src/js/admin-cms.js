@@ -366,6 +366,7 @@ function renderGalleryTable() {
         <td class="table-actions">
           <button class="btn-secondary btn-small" data-gallery-action="up">↑</button>
           <button class="btn-secondary btn-small" data-gallery-action="down">↓</button>
+          <button class="btn-secondary btn-small" data-gallery-action="clear-image">Limpar imagem</button>
           <button class="btn-danger btn-small" data-gallery-action="remove">Remover</button>
         </td>
       </tr>
@@ -413,6 +414,17 @@ function removeGalleryItem(index) {
     state.deletedGalleryIds.push(item.id);
   }
   state.galleryItems.splice(index, 1);
+  renderGalleryTable();
+}
+
+function clearGalleryItemImage(index) {
+  const item = state.galleryItems[index];
+  if (!item) return;
+
+  const shouldClear = window.confirm('Deseja remover a imagem deste item da galeria?');
+  if (!shouldClear) return;
+
+  item.image_path = '';
   renderGalleryTable();
 }
 
@@ -939,6 +951,8 @@ function attachEventListeners() {
       moveGalleryItem(index, 'up');
     } else if (action === 'down') {
       moveGalleryItem(index, 'down');
+    } else if (action === 'clear-image') {
+      clearGalleryItemImage(index);
     } else if (action === 'remove') {
       removeGalleryItem(index);
     }
