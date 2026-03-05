@@ -45,9 +45,9 @@
       <div class="admin-layout">
         <aside class="admin-sidebar">
           <button class="admin-nav-item active" data-panel-target="dashboard">Dashboard</button>
-          <button class="admin-nav-item" data-panel-target="timeline">Timeline</button>
+          <button class="admin-nav-item" data-panel-target="timeline">Linha do Tempo</button>
           <button class="admin-nav-item" data-panel-target="menu">Menu</button>
-          <button class="admin-nav-item" data-panel-target="content">Conteúdo</button>
+          <button class="admin-nav-item" data-panel-target="content">Gerenciar Páginas</button>
           <button class="admin-nav-item" data-panel-target="gallery">Galeria</button>
           <button class="admin-nav-item" data-panel-target="history">Histórico</button>
           <button class="admin-nav-item" data-panel-target="security">Segurança</button>
@@ -153,19 +153,31 @@
           <section class="admin-panel" data-panel="content">
             <section class="menu-section content-section">
               <div class="menu-section-header">
-                <h2>Conteúdo de Páginas</h2>
-                <div class="menu-actions">
-                  <select id="pageContentPageSelect" class="content-page-select"></select>
-                  <button id="savePageContentBtn" class="btn-primary">Salvar Conteúdo</button>
-                </div>
+                <h2>Gerenciar Páginas</h2>
               </div>
 
-              <div class="content-editor-wrapper">
-                <label for="pageContentInput">HTML da página selecionada</label>
+              <div class="table-container">
+                <table class="events-table page-manager-table">
+                  <thead>
+                    <tr>
+                      <th>Título</th>
+                      <th>Slug</th>
+                      <th>Tipo</th>
+                      <th>Atualizado em</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="pageManagerTableBody"></tbody>
+                </table>
+              </div>
+
+              <div class="content-editor-wrapper" id="pageEditorWrapper" style="display: none; margin-top: 14px;">
+                <label id="pageEditorTitle" for="pageContentInput">Editar página</label>
                 <textarea id="pageContentInput" placeholder="Digite o conteúdo HTML da página"></textarea>
-                <small>
-                  Páginas atuais: Trabalhos e Catalogação. O conteúdo salvo aqui é usado pelas páginas públicas via API.
-                </small>
+                <div class="form-actions">
+                  <button id="cancelPageContentBtn" type="button" class="btn-secondary">Cancelar</button>
+                  <button id="savePageContentBtn" type="button" class="btn-primary">Salvar Conteúdo</button>
+                </div>
               </div>
             </section>
           </section>

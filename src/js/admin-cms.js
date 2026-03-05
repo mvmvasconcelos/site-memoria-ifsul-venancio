@@ -12,12 +12,21 @@ const state = {
   },
   galleryItems: [],
   deletedGalleryIds: [],
-  editablePageSlugs: ['trabalhos', 'catalogacao'],
   currentEditId: null,
   deleteId: null,
   eventFormInitialState: null,
   activePanel: 'dashboard',
+  currentPageEditId: null,
 };
+
+const MANAGED_PAGE_DEFS = [
+  { slug: 'index', title: 'Início', type: 'page', menu_order: 0, is_visible: true },
+  { slug: 'territorio', title: 'Transformações Territoriais', type: 'cards', menu_order: 2, is_visible: true },
+  { slug: 'campus', title: 'Campus', type: 'cards', menu_order: 3, is_visible: true },
+  { slug: 'trabalhos', title: 'Trabalhos Acadêmicos', type: 'gallery', menu_order: 4, is_visible: true },
+  { slug: 'catalogacao', title: 'Catalogação', type: 'list', menu_order: 5, is_visible: true },
+  { slug: 'contact', title: 'Contato', type: 'page', menu_order: 6, is_visible: true },
+];
 
 function getAppBasePath() {
   const path = window.location.pathname || '';
@@ -420,42 +429,77 @@ function getPageBySlug(slug) {
 }
 
 function getEditablePages() {
-  return state.pages.filter((page) => state.editablePageSlugs.includes(page.slug));
+  return state.pages.filter((page) => page.slug !== 'timeline');
 }
 
-function populateContentEditorSelect() {
-  const select = document.getElementById('pageContentPageSelect');
-  if (!select) return;
+function renderPageManagerTable() {
+  const tbody = document.getElementById('pageManagerTableBody');
+  if (!tbody) return;
 
   const editablePages = getEditablePages();
-  select.innerHTML = editablePages
-    .map((page) => `<option value="${page.id}">${sanitize(page.title)} (${sanitize(page.slug)})</option>`)
+  if (!editablePages.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="no-image">Nenhuma página disponível para edição</td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = editablePages
+    .map(
+      (page) => `
+      <tr>
+        <td>${sanitize(page.title || '-')}</td>
+        <td>${sanitize(page.slug || '-')}</td>
+        <td>${sanitize(page.type || '-')}</td>
+        <td>${sanitize(formatHistoryTimestamp(page.updated_at) || '-')}</td>
+        <td class="table-actions">
+          <button class="btn-secondary btn-small" data-page-action="edit" data-page-id="${page.id}">Editar</button>
+        </td>
+      </tr>
+    `
+    )
     .join('');
 }
 
-function loadSelectedPageContent() {
-  const select = document.getElementById('pageContentPageSelect');
+function closePageContentEditor() {
+  state.currentPageEditId = null;
+  const wrapper = document.getElementById('pageEditorWrapper');
+  const title = document.getElementById('pageEditorTitle');
   const textarea = document.getElementById('pageContentInput');
-  if (!select || !textarea) return;
+  if (wrapper) wrapper.style.display = 'none';
+  if (title) title.textContent = 'Editar página';
+  if (textarea) textarea.value = '';
+}
 
-  const selectedId = Number(select.value);
-  const page = getPageById(selectedId);
+function openPageContentEditor(pageId) {
+  const page = getPageById(pageId);
+  if (!page) return;
+
+  state.currentPageEditId = Number(page.id);
+  const wrapper = document.getElementById('pageEditorWrapper');
+  const title = document.getElementById('pageEditorTitle');
+  const textarea = document.getElementById('pageContentInput');
+  if (wrapper) wrapper.style.display = 'block';
+  if (title) title.textContent = `Editar: ${page.title} (${page.slug})`;
+  if (!textarea) return;
   textarea.value = page?.content || '';
+  textarea.focus();
 }
 
 function initializeContentEditor() {
-  populateContentEditorSelect();
-  loadSelectedPageContent();
+  renderPageManagerTable();
+  closePageContentEditor();
 }
 
 async function saveSelectedPageContent() {
-  const select = document.getElementById('pageContentPageSelect');
   const textarea = document.getElementById('pageContentInput');
-  if (!select || !textarea) return;
+  if (!textarea) return;
 
-  const selectedId = Number(select.value);
+  const selectedId = Number(state.currentPageEditId);
   if (!selectedId) {
-    showToast('Selecione uma página para salvar o conteúdo.', 'error');
+    showToast('Selecione uma página na lista para editar.', 'error');
     return;
   }
 
@@ -470,6 +514,8 @@ async function saveSelectedPageContent() {
     if (index >= 0) {
       state.pages[index] = updated;
     }
+
+    renderPageManagerTable();
 
     setSyncStatus('synced', '✓ Conteúdo salvo');
     showToast('Conteúdo da página salvo com sucesso.', 'success');
@@ -786,9 +832,39 @@ async function saveMenu() {
 
 async function loadAdminData() {
   await loadPages();
+  await ensureManagedPages();
+  await loadPages();
   await Promise.all([loadEvents(), loadMenu(), loadGallery(), loadHistory()]);
   initializeContentEditor();
   updateDashboardCards();
+}
+
+async function ensureManagedPages() {
+  const existingSlugs = new Set(state.pages.map((page) => page.slug));
+  const missing = MANAGED_PAGE_DEFS.filter((pageDef) => !existingSlugs.has(pageDef.slug));
+  if (!missing.length) {
+    return;
+  }
+
+  for (const pageDef of missing) {
+    try {
+      await apiRequest('/api/pages', {
+        method: 'POST',
+        body: JSON.stringify({
+          slug: pageDef.slug,
+          title: pageDef.title,
+          type: pageDef.type,
+          content: null,
+          is_visible: pageDef.is_visible,
+          menu_order: pageDef.menu_order,
+        }),
+      });
+    } catch (error) {
+      if (!String(error.message || '').includes('Já existe')) {
+        throw error;
+      }
+    }
+  }
 }
 
 function renderEvents(events) {
@@ -985,7 +1061,7 @@ function attachEventListeners() {
   document.getElementById('addMenuItemBtn').addEventListener('click', addMenuItem);
   document.getElementById('saveMenuBtn').addEventListener('click', saveMenu);
   document.getElementById('savePageContentBtn').addEventListener('click', saveSelectedPageContent);
-  document.getElementById('pageContentPageSelect').addEventListener('change', loadSelectedPageContent);
+  document.getElementById('cancelPageContentBtn').addEventListener('click', closePageContentEditor);
   document.getElementById('addGalleryItemBtn').addEventListener('click', addGalleryItem);
   document.getElementById('saveGalleryBtn').addEventListener('click', saveGallery);
   document.getElementById('changePasswordBtn').addEventListener('click', async () => {
@@ -1206,6 +1282,15 @@ function attachEventListeners() {
     const historyId = Number(button.dataset.historyId);
     if (!historyId) return;
     restoreHistoryEntry(historyId);
+  });
+
+  document.getElementById('pageManagerTableBody').addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-page-action="edit"]');
+    if (!button) return;
+
+    const pageId = Number(button.dataset.pageId);
+    if (!pageId) return;
+    openPageContentEditor(pageId);
   });
 }
 

@@ -41,6 +41,16 @@ document.addEventListener('DOMContentLoaded', function () {
   async function loadTerritorioData() {
     try {
       const page = await apiGetJson('/api/pages/territorio');
+
+      const apiContent = (page.content || '').trim();
+      if (apiContent) {
+        const timeline = document.getElementById('territorio');
+        if (timeline) {
+          timeline.innerHTML = apiContent;
+        }
+        return;
+      }
+
       const cards = await apiGetJson(`/api/cards/${page.id}`);
 
       const adapted = cards.map((card) => ({

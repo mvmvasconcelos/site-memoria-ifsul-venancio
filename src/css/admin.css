@@ -435,6 +435,10 @@ button {
   flex-wrap: wrap;
 }
 
+.page-manager-table td {
+  font-size: 13px;
+}
+
 .content-section .menu-actions {
   flex-wrap: wrap;
 }
