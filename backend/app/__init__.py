@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory
 
 from .extensions import db
 from .models import User
@@ -46,6 +46,32 @@ def create_app():
     app.register_blueprint(history_bp, url_prefix="/api/history")
     app.register_blueprint(menu_bp, url_prefix="/api/menu")
     app.register_blueprint(upload_bp, url_prefix="/api/upload")
+
+    @app.after_request
+    def add_no_cache_headers(response):
+        path = request.path or ""
+        should_disable_cache = (
+            path.startswith("/api/")
+            or path == "/"
+            or path.endswith(".html")
+            or path.endswith(".js")
+            or path in {
+                "/timeline",
+                "/territorio",
+                "/campus",
+                "/trabalhos",
+                "/catalogacao",
+                "/contact",
+                "/admin",
+            }
+        )
+
+        if should_disable_cache:
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+
+        return response
 
     @app.get("/api/health")
     def healthcheck():
