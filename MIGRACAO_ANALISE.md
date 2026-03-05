@@ -832,6 +832,11 @@ site-memoria-ifsul-venancio/
 - Interface admin para conteúdo de páginas implementada:
   - edição de `content` para páginas `trabalhos` e `catalogacao`
   - persistência via `PUT /api/pages/:id`
+- Interface admin para galeria de trabalhos implementada:
+  - edição inline de itens (título, imagem e legenda)
+  - adicionar/remover item
+  - ordenação manual (subir/descer)
+  - persistência via endpoints `/api/gallery`
 - Header público integrado ao menu dinâmico:
   - carregamento de `GET /api/menu` em `src/js/main.js`
   - fallback para menu estático em caso de erro da API

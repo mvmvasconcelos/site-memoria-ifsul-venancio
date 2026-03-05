@@ -408,6 +408,29 @@ button {
   font-size: 12px;
 }
 
+.gallery-table input[type="text"],
+.gallery-table textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.gallery-table textarea {
+  resize: vertical;
+  min-height: 54px;
+}
+
+.gallery-thumb {
+  width: 70px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
 /* ========================================
    Form
    ======================================== */

@@ -1,8 +1,11 @@
 const state = {
   timelinePageId: null,
+  trabalhosPageId: null,
   events: [],
   pages: [],
   menuItems: [],
+  galleryItems: [],
+  deletedGalleryIds: [],
   editablePageSlugs: ['trabalhos', 'catalogacao'],
   currentEditId: null,
   deleteId: null,
@@ -255,6 +258,10 @@ function getPageById(pageId) {
   return state.pages.find((page) => Number(page.id) === Number(pageId));
 }
 
+function getPageBySlug(slug) {
+  return state.pages.find((page) => page.slug === slug);
+}
+
 function getEditablePages() {
   return state.pages.filter((page) => state.editablePageSlugs.includes(page.slug));
 }
@@ -311,6 +318,150 @@ async function saveSelectedPageContent() {
     showToast('Conteúdo da página salvo com sucesso.', 'success');
   } catch (error) {
     setSyncStatus('error', '⚠ Erro ao salvar conteúdo');
+    showToast(error.message, 'error');
+  }
+}
+
+async function loadGallery() {
+  const trabalhosPage = getPageBySlug('trabalhos');
+  if (!trabalhosPage) {
+    state.trabalhosPageId = null;
+    state.galleryItems = [];
+    renderGalleryTable();
+    return;
+  }
+
+  state.trabalhosPageId = trabalhosPage.id;
+  state.deletedGalleryIds = [];
+  state.galleryItems = await apiRequest(`/api/gallery/${state.trabalhosPageId}`);
+  renderGalleryTable();
+}
+
+function renderGalleryTable() {
+  const tbody = document.getElementById('galleryTableBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = state.galleryItems
+    .map(
+      (item, index) => `
+      <tr data-index="${index}" data-id="${item.id || ''}">
+        <td>
+          ${item.image_path
+            ? `<img class="gallery-thumb" src="${sanitize(resolveAssetUrl(item.image_path))}" alt="${sanitize(item.title || 'Imagem da galeria')}" />`
+            : '<span class="no-image">Sem imagem</span>'}
+        </td>
+        <td>
+          <input type="text" class="gallery-title" value="${sanitize(item.title || '')}" placeholder="Título" />
+        </td>
+        <td>
+          <input type="text" class="gallery-image-path" value="${sanitize(item.image_path || '')}" placeholder="src/images/trabalhos/exemplo.jpg" />
+        </td>
+        <td>
+          <textarea class="gallery-caption" rows="2" placeholder="Legenda (aceita HTML)">${sanitize(item.caption || '')}</textarea>
+        </td>
+        <td class="table-actions">
+          <button class="btn-secondary btn-small" data-gallery-action="up">↑</button>
+          <button class="btn-secondary btn-small" data-gallery-action="down">↓</button>
+          <button class="btn-danger btn-small" data-gallery-action="remove">Remover</button>
+        </td>
+      </tr>
+    `
+    )
+    .join('');
+}
+
+function syncGalleryItemsFromTable() {
+  const rows = Array.from(document.querySelectorAll('#galleryTableBody tr'));
+  state.galleryItems = rows.map((row) => {
+    const idValue = row.dataset.id;
+    return {
+      id: idValue ? Number(idValue) : null,
+      title: row.querySelector('.gallery-title').value.trim() || null,
+      image_path: row.querySelector('.gallery-image-path').value.trim(),
+      caption: row.querySelector('.gallery-caption').value.trim() || null,
+    };
+  });
+}
+
+function addGalleryItem() {
+  state.galleryItems.push({
+    id: null,
+    title: '',
+    image_path: '',
+    caption: '',
+  });
+  renderGalleryTable();
+}
+
+function moveGalleryItem(index, direction) {
+  const target = direction === 'up' ? index - 1 : index + 1;
+  if (target < 0 || target >= state.galleryItems.length) return;
+
+  const temp = state.galleryItems[index];
+  state.galleryItems[index] = state.galleryItems[target];
+  state.galleryItems[target] = temp;
+  renderGalleryTable();
+}
+
+function removeGalleryItem(index) {
+  const item = state.galleryItems[index];
+  if (item?.id) {
+    state.deletedGalleryIds.push(item.id);
+  }
+  state.galleryItems.splice(index, 1);
+  renderGalleryTable();
+}
+
+async function saveGallery() {
+  if (!state.trabalhosPageId) {
+    showToast('Página trabalhos não encontrada para salvar galeria.', 'error');
+    return;
+  }
+
+  syncGalleryItemsFromTable();
+
+  if (state.galleryItems.some((item) => !item.image_path)) {
+    showToast('Todos os itens da galeria precisam de caminho de imagem.', 'error');
+    return;
+  }
+
+  try {
+    setSyncStatus('syncing', '⟳ Salvando galeria...');
+
+    for (const itemId of state.deletedGalleryIds) {
+      await apiRequest(`/api/gallery/${itemId}`, { method: 'DELETE' });
+    }
+
+    for (let index = 0; index < state.galleryItems.length; index += 1) {
+      const item = state.galleryItems[index];
+      const payload = {
+        title: item.title,
+        image_path: item.image_path,
+        caption: item.caption,
+        order_index: index,
+      };
+
+      if (item.id) {
+        await apiRequest(`/api/gallery/${item.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(payload),
+        });
+      } else {
+        await apiRequest('/api/gallery', {
+          method: 'POST',
+          body: JSON.stringify({
+            page_id: state.trabalhosPageId,
+            ...payload,
+          }),
+        });
+      }
+    }
+
+    await loadGallery();
+    setSyncStatus('synced', '✓ Galeria salva');
+    showToast('Galeria de trabalhos salva com sucesso.', 'success');
+  } catch (error) {
+    setSyncStatus('error', '⚠ Erro ao salvar galeria');
     showToast(error.message, 'error');
   }
 }
@@ -414,7 +565,8 @@ async function saveMenu() {
 }
 
 async function loadAdminData() {
-  await Promise.all([loadPages(), loadEvents(), loadMenu()]);
+  await loadPages();
+  await Promise.all([loadEvents(), loadMenu(), loadGallery()]);
   initializeContentEditor();
 }
 
@@ -604,6 +756,8 @@ function attachEventListeners() {
   document.getElementById('saveMenuBtn').addEventListener('click', saveMenu);
   document.getElementById('savePageContentBtn').addEventListener('click', saveSelectedPageContent);
   document.getElementById('pageContentPageSelect').addEventListener('change', loadSelectedPageContent);
+  document.getElementById('addGalleryItemBtn').addEventListener('click', addGalleryItem);
+  document.getElementById('saveGalleryBtn').addEventListener('click', saveGallery);
 
   document.getElementById('menuTableBody').addEventListener('click', (event) => {
     const button = event.target.closest('button[data-menu-action]');
@@ -716,6 +870,25 @@ function attachEventListeners() {
     }
     if (target.dataset.action === 'delete') {
       openDeleteModal(id);
+    }
+  });
+
+  document.getElementById('galleryTableBody').addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-gallery-action]');
+    if (!button) return;
+
+    syncGalleryItemsFromTable();
+
+    const row = button.closest('tr');
+    const index = Number(row?.dataset.index);
+    const action = button.dataset.galleryAction;
+
+    if (action === 'up') {
+      moveGalleryItem(index, 'up');
+    } else if (action === 'down') {
+      moveGalleryItem(index, 'down');
+    } else if (action === 'remove') {
+      removeGalleryItem(index);
     }
   });
 }
