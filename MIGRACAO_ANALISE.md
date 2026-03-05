@@ -788,14 +788,20 @@ site-memoria-ifsul-venancio/
 | Fase | Descrição | Tempo | Status |
 |------|-----------|-------|--------|
 | **Planejamento** | Requisitos e arquitetura | 1 semana | ✅ Concluído |
-| **Setup** | Projeto Flask + DB + Migrations | 3-5 dias | 🔄 Em andamento (base pronta) |
-| **Backend MVP** | Auth + CRUD Timeline + Cards | 2-3 semanas | 🔄 Em andamento |
-| **Frontend Admin** | React Admin / Vue Admin setup | 2-3 semanas | 🔄 Em andamento (admin HTML integrado à API) |
-| **Integração** | Frontend público + API | 1-2 semanas | ⏸️ Aguardando |
-| **Features Extras** | Drag-drop, menu, histórico | 1-2 semanas | ⏸️ Aguardando |
-| **Testes** | QA, ajustes, bugs | 1 semana | ⏸️ Aguardando |
-| **Deploy** | Container unificado + produção | 2-3 dias | ⏸️ Aguardando |
+| **Setup** | Projeto Flask + DB + Migrations | 3-5 dias | ✅ Concluído |
+| **Backend MVP** | Auth + CRUD Timeline + Cards | 2-3 semanas | ✅ MVP funcional |
+| **Frontend Admin** | React Admin / Vue Admin setup | 2-3 semanas | ✅ MVP funcional (admin HTML integrado à API) |
+| **Integração** | Frontend público + API | 1-2 semanas | ✅ MVP funcional |
+| **Features Extras** | Drag-drop, menu, histórico | 1-2 semanas | ⏸️ Pós-MVP (escopo congelado) |
+| **Testes** | QA, ajustes, bugs | 1 semana | 🔄 Em andamento (homologação MVP) |
+| **Deploy** | Container unificado + produção | 2-3 dias | 🔄 Em andamento (fase 3 ativa em `/memoria`) |
 | **Total** | | **8-12 semanas** | |
+
+### 🔒 Escopo MVP congelado (05/03/2026)
+
+- Foco exclusivo em estabilidade, correções críticas e homologação.
+- Sem inclusão de novas funcionalidades não essenciais ao fluxo principal.
+- Evoluções extras ficam para ciclo pós-MVP.
 
 ### ✅ Atualização em 05/03/2026 - Início efetivo da Fase 3
 
@@ -863,6 +869,26 @@ site-memoria-ifsul-venancio/
     - sem `content`, fallback intermediário para `/api/gallery/:page_id`
   - `src/js/catalogacao.js` consumindo `/api/pages/catalogacao` (API-first com fallback para conteúdo estático)
   - fallback para CSV/HTML estático mantido para segurança operacional
+
+### ✅ Validação remota MVP (05/03/2026)
+
+- Endpoints públicos essenciais com retorno `200`:
+  - `/api/health`, `/api/pages/{timeline,campus,territorio,trabalhos,catalogacao}`, `/api/menu`
+- Endpoints de conteúdo com retorno `200`:
+  - `/api/timeline/:page_id`, `/api/cards/:page_id`, `/api/gallery/:page_id`
+- Endpoints autenticados com retorno `200` (sessão admin):
+  - `/api/auth/me`, `/api/history?limit=10`, `POST /api/history/2/restore`
+
+### 🧪 Checklist de Homologação MVP
+
+- [ ] Login no admin com `admin / ifsul2025`
+- [ ] CRUD da timeline (criar, editar, excluir)
+- [ ] Upload e vínculo de imagem na timeline
+- [ ] Edição e salvamento do menu
+- [ ] Edição de conteúdo das páginas `trabalhos` e `catalogacao`
+- [ ] CRUD da galeria de trabalhos (incluindo upload e ordenação)
+- [ ] Consulta de histórico e teste de restauração por registro
+- [ ] Validação pública das páginas em `https://ifva.duckdns.org/memoria/`
 
 - [ ] Otimizações de performance
 
