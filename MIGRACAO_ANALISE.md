@@ -837,6 +837,7 @@ site-memoria-ifsul-venancio/
   - adicionar/remover item
   - ordenação manual (subir/descer)
   - upload de imagem por item (integração com `POST /api/upload`, pasta `trabalhos`)
+  - pré-visualização imediata da imagem na linha ao selecionar arquivo/caminho
   - persistência via endpoints `/api/gallery`
 - Header público integrado ao menu dinâmico:
   - carregamento de `GET /api/menu` em `src/js/main.js`

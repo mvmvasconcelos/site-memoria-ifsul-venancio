@@ -347,7 +347,7 @@ function renderGalleryTable() {
       <tr data-index="${index}" data-id="${item.id || ''}">
         <td>
           ${item.image_path
-            ? `<img class="gallery-thumb" src="${sanitize(resolveAssetUrl(item.image_path))}" alt="${sanitize(item.title || 'Imagem da galeria')}" />`
+            ? `<img class="gallery-thumb" src="${sanitize(resolveAssetUrl(item.image_path))}" alt="${sanitize(item.title || 'Imagem da galeria')}" data-default-src="${sanitize(resolveAssetUrl(item.image_path))}" />`
             : '<span class="no-image">Sem imagem</span>'}
         </td>
         <td>
@@ -468,6 +468,25 @@ async function saveGallery() {
     setSyncStatus('error', '⚠ Erro ao salvar galeria');
     showToast(error.message, 'error');
   }
+}
+
+function updateGalleryRowPreviewFromFile(row, file) {
+  const thumb = row.querySelector('.gallery-thumb');
+  if (!thumb || !file) return;
+
+  const objectUrl = URL.createObjectURL(file);
+  thumb.src = objectUrl;
+  thumb.dataset.tempObjectUrl = objectUrl;
+}
+
+function updateGalleryRowPreviewFromPath(row, imagePath) {
+  const thumb = row.querySelector('.gallery-thumb');
+  if (!thumb) return;
+
+  const path = (imagePath || '').trim();
+  if (!path) return;
+  thumb.src = resolveAssetUrl(path);
+  thumb.dataset.defaultSrc = resolveAssetUrl(path);
 }
 
 async function uploadGalleryRowImage(row) {
@@ -923,6 +942,27 @@ function attachEventListeners() {
     } else if (action === 'remove') {
       removeGalleryItem(index);
     }
+  });
+
+  document.getElementById('galleryTableBody').addEventListener('change', (event) => {
+    const target = event.target;
+    if (!target.classList.contains('gallery-image-file')) return;
+
+    const row = target.closest('tr');
+    const file = target.files?.[0];
+    if (!row || !file) return;
+
+    updateGalleryRowPreviewFromFile(row, file);
+  });
+
+  document.getElementById('galleryTableBody').addEventListener('input', (event) => {
+    const target = event.target;
+    if (!target.classList.contains('gallery-image-path')) return;
+
+    const row = target.closest('tr');
+    if (!row) return;
+
+    updateGalleryRowPreviewFromPath(row, target.value);
   });
 }
 

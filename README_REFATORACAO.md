@@ -31,6 +31,7 @@ Este documento inicia a **fase 3** da migração: backend CMS em Flask + SQLite,
 - Gestão de galeria de trabalhos no admin:
   - adicionar, editar, remover e ordenar itens
   - upload de imagem por item (pasta `uploads/trabalhos`)
+  - pré-visualização imediata da miniatura ao selecionar arquivo/caminho
   - persistência via `/api/gallery` (`POST`, `PUT`, `DELETE`)
 - Header público consumindo menu dinâmico via `GET /api/menu`
 - Páginas públicas com consumo de API:

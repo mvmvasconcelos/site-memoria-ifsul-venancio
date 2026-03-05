@@ -444,6 +444,7 @@ button {
   object-fit: cover;
   border-radius: 6px;
   border: 1px solid var(--border-color);
+  transition: opacity 0.15s ease;
 }
 
 /* ========================================
