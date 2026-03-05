@@ -17,6 +17,14 @@ function buildApiUrl(path) {
   return `${getAppBasePath()}${path}`;
 }
 
+async function apiGetJson(path) {
+  const response = await fetch(buildApiUrl(path), { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error(`Falha ao carregar ${path} (${response.status})`);
+  }
+  return response.json();
+}
+
 function resolveImageUrl(imagePath) {
   if (!imagePath) return '';
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
@@ -32,15 +40,8 @@ function resolveImageUrl(imagePath) {
 
 async function loadTimelineData() {
   try {
-    const page = await fetch(buildApiUrl('/api/pages/timeline')).then((res) => {
-      if (!res.ok) throw new Error('Página timeline não encontrada');
-      return res.json();
-    });
-
-    const items = await fetch(buildApiUrl(`/api/timeline/${page.id}`)).then((res) => {
-      if (!res.ok) throw new Error('Itens de timeline indisponíveis');
-      return res.json();
-    });
+    const page = await apiGetJson('/api/pages/timeline');
+    const items = await apiGetJson(`/api/timeline/${page.id}`);
 
     const adapted = items.map((item) => ({
       date: item.date,
@@ -52,29 +53,14 @@ async function loadTimelineData() {
 
     populateTimeline(adapted);
   } catch (error) {
-    fetch('src/timeline.csv')
-      .then(response => response.text())
-      .then(data => {
-        const parsedData = parseCSV(data);
-        populateTimeline(parsedData);
-      })
-      .catch(csvError => console.error('Erro ao carregar timeline (API/CSV):', csvError || error));
-  }
-}
-
-// Função para analisar os dados do CSV
-function parseCSV(data) {
-  const lines = data.split('\n');
-  const result = [];
-  for (const line of lines) {
-    // Divide cada linha em campos e remove aspas desnecessárias
-    const [date, title, imageUrl, altText, description] = line.split('","').map(item => item.replace(/(^"|"$)/g, ''));
-    // Verifica se os campos obrigatórios estão presentes antes de adicionar ao resultado
-    if (date && title) {
-      result.push({ date, title, imageUrl: imageUrl || '', altText: altText || '', description: description || '' });
+    console.error('Erro ao carregar timeline da API:', error);
+    const timeline = document.getElementById('timeline');
+    const years = document.getElementById('timeline-years');
+    if (years) years.innerHTML = '';
+    if (timeline) {
+      timeline.innerHTML = '<p>Não foi possível carregar a timeline. Tente novamente em instantes.</p>';
     }
   }
-  return result;
 }
 
 let allEntries = []; // Store all entries globally

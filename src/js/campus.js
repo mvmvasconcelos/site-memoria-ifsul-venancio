@@ -17,6 +17,14 @@ document.addEventListener('DOMContentLoaded', function () {
     return `${getAppBasePath()}${path}`;
   }
 
+  async function apiGetJson(path) {
+    const response = await fetch(buildApiUrl(path), { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`Falha ao carregar ${path} (${response.status})`);
+    }
+    return response.json();
+  }
+
   function resolveImageUrl(imagePath) {
     if (!imagePath) return '';
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
@@ -32,15 +40,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   async function loadCampusData() {
     try {
-      const page = await fetch(buildApiUrl('/api/pages/campus')).then((res) => {
-        if (!res.ok) throw new Error('Página campus não encontrada');
-        return res.json();
-      });
-
-      const cards = await fetch(buildApiUrl(`/api/cards/${page.id}`)).then((res) => {
-        if (!res.ok) throw new Error('Cards de campus indisponíveis');
-        return res.json();
-      });
+      const page = await apiGetJson('/api/pages/campus');
+      const cards = await apiGetJson(`/api/cards/${page.id}`);
 
       const adapted = cards.map((card) => ({
         date: card.date_label || '',
@@ -52,29 +53,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
       populateTimeline(adapted);
     } catch (error) {
-      fetch('src/campus.csv')
-        .then(response => response.text())
-        .then(data => {
-          const parsedData = parseCSV(data);
-          populateTimeline(parsedData);
-        })
-        .catch(csvError => console.error('Erro ao carregar campus (API/CSV):', csvError || error));
-    }
-  }
-  
-  // Função para analisar os dados do CSV
-  function parseCSV(data) {
-    const lines = data.split('\n');
-    const result = [];
-    for (const line of lines) {
-      // Divide cada linha em campos e remove aspas desnecessárias
-      const [date, title, imageUrl, altText, description] = line.split('","').map(item => item.replace(/(^"|"$)/g, ''));
-      // Verifica se os campos obrigatórios estão presentes antes de adicionar ao resultado
-      if (date && title) {
-        result.push({ date, title, imageUrl: imageUrl || '', altText: altText || '', description: description || '' });
+      console.error('Erro ao carregar campus da API:', error);
+      const timeline = document.getElementById('territorio');
+      if (timeline) {
+        timeline.innerHTML = '<p>Não foi possível carregar os dados do campus. Tente novamente em instantes.</p>';
       }
     }
-    return result;
   }
   
   function populateTimeline(data) {
