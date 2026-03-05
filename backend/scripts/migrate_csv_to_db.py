@@ -8,7 +8,7 @@ if str(BACKEND_ROOT) not in sys.path:
 
 from app import create_app
 from app.extensions import db
-from app.models import CardItem, MenuItem, Page, TimelineItem
+from app.models import CardItem, GalleryItem, MenuItem, Page, TimelineItem
 
 
 def upsert_page(slug: str, title: str, page_type: str, menu_order: int) -> Page:
@@ -87,6 +87,43 @@ def migrate_cards(project_root: Path, page: Page, csv_filename: str, image_folde
             db.session.add(card)
 
 
+def migrate_trabalhos_gallery(page: Page):
+    GalleryItem.query.filter_by(page_id=page.id).delete()
+
+    items = [
+        {
+            "title": "Documentário Narrativas dos Sujeitos do PROEJA do Curso Secretariado do IFSul Câmpus Venâncio Aires",
+            "image_path": "src/images/trabalhos/image1.png",
+            "caption": "Para assistir o Documentário, acesse: <a href=\"https://www.youtube.com/watch?v=zUmkMOBWh8I\" target=\"_blank\" rel=\"noopener noreferrer\">link</a>",
+        },
+        {
+            "title": "Produto Educacional Mestrado ProfEPT Servidora Giselle Schweickardt",
+            "image_path": "src/images/trabalhos/image2.png",
+            "caption": "Livro de memórias (e-book): <a href=\"https://educapes.capes.gov.br/handle/capes/747394\" target=\"_blank\" rel=\"noopener noreferrer\">link</a>",
+        },
+        {
+            "title": "Produto Educacional Mestrado ProfEPT Servidora Danielle Schweickardt",
+            "image_path": "src/images/trabalhos/image3.png",
+            "caption": "Para acessar o guia: <a href=\"http://educapes.capes.gov.br/handle/capes/744665\" target=\"_blank\" rel=\"noopener noreferrer\">link</a>",
+        },
+        {
+            "title": "Produto Educacional Mestrado ProfEPT Servidora Daiana Schons",
+            "image_path": "src/images/trabalhos/lei12711.jpeg",
+            "caption": "Para acessar o guia: <a href=\"http://educapes.capes.gov.br/handle/capes/746048\" target=\"_blank\" rel=\"noopener noreferrer\">link</a>",
+        },
+    ]
+
+    for index, item in enumerate(items):
+        gallery_item = GalleryItem(
+            page_id=page.id,
+            title=item["title"],
+            caption=item["caption"],
+            image_path=item["image_path"],
+            order_index=index,
+        )
+        db.session.add(gallery_item)
+
+
 def sync_menu_items():
     MenuItem.query.delete()
     db.session.flush()
@@ -141,12 +178,13 @@ def main():
         page_timeline = upsert_page("timeline", "Linha do Tempo", "timeline", 1)
         page_territorio = upsert_page("territorio", "Transformações Territoriais", "cards", 2)
         page_campus = upsert_page("campus", "Campus", "cards", 3)
-        upsert_page("trabalhos", "Trabalhos Acadêmicos", "gallery", 4)
+        page_trabalhos = upsert_page("trabalhos", "Trabalhos Acadêmicos", "gallery", 4)
         upsert_page("catalogacao", "Catalogação", "list", 5)
 
         migrate_timeline(project_root, page_timeline)
         migrate_cards(project_root, page_territorio, "territorio.csv", "territorio")
         migrate_cards(project_root, page_campus, "campus.csv", "campus")
+        migrate_trabalhos_gallery(page_trabalhos)
         sync_menu_items()
 
         db.session.commit()

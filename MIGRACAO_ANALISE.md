@@ -805,6 +805,7 @@ site-memoria-ifsul-venancio/
   - `pages`: CRUD + reorder
   - `timeline`: CRUD + reorder
   - `cards`: CRUD + reorder
+  - `gallery`: CRUD + reorder
 - Script de migração CSV → SQLite implementado (`backend/scripts/migrate_csv_to_db.py`)
 - Stack dedicada da fase 3 criada (`Dockerfile.fase3`, `docker-compose.fase3.yml`)
 - `admin.html` integrado ao backend novo com credencial inicial:
@@ -840,6 +841,7 @@ site-memoria-ifsul-venancio/
   - `src/js/campus.js` consumindo `/api/pages/campus` + `/api/cards/:page_id`
   - `src/js/territorio.js` consumindo `/api/pages/territorio` + `/api/cards/:page_id`
   - `src/js/trabalhos.js` consumindo `/api/pages/trabalhos` (API-first com fallback para conteúdo estático)
+    - sem `content`, fallback intermediário para `/api/gallery/:page_id`
   - `src/js/catalogacao.js` consumindo `/api/pages/catalogacao` (API-first com fallback para conteúdo estático)
   - fallback para CSV/HTML estático mantido para segurança operacional
 

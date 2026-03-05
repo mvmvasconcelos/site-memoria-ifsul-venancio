@@ -11,6 +11,7 @@ Este documento inicia a **fase 3** da migração: backend CMS em Flask + SQLite,
   - `pages` (`/api/pages`)
   - `timeline` (`/api/timeline`)
   - `cards` (`/api/cards`)
+  - `gallery` (`/api/gallery`)
   - `menu` (`/api/menu`)
 - Rotas públicas sem extensão (`/timeline`, `/territorio`, `/campus`, etc.)
 - Script de migração de CSV para banco (`backend/scripts/migrate_csv_to_db.py`)
@@ -32,7 +33,7 @@ Este documento inicia a **fase 3** da migração: backend CMS em Flask + SQLite,
   - `timeline.html` via `/api/pages/timeline` + `/api/timeline/:page_id`
   - `campus.html` via `/api/pages/campus` + `/api/cards/:page_id`
   - `territorio.html` via `/api/pages/territorio` + `/api/cards/:page_id`
-  - `trabalhos.html` via `/api/pages/trabalhos` (conteúdo CMS) com fallback para HTML estático atual
+  - `trabalhos.html` via `/api/pages/trabalhos` (conteúdo CMS) e, sem conteúdo, via `/api/gallery/:page_id`
   - `catalogacao.html` via `/api/pages/catalogacao` (conteúdo CMS) com fallback para HTML estático atual
   - fallback para CSV em caso de indisponibilidade da API
 
@@ -91,6 +92,10 @@ docker exec -it memoria-cms python backend/scripts/migrate_csv_to_db.py
 - `POST /api/cards`
 - `PUT|DELETE /api/cards/<id>`
 - `PUT /api/cards/reorder`
+- `GET /api/gallery/<page_id>`
+- `POST /api/gallery`
+- `PUT|DELETE /api/gallery/<id>`
+- `PUT /api/gallery/reorder`
 - `GET /api/menu`
 - `PUT /api/menu`
 - `PUT /api/menu/reorder`
@@ -98,7 +103,7 @@ docker exec -it memoria-cms python backend/scripts/migrate_csv_to_db.py
 
 ## Próximas entregas da fase 3
 
-- Galeria (`/api/gallery`)
+- UI admin para galeria de trabalhos (CRUD + ordenação)
 - Frontend admin moderno (React/Vue) - opcional após estabilização do admin atual
 - Consolidação da edição de conteúdo de páginas (`content`) no admin
 - Versionamento/restauração avançados

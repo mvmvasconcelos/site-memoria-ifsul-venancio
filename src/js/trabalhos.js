@@ -40,6 +40,43 @@ const TRABALHOS_FALLBACK_HTML = `
   </section>
 `;
 
+function sanitize(value) {
+  const div = document.createElement('div');
+  div.textContent = value || '';
+  return div.innerHTML;
+}
+
+function resolveImageUrl(imagePath) {
+  if (!imagePath) return '';
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+
+  if (imagePath.startsWith('/')) {
+    return `${getAppBasePath()}${imagePath}`;
+  }
+
+  return `${getAppBasePath()}/${imagePath}`;
+}
+
+function renderGalleryItems(galleryItems) {
+  const sections = galleryItems.map((item) => {
+    const title = sanitize(item.title || 'Trabalho acadêmico');
+    const image = sanitize(resolveImageUrl(item.image_path || ''));
+    const caption = item.caption || '';
+
+    return `
+      <section class="trabalhos">
+        <h2>${title}</h2>
+        ${image ? `<img src="${image}" alt="${title}">` : ''}
+        ${caption ? `<p>${caption}</p>` : ''}
+      </section>
+    `;
+  });
+
+  return `<h1>Trabalhos mestrado ProfEPT servidores do câmpus</h1>${sections.join('')}`;
+}
+
 function renderTrabalhosContent(contentHtml) {
   const container = document.getElementById('trabalhos-content');
   if (!container) {
@@ -58,7 +95,24 @@ async function loadTrabalhosContent() {
     });
 
     const apiContent = (page.content || '').trim();
-    renderTrabalhosContent(apiContent || TRABALHOS_FALLBACK_HTML);
+    if (apiContent) {
+      renderTrabalhosContent(apiContent);
+      return;
+    }
+
+    const galleryItems = await fetch(buildApiUrl(`/api/gallery/${page.id}`)).then((res) => {
+      if (!res.ok) {
+        throw new Error('Galeria de trabalhos indisponível');
+      }
+      return res.json();
+    });
+
+    if (Array.isArray(galleryItems) && galleryItems.length) {
+      renderTrabalhosContent(renderGalleryItems(galleryItems));
+      return;
+    }
+
+    renderTrabalhosContent(TRABALHOS_FALLBACK_HTML);
   } catch (error) {
     renderTrabalhosContent(TRABALHOS_FALLBACK_HTML);
   }
