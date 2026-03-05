@@ -1,0 +1,15 @@
+FROM python:3.11-alpine
+
+WORKDIR /app
+
+COPY backend/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+COPY . /app
+
+ENV PYTHONUNBUFFERED=1
+ENV FLASK_APP=backend/run.py
+
+EXPOSE 5000
+
+CMD ["python", "backend/run.py"]

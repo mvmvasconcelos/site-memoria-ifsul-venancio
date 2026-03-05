@@ -83,6 +83,31 @@
           Adicionar Primeiro Evento
         </button>
       </div>
+
+      <section class="menu-section">
+        <div class="menu-section-header">
+          <h2>Menu de Navegação</h2>
+          <div class="menu-actions">
+            <button id="addMenuItemBtn" class="btn-secondary">+ Adicionar item</button>
+            <button id="saveMenuBtn" class="btn-primary">Salvar Menu</button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="events-table menu-table">
+            <thead>
+              <tr>
+                <th>Página</th>
+                <th>Rótulo</th>
+                <th>URL</th>
+                <th>Visível</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="menuTableBody"></tbody>
+          </table>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -113,6 +138,9 @@
             <input type="text" id="eventImage" placeholder="Nome do arquivo (ex: imagem.jpg)">
           </div>
           <small>Faça upload de uma nova imagem ou digite o nome de uma imagem existente</small>
+          <div class="image-actions">
+            <button type="button" class="btn-secondary btn-small" id="removeImageBtn">Remover imagem atual</button>
+          </div>
           <div id="imagePreview" class="image-preview"></div>
         </div>
 
@@ -123,7 +151,7 @@
 
         <div class="form-group">
           <label for="eventText">Texto/Descrição</label>
-          <textarea id="eventText" placeholder="Descrição detalhada do evento" rows="4"></textarea>
+          <textarea id="eventText" placeholder="Descrição detalhada do evento" rows="3"></textarea>
         </div>
 
         <div class="form-actions">
@@ -150,6 +178,6 @@
   <!-- Toast Notifications -->
   <div id="toastContainer" class="toast-container"></div>
 
-  <script src="src/js/admin.js"></script>
+  <script src="src/js/admin-cms.js"></script>
 </body>
 </html>

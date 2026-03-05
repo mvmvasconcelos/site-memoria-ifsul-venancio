@@ -788,14 +788,56 @@ site-memoria-ifsul-venancio/
 | Fase | Descrição | Tempo | Status |
 |------|-----------|-------|--------|
 | **Planejamento** | Requisitos e arquitetura | 1 semana | ✅ Concluído |
-| **Setup** | Projeto Flask + DB + Migrations | 3-5 dias | ⏸️ Aguardando |
-| **Backend MVP** | Auth + CRUD Timeline + Cards | 2-3 semanas | ⏸️ Aguardando |
-| **Frontend Admin** | React Admin / Vue Admin setup | 2-3 semanas | ⏸️ Aguardando |
+| **Setup** | Projeto Flask + DB + Migrations | 3-5 dias | 🔄 Em andamento (base pronta) |
+| **Backend MVP** | Auth + CRUD Timeline + Cards | 2-3 semanas | 🔄 Em andamento |
+| **Frontend Admin** | React Admin / Vue Admin setup | 2-3 semanas | 🔄 Em andamento (admin HTML integrado à API) |
 | **Integração** | Frontend público + API | 1-2 semanas | ⏸️ Aguardando |
 | **Features Extras** | Drag-drop, menu, histórico | 1-2 semanas | ⏸️ Aguardando |
 | **Testes** | QA, ajustes, bugs | 1 semana | ⏸️ Aguardando |
 | **Deploy** | Container unificado + produção | 2-3 dias | ⏸️ Aguardando |
 | **Total** | | **8-12 semanas** | |
+
+### ✅ Atualização em 05/03/2026 - Início efetivo da Fase 3
+
+- Estrutura `backend/` criada com Flask + SQLAlchemy + SQLite
+- Endpoints implementados:
+  - `auth`: login/logout/me
+  - `pages`: CRUD + reorder
+  - `timeline`: CRUD + reorder
+  - `cards`: CRUD + reorder
+- Script de migração CSV → SQLite implementado (`backend/scripts/migrate_csv_to_db.py`)
+- Stack dedicada da fase 3 criada (`Dockerfile.fase3`, `docker-compose.fase3.yml`)
+- `admin.html` integrado ao backend novo com credencial inicial:
+  - usuário: `admin`
+  - senha: `ifsul2025`
+- Fluxo ajustado para operação em subpath remoto:
+  - acesso público via `https://ifva.duckdns.org/memoria/`
+  - admin via `https://ifva.duckdns.org/memoria/admin`
+  - API via `https://ifva.duckdns.org/memoria/api/*`
+- Upload de imagens implementado:
+  - endpoint autenticado `POST /api/upload`
+  - integração no modal de evento da timeline (upload antes de salvar)
+- CRUD de menu implementado:
+  - `GET /api/menu`
+  - `PUT /api/menu`
+  - `PUT /api/menu/reorder`
+  - carga inicial de menu via migração (`migrate_csv_to_db.py`)
+- Interface admin para menu implementada:
+  - adicionar/remover item
+  - editar rótulo/URL
+  - visibilidade (mostrar/ocultar)
+  - ordenação manual (subir/descer)
+  - persistência via `PUT /api/menu`
+- Header público integrado ao menu dinâmico:
+  - carregamento de `GET /api/menu` em `src/js/main.js`
+  - fallback para menu estático em caso de erro da API
+  - suporte ao subpath remoto `/memoria`
+- Conteúdo público parcialmente migrado para API:
+  - `src/js/timeline.js` consumindo `/api/pages/timeline` + `/api/timeline/:page_id`
+  - `src/js/campus.js` consumindo `/api/pages/campus` + `/api/cards/:page_id`
+  - `src/js/territorio.js` consumindo `/api/pages/territorio` + `/api/cards/:page_id`
+  - fallback para CSV mantido para segurança operacional
+
 - [ ] Otimizações de performance
 
 #### 3.4 Infraestrutura

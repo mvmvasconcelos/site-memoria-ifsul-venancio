@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  memoria-cms:
+    build:
+      context: .
+      dockerfile: Dockerfile.fase3
+    container_name: memoria-cms
+    restart: unless-stopped
+    ports:
+      - "8092:5000"
+    volumes:
+      - ./database:/app/database
+      - ./uploads:/app/uploads
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY:-change-this-in-production}
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

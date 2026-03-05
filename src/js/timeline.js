@@ -1,31 +1,66 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // Carrega o arquivo CSV quando o DOM estiver totalmente carregado
-  fetch('src/timeline.csv')
-    .then(response => response.text())
-    .then(data => {
-      // Analisa os dados do CSV
-      const parsedData = parseCSV(data);
-      // Popula a linha do tempo com os dados analisados
-      populateTimeline(parsedData);
-    })
-    .catch(error => console.error('Erro ao buscar o arquivo CSV:', error));
-
-  // Adiciona o evento de clique ao menu hamburger
-  const hamburger = document.querySelector('.hamburger');
-  const nav = document.querySelector('header nav');
-
-  if (hamburger && nav) {
-    hamburger.addEventListener('click', function() {
-      console.log('Hamburger menu clicked');
-      this.classList.toggle('active');
-      nav.classList.toggle('active');
-      console.log('Hamburger class:', this.classList);
-      console.log('Nav class:', nav.classList);
-    });
-  } else {
-    console.error('Hamburger menu or navigation not found');
-  }
+  loadTimelineData();
 });
+
+function getAppBasePath() {
+  const path = window.location.pathname || '';
+  if (path.startsWith('/memoria/')) {
+    return '/memoria';
+  }
+  if (path === '/memoria') {
+    return '/memoria';
+  }
+  return '';
+}
+
+function buildApiUrl(path) {
+  return `${getAppBasePath()}${path}`;
+}
+
+function resolveImageUrl(imagePath) {
+  if (!imagePath) return '';
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+
+  if (imagePath.startsWith('/')) {
+    return `${getAppBasePath()}${imagePath}`;
+  }
+
+  return `${getAppBasePath()}/${imagePath}`;
+}
+
+async function loadTimelineData() {
+  try {
+    const page = await fetch(buildApiUrl('/api/pages/timeline')).then((res) => {
+      if (!res.ok) throw new Error('Página timeline não encontrada');
+      return res.json();
+    });
+
+    const items = await fetch(buildApiUrl(`/api/timeline/${page.id}`)).then((res) => {
+      if (!res.ok) throw new Error('Itens de timeline indisponíveis');
+      return res.json();
+    });
+
+    const adapted = items.map((item) => ({
+      date: item.date,
+      title: item.title,
+      imageUrl: item.image_path || '',
+      altText: item.source || '',
+      description: item.description || '',
+    }));
+
+    populateTimeline(adapted);
+  } catch (error) {
+    fetch('src/timeline.csv')
+      .then(response => response.text())
+      .then(data => {
+        const parsedData = parseCSV(data);
+        populateTimeline(parsedData);
+      })
+      .catch(csvError => console.error('Erro ao carregar timeline (API/CSV):', csvError || error));
+  }
+}
 
 // Função para analisar os dados do CSV
 function parseCSV(data) {
@@ -107,7 +142,7 @@ function showEntriesForYear(year) {
     timelineEntry.innerHTML = `
       <h3>${entry.title}</h3>
       <div class="image-container">
-        <img src="src/images/${entry.imageUrl}" alt="${entry.altText}">
+        <img src="${resolveImageUrl(entry.imageUrl)}" alt="${entry.altText}">
         <p class="date">${formattedDate}</p> <!-- Exibe a data completa no formato "1º de janeiro de 1913" ou "8 de maio de 1913" -->
       </div>
       <p class="legend">${entry.altText}</p>

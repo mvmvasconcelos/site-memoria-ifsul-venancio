@@ -1,15 +1,66 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Carrega o arquivo CSV quando o DOM estiver totalmente carregado
-    fetch('src/territorio.csv')
-      .then(response => response.text())
-      .then(data => {
-        // Analisa os dados do CSV
-        const parsedData = parseCSV(data);
-        // Popula a linha do tempo com os dados analisados
-        populateTimeline(parsedData);
-      })
-      .catch(error => console.error('Erro ao buscar o arquivo CSV:', error));
+    loadTerritorioData();
   });
+
+  function getAppBasePath() {
+    const path = window.location.pathname || '';
+    if (path.startsWith('/memoria/')) {
+      return '/memoria';
+    }
+    if (path === '/memoria') {
+      return '/memoria';
+    }
+    return '';
+  }
+
+  function buildApiUrl(path) {
+    return `${getAppBasePath()}${path}`;
+  }
+
+  function resolveImageUrl(imagePath) {
+    if (!imagePath) return '';
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+
+    if (imagePath.startsWith('/')) {
+      return `${getAppBasePath()}${imagePath}`;
+    }
+
+    return `${getAppBasePath()}/${imagePath}`;
+  }
+
+  async function loadTerritorioData() {
+    try {
+      const page = await fetch(buildApiUrl('/api/pages/territorio')).then((res) => {
+        if (!res.ok) throw new Error('Página território não encontrada');
+        return res.json();
+      });
+
+      const cards = await fetch(buildApiUrl(`/api/cards/${page.id}`)).then((res) => {
+        if (!res.ok) throw new Error('Cards de território indisponíveis');
+        return res.json();
+      });
+
+      const adapted = cards.map((card) => ({
+        date: card.date_label || '',
+        title: card.title || '',
+        imageUrl: card.image_path || '',
+        altText: card.source || '',
+        description: card.description || '',
+      }));
+
+      populateTimeline(adapted);
+    } catch (error) {
+      fetch('src/territorio.csv')
+        .then(response => response.text())
+        .then(data => {
+          const parsedData = parseCSV(data);
+          populateTimeline(parsedData);
+        })
+        .catch(csvError => console.error('Erro ao carregar território (API/CSV):', csvError || error));
+    }
+  }
   
   // Função para analisar os dados do CSV
   function parseCSV(data) {
@@ -46,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
       timelineEntry.innerHTML = `
         <h3>${entry.title}</h3>
         <div class="image-container">
-          <img src="src/images/territorio/${entry.imageUrl}" alt="${entry.altText}">
+          <img src="${resolveImageUrl(entry.imageUrl)}" alt="${entry.altText}">
         </div>
         <p class="legend">${entry.altText}</p>
         <p>${entry.description}</p>
