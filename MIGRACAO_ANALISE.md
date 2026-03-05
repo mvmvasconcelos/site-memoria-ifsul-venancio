@@ -1,12 +1,19 @@
 # Análise de Migração - Site Memória IFSul Venâncio Aires
 
 **Data Inicial**: 4 de março de 2026  
-**Última Atualização**: 4 de março de 2026 - 19:00  
+**Última Atualização**: 5 de março de 2026 - validação de navegação/frontend em subpath  
 **Status**: ✅ **MIGRAÇÃO FASE 1 CONCLUÍDA COM SUCESSO**
 
 ---
 
 ## 🎉 STATUS ATUAL DA MIGRAÇÃO
+
+### ✅ Atualização de Navegabilidade (05/03/2026)
+- **Correção aplicada**: carregamento de `header.html` e `footer.html` com base path `/memoria`
+- **Ajuste backend**: rota limpa passou a servir arquivos com extensão antes do fallback JSON
+- **Validação remota**: rotas públicas em `200` (`/`, `/timeline`, `/campus`, `/territorio`, `/trabalhos`, `/catalogacao`, `/contact`, `/admin`)
+- **Resultado**: removida a exibição de `{"error":"Página não encontrada"}` no topo/rodapé
+- **Commit**: `6d19e3e` (`fix navegação subpath`)
 
 ### ✅ Fase 1: Implementação em Subpath (CONCLUÍDA)
 - **URL Ativa**: https://ifva.duckdns.org/memoria/
