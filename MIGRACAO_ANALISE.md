@@ -17,6 +17,7 @@
 - **Admin (sessão)**: `/api/auth/me` sem login retorna `401`; login `admin` válido; `/api/auth/me` autenticado retorna `200`
 - **Fallback resiliente**: links estáticos do `header.html` são normalizados no frontend para URLs limpas (sem `.html`) com base path `/memoria`
 - **Padronização global**: `header.html` e metadados OG/Twitter das páginas públicas (`timeline`, `territorio`, `campus`, `trabalhos`, `catalogacao`, `contact`) atualizados para URLs limpas
+- **SEO técnico mínimo**: adicionado `canonical` em todas as páginas públicas e completado `twitter:url` onde faltava (`index`, `catalogacao`, `contact`)
 - **Commit**: `6d19e3e` (`fix navegação subpath`)
 
 ### ✅ Fase 1: Implementação em Subpath (CONCLUÍDA)
