@@ -30,6 +30,7 @@ Este documento inicia a **fase 3** da migração: backend CMS em Flask + SQLite,
   - salvamento via `PUT /api/pages/:id` (campo `content`)
 - Gestão de galeria de trabalhos no admin:
   - adicionar, editar, remover e ordenar itens
+  - upload de imagem por item (pasta `uploads/trabalhos`)
   - persistência via `/api/gallery` (`POST`, `PUT`, `DELETE`)
 - Header público consumindo menu dinâmico via `GET /api/menu`
 - Páginas públicas com consumo de API:
@@ -106,7 +107,7 @@ docker exec -it memoria-cms python backend/scripts/migrate_csv_to_db.py
 
 ## Próximas entregas da fase 3
 
-- Upload integrado na UI de galeria de trabalhos (próxima etapa)
+- Refinos de UX para gestão de galeria (pré-visualização/local upload)
 - Frontend admin moderno (React/Vue) - opcional após estabilização do admin atual
 - Consolidação da edição de conteúdo de páginas (`content`) no admin
 - Versionamento/restauração avançados

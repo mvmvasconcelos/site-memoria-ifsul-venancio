@@ -836,6 +836,7 @@ site-memoria-ifsul-venancio/
   - edição inline de itens (título, imagem e legenda)
   - adicionar/remover item
   - ordenação manual (subir/descer)
+  - upload de imagem por item (integração com `POST /api/upload`, pasta `trabalhos`)
   - persistência via endpoints `/api/gallery`
 - Header público integrado ao menu dinâmico:
   - carregamento de `GET /api/menu` em `src/js/main.js`

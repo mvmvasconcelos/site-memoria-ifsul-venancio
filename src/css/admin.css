@@ -423,6 +423,21 @@ button {
   min-height: 54px;
 }
 
+.gallery-upload-inline {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.gallery-upload-inline .gallery-image-file {
+  border: 1px dashed var(--border-color);
+  border-radius: 6px;
+  padding: 6px;
+  font-size: 12px;
+  background: #fff;
+}
+
 .gallery-thumb {
   width: 70px;
   height: 50px;

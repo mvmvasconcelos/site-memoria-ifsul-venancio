@@ -208,10 +208,10 @@ async function logout() {
   await apiRequest('/api/auth/logout', { method: 'POST' });
 }
 
-async function uploadImage(file) {
+async function uploadImage(file, folder = 'timeline') {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('folder', 'timeline');
+  formData.append('folder', folder);
 
   return apiRequest('/api/upload', {
     method: 'POST',
@@ -355,6 +355,10 @@ function renderGalleryTable() {
         </td>
         <td>
           <input type="text" class="gallery-image-path" value="${sanitize(item.image_path || '')}" placeholder="src/images/trabalhos/exemplo.jpg" />
+          <div class="gallery-upload-inline">
+            <input type="file" class="gallery-image-file" accept="image/*" />
+            <button class="btn-secondary btn-small" data-gallery-action="upload">Upload</button>
+          </div>
         </td>
         <td>
           <textarea class="gallery-caption" rows="2" placeholder="Legenda (aceita HTML)">${sanitize(item.caption || '')}</textarea>
@@ -462,6 +466,30 @@ async function saveGallery() {
     showToast('Galeria de trabalhos salva com sucesso.', 'success');
   } catch (error) {
     setSyncStatus('error', '⚠ Erro ao salvar galeria');
+    showToast(error.message, 'error');
+  }
+}
+
+async function uploadGalleryRowImage(row) {
+  const fileInput = row.querySelector('.gallery-image-file');
+  const imagePathInput = row.querySelector('.gallery-image-path');
+  const file = fileInput?.files?.[0];
+
+  if (!file) {
+    showToast('Selecione uma imagem antes de enviar.', 'error');
+    return;
+  }
+
+  try {
+    setSyncStatus('syncing', '⟳ Enviando imagem da galeria...');
+    const uploadResult = await uploadImage(file, 'trabalhos');
+    imagePathInput.value = uploadResult.image_path;
+    syncGalleryItemsFromTable();
+    renderGalleryTable();
+    setSyncStatus('synced', '✓ Imagem enviada');
+    showToast('Imagem enviada e vinculada ao item da galeria.', 'success');
+  } catch (error) {
+    setSyncStatus('error', '⚠ Erro no upload da imagem');
     showToast(error.message, 'error');
   }
 }
@@ -877,11 +905,16 @@ function attachEventListeners() {
     const button = event.target.closest('button[data-gallery-action]');
     if (!button) return;
 
-    syncGalleryItemsFromTable();
-
     const row = button.closest('tr');
     const index = Number(row?.dataset.index);
     const action = button.dataset.galleryAction;
+
+    if (action === 'upload') {
+      uploadGalleryRowImage(row);
+      return;
+    }
+
+    syncGalleryItemsFromTable();
 
     if (action === 'up') {
       moveGalleryItem(index, 'up');
