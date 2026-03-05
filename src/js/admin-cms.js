@@ -473,7 +473,7 @@ function closePageContentEditor() {
   if (textarea) textarea.value = '';
 }
 
-function openPageContentEditor(pageId) {
+async function openPageContentEditor(pageId) {
   const page = getPageById(pageId);
   if (!page) return;
 
@@ -484,7 +484,19 @@ function openPageContentEditor(pageId) {
   if (wrapper) wrapper.style.display = 'block';
   if (title) title.textContent = `Editar: ${page.title} (${page.slug})`;
   if (!textarea) return;
-  textarea.value = page?.content || '';
+  textarea.value = 'Carregando conteúdo...';
+
+  try {
+    const payload = await apiRequest(`/api/pages/${page.slug}/editor-content`);
+    textarea.value = payload?.content || '';
+    if (payload?.source === 'generated') {
+      showToast('Conteúdo inicial carregado a partir da versão atual do site. Salve para persistir no banco.', 'info');
+    }
+  } catch (error) {
+    textarea.value = page?.content || '';
+    showToast('Não foi possível carregar conteúdo inicial da página.', 'warning');
+  }
+
   textarea.focus();
 }
 
