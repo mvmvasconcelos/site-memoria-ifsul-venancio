@@ -16,6 +16,7 @@ const state = {
   currentEditId: null,
   deleteId: null,
   eventFormInitialState: null,
+  activePanel: 'dashboard',
 };
 
 function getAppBasePath() {
@@ -87,9 +88,42 @@ function closeEventModalSafely() {
 
 function setLoading(isLoading) {
   const spinner = document.getElementById('loadingSpinner');
-  const table = document.querySelector('.table-container');
+  const table = document.getElementById('timelineTableContainer');
+  if (!spinner || !table) return;
   spinner.style.display = isLoading ? 'flex' : 'none';
   table.style.display = isLoading ? 'none' : 'block';
+}
+
+function setActivePanel(panelName) {
+  state.activePanel = panelName;
+
+  document.querySelectorAll('.admin-panel').forEach((panel) => {
+    panel.classList.toggle('active', panel.dataset.panel === panelName);
+  });
+
+  document.querySelectorAll('.admin-nav-item').forEach((item) => {
+    item.classList.toggle('active', item.dataset.panelTarget === panelName);
+  });
+}
+
+function updateDashboardCards() {
+  const timelineCount = document.getElementById('dashTimelineCount');
+  const menuCount = document.getElementById('dashMenuCount');
+  const galleryCount = document.getElementById('dashGalleryCount');
+  const historyCount = document.getElementById('dashHistoryCount');
+
+  if (timelineCount) timelineCount.textContent = String(state.events.length || 0);
+  if (menuCount) menuCount.textContent = String(state.menuItems.length || 0);
+  if (galleryCount) galleryCount.textContent = String(state.galleryItems.length || 0);
+  if (historyCount) historyCount.textContent = String(state.historyItems.length || 0);
+}
+
+function initPanelNavigation() {
+  document.querySelectorAll('.admin-nav-item').forEach((item) => {
+    item.addEventListener('click', () => {
+      setActivePanel(item.dataset.panelTarget || 'dashboard');
+    });
+  });
 }
 
 function setSyncStatus(status, message) {
@@ -326,6 +360,7 @@ function renderHistoryTable() {
         <td colspan="6" class="no-image">Sem registros de histórico</td>
       </tr>
     `;
+    updateDashboardCards();
     return;
   }
 
@@ -345,6 +380,8 @@ function renderHistoryTable() {
     `
     )
     .join('');
+
+  updateDashboardCards();
 }
 
 async function restoreHistoryEntry(historyId) {
@@ -493,6 +530,8 @@ function renderGalleryTable() {
     `
     )
     .join('');
+
+  updateDashboardCards();
 }
 
 function syncGalleryItemsFromTable() {
@@ -670,6 +709,8 @@ function renderMenuTable() {
     `
     )
     .join('');
+
+  updateDashboardCards();
 }
 
 function addMenuItem() {
@@ -747,12 +788,13 @@ async function loadAdminData() {
   await loadPages();
   await Promise.all([loadEvents(), loadMenu(), loadGallery(), loadHistory()]);
   initializeContentEditor();
+  updateDashboardCards();
 }
 
 function renderEvents(events) {
   const tbody = document.getElementById('eventsTableBody');
   const emptyState = document.getElementById('emptyState');
-  const tableContainer = document.querySelector('.table-container');
+  const tableContainer = document.getElementById('timelineTableContainer');
 
   document.getElementById('totalEvents').textContent = `Total: ${events.length} eventos`;
 
@@ -760,6 +802,7 @@ function renderEvents(events) {
     tbody.innerHTML = '';
     tableContainer.style.display = 'none';
     emptyState.style.display = 'block';
+    updateDashboardCards();
     return;
   }
 
@@ -786,6 +829,8 @@ function renderEvents(events) {
     `
     )
     .join('');
+
+  updateDashboardCards();
 }
 
 function fillEventForm(event = null) {
@@ -1165,6 +1210,8 @@ function attachEventListeners() {
 }
 
 async function bootstrap() {
+  initPanelNavigation();
+  setActivePanel('dashboard');
   attachEventListeners();
 
   const authenticated = await checkSession();

@@ -196,6 +196,82 @@ button {
   padding: 30px 20px;
 }
 
+.admin-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.admin-sidebar {
+  background: white;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: sticky;
+  top: 16px;
+}
+
+.admin-nav-item {
+  width: 100%;
+  justify-content: flex-start;
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.admin-nav-item:hover {
+  background: var(--light-bg);
+}
+
+.admin-nav-item.active {
+  background: #eaf3ea;
+  border-color: #cde0ce;
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.admin-content {
+  min-width: 0;
+}
+
+.admin-panel {
+  display: none;
+}
+
+.admin-panel.active {
+  display: block;
+}
+
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.dashboard-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dashboard-card span {
+  color: #666;
+  font-size: 13px;
+}
+
+.dashboard-card strong {
+  color: var(--primary-color);
+  font-size: 26px;
+}
+
 .action-bar {
   display: flex;
   justify-content: space-between;
@@ -750,6 +826,21 @@ input[type="file"]:hover {
    ======================================== */
 
 @media (max-width: 768px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sidebar {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .admin-nav-item {
+    min-width: 130px;
+    justify-content: center;
+  }
+
   .admin-header h1 {
     font-size: 18px;
   }

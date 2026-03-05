@@ -42,179 +42,230 @@
     </header>
 
     <main class="admin-main">
-      <!-- Action Bar -->
-      <div class="action-bar">
-        <button id="addNewBtn" class="btn-primary">➕ Adicionar Novo Evento</button>
-        <button id="refreshBtn" class="btn-secondary">🔄 Recarregar</button>
-        <div class="status-info">
-          <span id="totalEvents">Total: 0 eventos</span>
-          <span id="syncStatus" class="sync-status"></span>
-        </div>
+      <div class="admin-layout">
+        <aside class="admin-sidebar">
+          <button class="admin-nav-item active" data-panel-target="dashboard">Dashboard</button>
+          <button class="admin-nav-item" data-panel-target="timeline">Timeline</button>
+          <button class="admin-nav-item" data-panel-target="menu">Menu</button>
+          <button class="admin-nav-item" data-panel-target="content">Conteúdo</button>
+          <button class="admin-nav-item" data-panel-target="gallery">Galeria</button>
+          <button class="admin-nav-item" data-panel-target="history">Histórico</button>
+          <button class="admin-nav-item" data-panel-target="security">Segurança</button>
+        </aside>
+
+        <section class="admin-content">
+          <section class="admin-panel active" data-panel="dashboard">
+            <div class="menu-section-header">
+              <h2>Visão Geral</h2>
+            </div>
+
+            <div class="dashboard-cards">
+              <article class="dashboard-card">
+                <span>Eventos timeline</span>
+                <strong id="dashTimelineCount">0</strong>
+              </article>
+              <article class="dashboard-card">
+                <span>Itens de menu</span>
+                <strong id="dashMenuCount">0</strong>
+              </article>
+              <article class="dashboard-card">
+                <span>Itens de galeria</span>
+                <strong id="dashGalleryCount">0</strong>
+              </article>
+              <article class="dashboard-card">
+                <span>Registros no histórico</span>
+                <strong id="dashHistoryCount">0</strong>
+              </article>
+            </div>
+
+            <div class="action-bar">
+              <button id="addNewBtn" class="btn-primary">➕ Adicionar Novo Evento</button>
+              <button id="refreshBtn" class="btn-secondary">🔄 Recarregar</button>
+              <div class="status-info">
+                <span id="totalEvents">Total: 0 eventos</span>
+                <span id="syncStatus" class="sync-status"></span>
+              </div>
+            </div>
+          </section>
+
+          <section class="admin-panel" data-panel="timeline">
+            <div class="menu-section-header">
+              <h2>Gerenciamento da Timeline</h2>
+            </div>
+
+            <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+              <div class="spinner"></div>
+              <p>Carregando dados...</p>
+            </div>
+
+            <div id="timelineTableContainer" class="table-container">
+              <table id="eventsTable" class="events-table">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Título</th>
+                    <th>Imagem</th>
+                    <th>Legenda</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="eventsTableBody">
+                  <!-- Data will be populated here -->
+                </tbody>
+              </table>
+            </div>
+
+            <div id="emptyState" class="empty-state" style="display: none;">
+              <p>📭 Nenhum evento encontrado</p>
+              <button class="btn-primary" onclick="document.getElementById('addNewBtn').click()">
+                Adicionar Primeiro Evento
+              </button>
+            </div>
+          </section>
+
+          <section class="admin-panel" data-panel="menu">
+            <section class="menu-section">
+              <div class="menu-section-header">
+                <h2>Menu de Navegação</h2>
+                <div class="menu-actions">
+                  <button id="addMenuItemBtn" class="btn-secondary">+ Adicionar item</button>
+                  <button id="saveMenuBtn" class="btn-primary">Salvar Menu</button>
+                </div>
+              </div>
+
+              <div class="table-container">
+                <table class="events-table menu-table">
+                  <thead>
+                    <tr>
+                      <th>Página</th>
+                      <th>Rótulo</th>
+                      <th>URL</th>
+                      <th>Visível</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="menuTableBody"></tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+
+          <section class="admin-panel" data-panel="content">
+            <section class="menu-section content-section">
+              <div class="menu-section-header">
+                <h2>Conteúdo de Páginas</h2>
+                <div class="menu-actions">
+                  <select id="pageContentPageSelect" class="content-page-select"></select>
+                  <button id="savePageContentBtn" class="btn-primary">Salvar Conteúdo</button>
+                </div>
+              </div>
+
+              <div class="content-editor-wrapper">
+                <label for="pageContentInput">HTML da página selecionada</label>
+                <textarea id="pageContentInput" placeholder="Digite o conteúdo HTML da página"></textarea>
+                <small>
+                  Páginas atuais: Trabalhos e Catalogação. O conteúdo salvo aqui é usado pelas páginas públicas via API.
+                </small>
+              </div>
+            </section>
+          </section>
+
+          <section class="admin-panel" data-panel="gallery">
+            <section class="menu-section gallery-section">
+              <div class="menu-section-header">
+                <h2>Galeria de Trabalhos</h2>
+                <div class="menu-actions">
+                  <button id="addGalleryItemBtn" class="btn-secondary">+ Adicionar item</button>
+                  <button id="saveGalleryBtn" class="btn-primary">Salvar Galeria</button>
+                </div>
+              </div>
+
+              <div class="table-container">
+                <table class="events-table gallery-table">
+                  <thead>
+                    <tr>
+                      <th>Prévia</th>
+                      <th>Título</th>
+                      <th>Imagem (caminho)</th>
+                      <th>Legenda/HTML</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="galleryTableBody"></tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+
+          <section class="admin-panel" data-panel="history">
+            <section class="menu-section history-section">
+              <div class="menu-section-header">
+                <h2>Histórico de Alterações</h2>
+                <div class="menu-actions">
+                  <select id="historyEntityFilter" class="content-page-select">
+                    <option value="">Entidade: todas</option>
+                    <option value="page">page</option>
+                    <option value="timeline_item">timeline_item</option>
+                    <option value="card_item">card_item</option>
+                    <option value="gallery_item">gallery_item</option>
+                    <option value="menu">menu</option>
+                  </select>
+                  <select id="historyActionFilter" class="content-page-select">
+                    <option value="">Ação: todas</option>
+                    <option value="create">create</option>
+                    <option value="update">update</option>
+                    <option value="delete">delete</option>
+                    <option value="restore">restore</option>
+                  </select>
+                  <select id="historyLimitFilter" class="content-page-select">
+                    <option value="50">Últimos 50</option>
+                    <option value="100" selected>Últimos 100</option>
+                    <option value="200">Últimos 200</option>
+                  </select>
+                  <button id="applyHistoryFiltersBtn" class="btn-secondary">Aplicar filtros</button>
+                  <button id="refreshHistoryBtn" class="btn-secondary">Recarregar histórico</button>
+                </div>
+              </div>
+
+              <div class="table-container">
+                <table class="events-table history-table">
+                  <thead>
+                    <tr>
+                      <th>Data/Hora</th>
+                      <th>Usuário</th>
+                      <th>Entidade</th>
+                      <th>ID</th>
+                      <th>Ação</th>
+                      <th>Operação</th>
+                    </tr>
+                  </thead>
+                  <tbody id="historyTableBody"></tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+
+          <section class="admin-panel" data-panel="security">
+            <section class="menu-section password-section">
+              <div class="menu-section-header">
+                <h2>Segurança</h2>
+              </div>
+
+              <div class="content-editor-wrapper">
+                <label for="currentPasswordInput">Senha atual</label>
+                <input type="password" id="currentPasswordInput" placeholder="Digite a senha atual" />
+
+                <label for="newPasswordInput">Nova senha</label>
+                <input type="password" id="newPasswordInput" placeholder="Mínimo de 8 caracteres" />
+
+                <div class="password-actions">
+                  <button id="changePasswordBtn" class="btn-primary">Alterar senha</button>
+                </div>
+              </div>
+            </section>
+          </section>
+        </section>
       </div>
-
-      <!-- Loading Spinner -->
-      <div id="loadingSpinner" class="loading-spinner" style="display: none;">
-        <div class="spinner"></div>
-        <p>Carregando dados...</p>
-      </div>
-
-      <!-- Timeline Events Table -->
-      <div class="table-container">
-        <table id="eventsTable" class="events-table">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Título</th>
-              <th>Imagem</th>
-              <th>Legenda</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="eventsTableBody">
-            <!-- Data will be populated here -->
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Empty State -->
-      <div id="emptyState" class="empty-state" style="display: none;">
-        <p>📭 Nenhum evento encontrado</p>
-        <button class="btn-primary" onclick="document.getElementById('addNewBtn').click()">
-          Adicionar Primeiro Evento
-        </button>
-      </div>
-
-      <section class="menu-section">
-        <div class="menu-section-header">
-          <h2>Menu de Navegação</h2>
-          <div class="menu-actions">
-            <button id="addMenuItemBtn" class="btn-secondary">+ Adicionar item</button>
-            <button id="saveMenuBtn" class="btn-primary">Salvar Menu</button>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <table class="events-table menu-table">
-            <thead>
-              <tr>
-                <th>Página</th>
-                <th>Rótulo</th>
-                <th>URL</th>
-                <th>Visível</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody id="menuTableBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="menu-section content-section">
-        <div class="menu-section-header">
-          <h2>Conteúdo de Páginas</h2>
-          <div class="menu-actions">
-            <select id="pageContentPageSelect" class="content-page-select"></select>
-            <button id="savePageContentBtn" class="btn-primary">Salvar Conteúdo</button>
-          </div>
-        </div>
-
-        <div class="content-editor-wrapper">
-          <label for="pageContentInput">HTML da página selecionada</label>
-          <textarea id="pageContentInput" placeholder="Digite o conteúdo HTML da página"></textarea>
-          <small>
-            Páginas atuais: Trabalhos e Catalogação. O conteúdo salvo aqui é usado pelas páginas públicas via API.
-          </small>
-        </div>
-      </section>
-
-      <section class="menu-section gallery-section">
-        <div class="menu-section-header">
-          <h2>Galeria de Trabalhos</h2>
-          <div class="menu-actions">
-            <button id="addGalleryItemBtn" class="btn-secondary">+ Adicionar item</button>
-            <button id="saveGalleryBtn" class="btn-primary">Salvar Galeria</button>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <table class="events-table gallery-table">
-            <thead>
-              <tr>
-                <th>Prévia</th>
-                <th>Título</th>
-                <th>Imagem (caminho)</th>
-                <th>Legenda/HTML</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody id="galleryTableBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="menu-section history-section">
-        <div class="menu-section-header">
-          <h2>Histórico de Alterações</h2>
-          <div class="menu-actions">
-            <select id="historyEntityFilter" class="content-page-select">
-              <option value="">Entidade: todas</option>
-              <option value="page">page</option>
-              <option value="timeline_item">timeline_item</option>
-              <option value="card_item">card_item</option>
-              <option value="gallery_item">gallery_item</option>
-              <option value="menu">menu</option>
-            </select>
-            <select id="historyActionFilter" class="content-page-select">
-              <option value="">Ação: todas</option>
-              <option value="create">create</option>
-              <option value="update">update</option>
-              <option value="delete">delete</option>
-              <option value="restore">restore</option>
-            </select>
-            <select id="historyLimitFilter" class="content-page-select">
-              <option value="50">Últimos 50</option>
-              <option value="100" selected>Últimos 100</option>
-              <option value="200">Últimos 200</option>
-            </select>
-            <button id="applyHistoryFiltersBtn" class="btn-secondary">Aplicar filtros</button>
-            <button id="refreshHistoryBtn" class="btn-secondary">Recarregar histórico</button>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <table class="events-table history-table">
-            <thead>
-              <tr>
-                <th>Data/Hora</th>
-                <th>Usuário</th>
-                <th>Entidade</th>
-                <th>ID</th>
-                <th>Ação</th>
-                <th>Operação</th>
-              </tr>
-            </thead>
-            <tbody id="historyTableBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="menu-section password-section">
-        <div class="menu-section-header">
-          <h2>Segurança</h2>
-        </div>
-
-        <div class="content-editor-wrapper">
-          <label for="currentPasswordInput">Senha atual</label>
-          <input type="password" id="currentPasswordInput" placeholder="Digite a senha atual" />
-
-          <label for="newPasswordInput">Nova senha</label>
-          <input type="password" id="newPasswordInput" placeholder="Mínimo de 8 caracteres" />
-
-          <div class="password-actions">
-            <button id="changePasswordBtn" class="btn-primary">Alterar senha</button>
-          </div>
-        </div>
-      </section>
     </main>
   </div>
 
