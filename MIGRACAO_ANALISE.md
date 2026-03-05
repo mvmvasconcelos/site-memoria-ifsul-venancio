@@ -806,6 +806,7 @@ site-memoria-ifsul-venancio/
   - `timeline`: CRUD + reorder
   - `cards`: CRUD + reorder
   - `gallery`: CRUD + reorder
+  - `history`: listagem de auditoria (`GET /api/history` autenticado)
 - Script de migração CSV → SQLite implementado (`backend/scripts/migrate_csv_to_db.py`)
 - Stack dedicada da fase 3 criada (`Dockerfile.fase3`, `docker-compose.fase3.yml`)
 - `admin.html` integrado ao backend novo com credencial inicial:
@@ -840,6 +841,10 @@ site-memoria-ifsul-venancio/
   - upload de imagem por item (integração com `POST /api/upload`, pasta `trabalhos`)
   - pré-visualização imediata da imagem na linha ao selecionar arquivo/caminho
   - persistência via endpoints `/api/gallery`
+- Interface admin para histórico implementada:
+  - listagem das últimas alterações de conteúdo
+  - colunas: data/hora, usuário, entidade, id e ação
+  - atualização manual via botão de recarga
 - Header público integrado ao menu dinâmico:
   - carregamento de `GET /api/menu` em `src/js/main.js`
   - fallback para menu estático em caso de erro da API

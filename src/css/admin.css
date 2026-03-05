@@ -447,6 +447,16 @@ button {
   transition: opacity 0.15s ease;
 }
 
+.history-table td {
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.history-table td:nth-child(3),
+.history-table td:nth-child(5) {
+  text-transform: lowercase;
+}
+
 /* ========================================
    Form
    ======================================== */

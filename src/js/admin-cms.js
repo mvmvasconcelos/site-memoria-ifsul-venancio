@@ -4,6 +4,7 @@ const state = {
   events: [],
   pages: [],
   menuItems: [],
+  historyItems: [],
   galleryItems: [],
   deletedGalleryIds: [],
   editablePageSlugs: ['trabalhos', 'catalogacao'],
@@ -243,6 +244,46 @@ async function loadPages() {
 async function loadMenu() {
   state.menuItems = await apiRequest('/api/menu');
   renderMenuTable();
+}
+
+async function loadHistory() {
+  state.historyItems = await apiRequest('/api/history?limit=100');
+  renderHistoryTable();
+}
+
+function formatHistoryTimestamp(isoValue) {
+  if (!isoValue) return '-';
+  const date = new Date(isoValue);
+  if (Number.isNaN(date.getTime())) return isoValue;
+  return date.toLocaleString('pt-BR');
+}
+
+function renderHistoryTable() {
+  const tbody = document.getElementById('historyTableBody');
+  if (!tbody) return;
+
+  if (!state.historyItems.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="no-image">Sem registros de histórico</td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = state.historyItems
+    .map(
+      (item) => `
+      <tr>
+        <td>${sanitize(formatHistoryTimestamp(item.timestamp))}</td>
+        <td>${sanitize(item.username || `user#${item.user_id}`)}</td>
+        <td>${sanitize(item.entity_type || '-')}</td>
+        <td>${sanitize(String(item.entity_id ?? '-'))}</td>
+        <td>${sanitize(item.action || '-')}</td>
+      </tr>
+    `
+    )
+    .join('');
 }
 
 function buildPageOptions(selectedPageId) {
@@ -625,7 +666,7 @@ async function saveMenu() {
 
 async function loadAdminData() {
   await loadPages();
-  await Promise.all([loadEvents(), loadMenu(), loadGallery()]);
+  await Promise.all([loadEvents(), loadMenu(), loadGallery(), loadHistory()]);
   initializeContentEditor();
 }
 
@@ -817,6 +858,16 @@ function attachEventListeners() {
   document.getElementById('pageContentPageSelect').addEventListener('change', loadSelectedPageContent);
   document.getElementById('addGalleryItemBtn').addEventListener('click', addGalleryItem);
   document.getElementById('saveGalleryBtn').addEventListener('click', saveGallery);
+  document.getElementById('refreshHistoryBtn').addEventListener('click', async () => {
+    try {
+      setSyncStatus('syncing', '⟳ Carregando histórico...');
+      await loadHistory();
+      setSyncStatus('synced', '✓ Histórico atualizado');
+    } catch (error) {
+      setSyncStatus('error', '⚠ Erro ao carregar histórico');
+      showToast(error.message, 'error');
+    }
+  });
 
   document.getElementById('menuTableBody').addEventListener('click', (event) => {
     const button = event.target.closest('button[data-menu-action]');

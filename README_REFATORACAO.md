@@ -34,6 +34,9 @@ Este documento inicia a **fase 3** da migração: backend CMS em Flask + SQLite,
   - limpar imagem por item (com confirmação)
   - pré-visualização imediata da miniatura ao selecionar arquivo/caminho
   - persistência via `/api/gallery` (`POST`, `PUT`, `DELETE`)
+- Histórico de alterações no admin:
+  - listagem das últimas ações (entidade, ação, usuário e data/hora)
+  - recarga manual da lista
 - Header público consumindo menu dinâmico via `GET /api/menu`
 - Páginas públicas com consumo de API:
   - `timeline.html` via `/api/pages/timeline` + `/api/timeline/:page_id`
@@ -105,6 +108,7 @@ docker exec -it memoria-cms python backend/scripts/migrate_csv_to_db.py
 - `GET /api/menu`
 - `PUT /api/menu`
 - `PUT /api/menu/reorder`
+- `GET /api/history?limit=100` (autenticado)
 - `POST /api/upload` (multipart/form-data, até 5MB, PNG/JPG/JPEG/WEBP/GIF)
 
 ## Próximas entregas da fase 3
