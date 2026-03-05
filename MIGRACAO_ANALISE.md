@@ -836,7 +836,9 @@ site-memoria-ifsul-venancio/
   - `src/js/timeline.js` consumindo `/api/pages/timeline` + `/api/timeline/:page_id`
   - `src/js/campus.js` consumindo `/api/pages/campus` + `/api/cards/:page_id`
   - `src/js/territorio.js` consumindo `/api/pages/territorio` + `/api/cards/:page_id`
-  - fallback para CSV mantido para segurança operacional
+  - `src/js/trabalhos.js` consumindo `/api/pages/trabalhos` (API-first com fallback para conteúdo estático)
+  - `src/js/catalogacao.js` consumindo `/api/pages/catalogacao` (API-first com fallback para conteúdo estático)
+  - fallback para CSV/HTML estático mantido para segurança operacional
 
 - [ ] Otimizações de performance
 

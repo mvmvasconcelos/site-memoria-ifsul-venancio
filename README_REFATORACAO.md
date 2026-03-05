@@ -29,6 +29,8 @@ Este documento inicia a **fase 3** da migração: backend CMS em Flask + SQLite,
   - `timeline.html` via `/api/pages/timeline` + `/api/timeline/:page_id`
   - `campus.html` via `/api/pages/campus` + `/api/cards/:page_id`
   - `territorio.html` via `/api/pages/territorio` + `/api/cards/:page_id`
+  - `trabalhos.html` via `/api/pages/trabalhos` (conteúdo CMS) com fallback para HTML estático atual
+  - `catalogacao.html` via `/api/pages/catalogacao` (conteúdo CMS) com fallback para HTML estático atual
   - fallback para CSV em caso de indisponibilidade da API
 
 ## Subir fase 3 em container
@@ -95,5 +97,5 @@ docker exec -it memoria-cms python backend/scripts/migrate_csv_to_db.py
 
 - Galeria (`/api/gallery`)
 - Frontend admin moderno (React/Vue) - opcional após estabilização do admin atual
-- Migração das páginas públicas restantes para consumo integral da API
+- Consolidação da edição de conteúdo de páginas (`content`) no admin
 - Versionamento/restauração avançados
