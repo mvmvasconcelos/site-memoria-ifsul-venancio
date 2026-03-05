@@ -13,6 +13,8 @@
 - **Ajuste backend**: rota limpa passou a servir arquivos com extensão antes do fallback JSON
 - **Validação remota**: rotas públicas em `200` (`/`, `/timeline`, `/campus`, `/territorio`, `/trabalhos`, `/catalogacao`, `/contact`, `/admin`)
 - **Resultado**: removida a exibição de `{"error":"Página não encontrada"}` no topo/rodapé
+- **Menu dinâmico**: links retornados por `/api/menu` validados com `200` (`/`, `/timeline`, `/campus`, `/territorio`, `/trabalhos`, `/catalogacao`, `/contact`)
+- **Admin (sessão)**: `/api/auth/me` sem login retorna `401`; login `admin` válido; `/api/auth/me` autenticado retorna `200`
 - **Commit**: `6d19e3e` (`fix navegação subpath`)
 
 ### ✅ Fase 1: Implementação em Subpath (CONCLUÍDA)
