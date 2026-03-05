@@ -40,6 +40,14 @@ function getAppBasePath() {
 }
 
 const APP_BASE_PATH = getAppBasePath();
+let pageContentEditor = null;
+let pageContentEditorInitialized = false;
+let pageEditorViewMode = 'visual';
+const PAGE_EDITOR_DRAFT_PREFIX = 'memoria-page-draft:';
+const PAGE_EDITOR_HISTORY_LIMIT = 100;
+let pageEditorHistory = [];
+let pageEditorHistoryIndex = -1;
+let pageEditorApplyingHistory = false;
 
 function buildApiUrl(path) {
   return `${APP_BASE_PATH}${path}`;
@@ -467,65 +475,446 @@ function closePageContentEditor() {
   state.currentPageEditId = null;
   const wrapper = document.getElementById('pageEditorWrapper');
   const title = document.getElementById('pageEditorTitle');
-  const textarea = document.getElementById('pageContentInput');
   if (wrapper) wrapper.style.display = 'none';
   if (title) title.textContent = 'Editar página';
-  if (textarea) textarea.value = '';
+  setPageEditorView('visual');
+  setPageEditorContent('');
+}
+
+function getCurrentEditingPage() {
+  if (!state.currentPageEditId) return null;
+  return getPageById(state.currentPageEditId);
+}
+
+function getPageDraftStorageKey(page) {
+  if (!page?.slug) return null;
+  return `${PAGE_EDITOR_DRAFT_PREFIX}${page.slug}`;
+}
+
+function updatePageEditorMeta(content) {
+  const meta = document.getElementById('pageEditorMeta');
+  if (!meta) return;
+
+  const html = content || '';
+  const temp = document.createElement('div');
+  temp.innerHTML = html;
+  const text = (temp.textContent || '').trim();
+  meta.textContent = `${html.length} caracteres • ${text.length} texto`;
+}
+
+function savePageEditorDraft() {
+  const page = getCurrentEditingPage();
+  const storageKey = getPageDraftStorageKey(page);
+  if (!storageKey) return;
+
+  const content = getPageEditorContent();
+  try {
+    window.localStorage.setItem(storageKey, content);
+  } catch (_) {
+    // Sem persistência local (quota/bloqueio), segue sem interromper fluxo.
+  }
+}
+
+function clearPageEditorDraft(page) {
+  const storageKey = getPageDraftStorageKey(page);
+  if (!storageKey) return;
+  try {
+    window.localStorage.removeItem(storageKey);
+  } catch (_) {
+    // Sem ação em caso de falha de storage.
+  }
+}
+
+function buildCardTemplateHtml() {
+  return `
+<div class="territorio-entry">
+  <h3>Título do Card</h3>
+  <div class="image-container">
+    <img src="src/images/campus/exemplo.jpg" alt="Descrição da imagem">
+    <p class="date">2026</p>
+  </div>
+  <p class="legend">Fonte: inserir referência</p>
+  <p>Descreva aqui o conteúdo do card.</p>
+</div>
+  `.trim();
+}
+
+function getNormalizedEditorHtml(content) {
+  const html = (content || '').trim();
+  if (!html || html === '<br>' || html === '<p><br></p>') {
+    return '';
+  }
+  return html;
+}
+
+function resetPageEditorHistory(content) {
+  const normalized = getNormalizedEditorHtml(content);
+  pageEditorHistory = [normalized];
+  pageEditorHistoryIndex = 0;
+}
+
+function recordPageEditorHistory(content) {
+  if (pageEditorApplyingHistory) return;
+
+  const normalized = getNormalizedEditorHtml(content);
+  const current = pageEditorHistory[pageEditorHistoryIndex] ?? '';
+  if (normalized === current) return;
+
+  if (pageEditorHistoryIndex < pageEditorHistory.length - 1) {
+    pageEditorHistory = pageEditorHistory.slice(0, pageEditorHistoryIndex + 1);
+  }
+
+  pageEditorHistory.push(normalized);
+  if (pageEditorHistory.length > PAGE_EDITOR_HISTORY_LIMIT) {
+    pageEditorHistory.shift();
+  }
+  pageEditorHistoryIndex = pageEditorHistory.length - 1;
+}
+
+function applyPageEditorHistory(content) {
+  pageEditorApplyingHistory = true;
+  setPageEditorContent(content || '');
+  pageEditorApplyingHistory = false;
+}
+
+function undoPageEditorChange() {
+  if (pageEditorHistoryIndex <= 0) {
+    showToast('Nada para desfazer.', 'info');
+    return;
+  }
+  pageEditorHistoryIndex -= 1;
+  applyPageEditorHistory(pageEditorHistory[pageEditorHistoryIndex] || '');
+}
+
+function redoPageEditorChange() {
+  if (pageEditorHistoryIndex >= pageEditorHistory.length - 1) {
+    showToast('Nada para refazer.', 'info');
+    return;
+  }
+  pageEditorHistoryIndex += 1;
+  applyPageEditorHistory(pageEditorHistory[pageEditorHistoryIndex] || '');
+}
+
+function insertHtmlAtCursor(html) {
+  if (!pageContentEditor) return;
+
+  pageContentEditor.focus();
+  document.execCommand('insertHTML', false, html);
+  syncPageEditorTextarea();
+  recordPageEditorHistory(getPageEditorContent());
+  savePageEditorDraft();
+}
+
+function ensurePageEditorStructure(wrapper, textarea) {
+  let modeBar = document.getElementById('pageEditorModeBar');
+  let toolbar = document.getElementById('pageEditorToolbar');
+  let editorHost = document.getElementById('pageContentEditor');
+  let preview = document.getElementById('pageContentPreview');
+
+  if (!modeBar) {
+    modeBar = document.createElement('div');
+    modeBar.id = 'pageEditorModeBar';
+    modeBar.className = 'page-editor-mode-bar';
+    modeBar.setAttribute('aria-label', 'Modo de edição');
+    modeBar.innerHTML = `
+      <button type="button" class="btn-secondary btn-small active" data-editor-view="visual">Visual</button>
+      <button type="button" class="btn-secondary btn-small" data-editor-view="html">HTML</button>
+      <button type="button" class="btn-secondary btn-small" data-editor-view="preview">Preview</button>
+      <span id="pageEditorMeta" class="page-editor-meta">0 caracteres</span>
+    `;
+    wrapper.insertBefore(modeBar, textarea);
+  }
+
+  if (!toolbar) {
+    toolbar = document.createElement('div');
+    toolbar.id = 'pageEditorToolbar';
+    toolbar.className = 'page-editor-toolbar';
+    toolbar.setAttribute('aria-label', 'Barra de ferramentas do editor');
+    toolbar.innerHTML = `
+      <button type="button" class="btn-secondary btn-small" data-editor-cmd="undo">Desfazer</button>
+      <button type="button" class="btn-secondary btn-small" data-editor-cmd="redo">Refazer</button>
+      <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertTemplateCard">Template Card</button>
+      <button type="button" class="btn-secondary btn-small" data-editor-cmd="formatBlock" data-editor-value="h2">H2</button>
+      <button type="button" class="btn-secondary btn-small" data-editor-cmd="formatBlock" data-editor-value="h3">H3</button>
+      <button type="button" class="btn-secondary btn-small" data-editor-cmd="bold"><strong>B</strong></button>
+      <button type="button" class="btn-secondary btn-small" data-editor-cmd="italic"><em>I</em></button>
+      <button type="button" class="btn-secondary btn-small" data-editor-cmd="underline"><u>U</u></button>
+      <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertOrderedList">Num.</button>
+      <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertUnorderedList">Lista</button>
+      <button type="button" class="btn-secondary btn-small" data-editor-cmd="createLink">Link</button>
+      <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertImage">Imagem</button>
+      <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertHorizontalRule">Linha</button>
+      <button type="button" class="btn-secondary btn-small" data-editor-cmd="removeFormat">Limpar</button>
+    `;
+    wrapper.insertBefore(toolbar, textarea);
+  }
+
+  if (!editorHost) {
+    editorHost = document.createElement('div');
+    editorHost.id = 'pageContentEditor';
+    editorHost.className = 'page-wysiwyg-host';
+    editorHost.setAttribute('contenteditable', 'true');
+    editorHost.setAttribute('role', 'textbox');
+    editorHost.setAttribute('aria-multiline', 'true');
+    editorHost.setAttribute('aria-label', 'Editor de conteúdo');
+    wrapper.insertBefore(editorHost, textarea);
+  }
+
+  if (!preview) {
+    preview = document.createElement('div');
+    preview.id = 'pageContentPreview';
+    preview.className = 'page-editor-preview';
+    preview.style.display = 'none';
+    wrapper.insertBefore(preview, textarea.nextSibling);
+  }
+
+  return {
+    modeBar,
+    toolbar,
+    editorHost,
+    preview,
+  };
+}
+
+function setPageEditorView(mode) {
+  const toolbar = document.getElementById('pageEditorToolbar');
+  const textarea = document.getElementById('pageContentInput');
+  const preview = document.getElementById('pageContentPreview');
+  if (!textarea || !pageContentEditor || !toolbar || !preview) return;
+
+  const nextMode = ['visual', 'html', 'preview'].includes(mode) ? mode : 'visual';
+
+  if (nextMode === 'html') {
+    textarea.value = getPageEditorContent();
+  } else if (pageEditorViewMode === 'html') {
+    pageContentEditor.innerHTML = textarea.value || '<p><br></p>';
+    syncPageEditorTextarea();
+  }
+
+  if (nextMode === 'preview') {
+    preview.innerHTML = getPageEditorContent() || '<p><em>Sem conteúdo para pré-visualizar.</em></p>';
+  }
+
+  pageEditorViewMode = nextMode;
+
+  toolbar.style.display = nextMode === 'visual' ? 'flex' : 'none';
+  pageContentEditor.style.display = nextMode === 'visual' ? 'block' : 'none';
+  textarea.style.display = nextMode === 'html' ? 'block' : 'none';
+  preview.style.display = nextMode === 'preview' ? 'block' : 'none';
+
+  document.querySelectorAll('#pageEditorModeBar [data-editor-view]').forEach((button) => {
+    button.classList.toggle('active', button.dataset.editorView === nextMode);
+  });
+}
+
+function initializePageContentEditor() {
+  if (pageContentEditorInitialized) return;
+
+  const wrapper = document.getElementById('pageEditorWrapper');
+  const textarea = document.getElementById('pageContentInput');
+  if (!wrapper || !textarea) return;
+  const { modeBar, toolbar, editorHost } = ensurePageEditorStructure(wrapper, textarea);
+
+  pageContentEditor = editorHost;
+
+  toolbar.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-editor-cmd]');
+    if (!button) return;
+
+    event.preventDefault();
+    pageContentEditor.focus();
+
+    const command = button.dataset.editorCmd;
+    const commandValue = button.dataset.editorValue || null;
+
+    if (command === 'undo') {
+      undoPageEditorChange();
+      savePageEditorDraft();
+      return;
+    }
+
+    if (command === 'redo') {
+      redoPageEditorChange();
+      savePageEditorDraft();
+      return;
+    }
+
+    if (command === 'createLink') {
+      const url = window.prompt('Digite a URL do link:', 'https://');
+      if (!url) return;
+      document.execCommand('createLink', false, url);
+    } else if (command === 'insertImage') {
+      const imageUrl = window.prompt('Digite a URL da imagem:', 'https://');
+      if (!imageUrl) return;
+      document.execCommand('insertImage', false, imageUrl);
+    } else if (command === 'insertTemplateCard') {
+      insertHtmlAtCursor(buildCardTemplateHtml());
+      showToast('Template de card inserido no editor.', 'success');
+      return;
+    } else if (command === 'insertHorizontalRule') {
+      document.execCommand('insertHorizontalRule', false, null);
+    } else if (command === 'formatBlock') {
+      document.execCommand('formatBlock', false, commandValue);
+    } else {
+      document.execCommand(command, false, commandValue);
+    }
+
+    syncPageEditorTextarea();
+    recordPageEditorHistory(getPageEditorContent());
+    savePageEditorDraft();
+  });
+
+  modeBar.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-editor-view]');
+    if (!button) return;
+    event.preventDefault();
+    setPageEditorView(button.dataset.editorView);
+  });
+
+  editorHost.addEventListener('input', () => {
+    syncPageEditorTextarea();
+    recordPageEditorHistory(getPageEditorContent());
+    savePageEditorDraft();
+  });
+
+  textarea.addEventListener('input', () => {
+    updatePageEditorMeta(textarea.value || '');
+    recordPageEditorHistory(textarea.value || '');
+    savePageEditorDraft();
+  });
+
+  const saveWithShortcut = (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+      event.preventDefault();
+      saveSelectedPageContent();
+    }
+  };
+
+  editorHost.addEventListener('keydown', saveWithShortcut);
+  textarea.addEventListener('keydown', saveWithShortcut);
+
+  setPageEditorView('visual');
+  pageContentEditorInitialized = true;
+}
+
+function syncPageEditorTextarea() {
+  const textarea = document.getElementById('pageContentInput');
+  if (!textarea || !pageContentEditor) return;
+
+  const html = (pageContentEditor.innerHTML || '').trim();
+  textarea.value = html === '<br>' || html === '<p><br></p>' ? '' : html;
+  updatePageEditorMeta(textarea.value || '');
+}
+
+function setPageEditorContent(content) {
+  const textarea = document.getElementById('pageContentInput');
+  const normalizedContent = content || '';
+
+  if (textarea) {
+    textarea.value = normalizedContent;
+  }
+
+  if (!pageContentEditor) {
+    return;
+  }
+
+  pageContentEditor.innerHTML = normalizedContent || '<p><br></p>';
+  syncPageEditorTextarea();
+}
+
+function getPageEditorContent() {
+  const textarea = document.getElementById('pageContentInput');
+
+  if (!pageContentEditor) {
+    return textarea ? textarea.value : '';
+  }
+
+  const html = (pageContentEditor.innerHTML || '').trim();
+  const normalizedHtml = html === '<p><br></p>' || html === '<br>' ? '' : html;
+
+  if (textarea) {
+    textarea.value = normalizedHtml;
+  }
+
+  return normalizedHtml;
 }
 
 async function openPageContentEditor(pageId) {
   const page = getPageById(pageId);
   if (!page) return;
 
+  initializePageContentEditor();
   state.currentPageEditId = Number(page.id);
   const wrapper = document.getElementById('pageEditorWrapper');
   const title = document.getElementById('pageEditorTitle');
-  const textarea = document.getElementById('pageContentInput');
   if (wrapper) wrapper.style.display = 'block';
   if (title) title.textContent = `Editar: ${page.title} (${page.slug})`;
-  if (!textarea) return;
-  textarea.value = 'Carregando conteúdo...';
+  setPageEditorView('visual');
+  setPageEditorContent('<p>Carregando conteúdo...</p>');
+  resetPageEditorHistory('');
 
   try {
     const payload = await apiRequest(`/api/pages/${page.slug}/editor-content`);
-    textarea.value = payload?.content || '';
+    const serverContent = payload?.content || '';
+    setPageEditorContent(serverContent);
+    resetPageEditorHistory(serverContent);
+
+    const draftKey = getPageDraftStorageKey(page);
+    const draft = draftKey ? window.localStorage.getItem(draftKey) : null;
+    if (draft && draft !== serverContent) {
+      const restoreDraft = window.confirm('Existe um rascunho local não salvo para esta página. Deseja restaurar?');
+      if (restoreDraft) {
+        setPageEditorContent(draft);
+        resetPageEditorHistory(draft);
+        showToast('Rascunho local restaurado no editor.', 'info');
+      }
+    }
+
     if (payload?.source === 'generated') {
       showToast('Conteúdo inicial carregado a partir da versão atual do site. Salve para persistir no banco.', 'info');
     }
   } catch (error) {
-    textarea.value = page?.content || '';
+    setPageEditorContent(page?.content || '');
+    resetPageEditorHistory(page?.content || '');
     showToast('Não foi possível carregar conteúdo inicial da página.', 'warning');
   }
 
-  textarea.focus();
+  if (pageContentEditor) {
+    pageContentEditor.focus();
+  } else {
+    const textarea = document.getElementById('pageContentInput');
+    textarea?.focus();
+  }
 }
 
 function initializeContentEditor() {
+  initializePageContentEditor();
   renderPageManagerTable();
   closePageContentEditor();
 }
 
 async function saveSelectedPageContent() {
-  const textarea = document.getElementById('pageContentInput');
-  if (!textarea) return;
-
   const selectedId = Number(state.currentPageEditId);
   if (!selectedId) {
     showToast('Selecione uma página na lista para editar.', 'error');
     return;
   }
 
+  const content = getPageEditorContent();
+
   try {
     setSyncStatus('syncing', '⟳ Salvando conteúdo...');
     const updated = await apiRequest(`/api/pages/${selectedId}`, {
       method: 'PUT',
-      body: JSON.stringify({ content: textarea.value }),
+      body: JSON.stringify({ content }),
     });
 
     const index = state.pages.findIndex((page) => Number(page.id) === Number(selectedId));
     if (index >= 0) {
       state.pages[index] = updated;
     }
+
+    clearPageEditorDraft(updated);
 
     renderPageManagerTable();
 

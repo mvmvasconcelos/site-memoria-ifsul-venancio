@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>Admin - Timeline Memorial IFSul</title>
-  <link rel="stylesheet" href="src/css/admin.css">
-  <link rel="stylesheet" href="src/css/styles.css">
+  <link rel="stylesheet" href="src/css/admin.css?v=20260305-5">
+  <link rel="stylesheet" href="src/css/styles.css?v=20260305-5">
 </head>
 <body>
   <!-- 
@@ -173,7 +173,31 @@
 
               <div class="content-editor-wrapper" id="pageEditorWrapper" style="display: none; margin-top: 14px;">
                 <label id="pageEditorTitle" for="pageContentInput">Editar página</label>
-                <textarea id="pageContentInput" placeholder="Digite o conteúdo HTML da página"></textarea>
+                <div id="pageEditorModeBar" class="page-editor-mode-bar" aria-label="Modo de edição">
+                  <button type="button" class="btn-secondary btn-small active" data-editor-view="visual">Visual</button>
+                  <button type="button" class="btn-secondary btn-small" data-editor-view="html">HTML</button>
+                  <button type="button" class="btn-secondary btn-small" data-editor-view="preview">Preview</button>
+                  <span id="pageEditorMeta" class="page-editor-meta">0 caracteres</span>
+                </div>
+                <div id="pageEditorToolbar" class="page-editor-toolbar" aria-label="Barra de ferramentas do editor">
+                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="undo">Desfazer</button>
+                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="redo">Refazer</button>
+                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertTemplateCard">Template Card</button>
+                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="formatBlock" data-editor-value="h2">H2</button>
+                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="formatBlock" data-editor-value="h3">H3</button>
+                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="bold"><strong>B</strong></button>
+                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="italic"><em>I</em></button>
+                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="underline"><u>U</u></button>
+                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertOrderedList">Num.</button>
+                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertUnorderedList">Lista</button>
+                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="createLink">Link</button>
+                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertImage">Imagem</button>
+                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertHorizontalRule">Linha</button>
+                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="removeFormat">Limpar</button>
+                </div>
+                <div id="pageContentEditor" class="page-wysiwyg-host" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Editor de conteúdo"></div>
+                <textarea id="pageContentInput" placeholder="Digite o conteúdo HTML da página" style="display: none;"></textarea>
+                <div id="pageContentPreview" class="page-editor-preview" style="display: none;"></div>
                 <div class="form-actions">
                   <button id="cancelPageContentBtn" type="button" class="btn-secondary">Cancelar</button>
                   <button id="savePageContentBtn" type="button" class="btn-primary">Salvar Conteúdo</button>
@@ -349,7 +373,7 @@
   <!-- Toast Notifications -->
   <div id="toastContainer" class="toast-container"></div>
 
-  <script src="src/js/date-format.js"></script>
-  <script src="src/js/admin-cms.js"></script>
+  <script src="src/js/date-format.js?v=20260305-5"></script>
+  <script src="src/js/admin-cms.js?v=20260305-5"></script>
 </body>
 </html>

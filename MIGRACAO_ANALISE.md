@@ -791,7 +791,7 @@ site-memoria-ifsul-venancio/
 ├── docker-compose.yml
 ├── nginx/
 │   └── nginx.conf
-└── README_REFATORACAO.md       # Doc técnica detalhada
+└── README_DEPLOY.md            # Guia operacional de deploy
 ```
 
 ---
