@@ -7,6 +7,7 @@ Este documento inicia a **fase 3** da migração: backend CMS em Flask + SQLite,
 - Backend Flask em `backend/`
 - Banco SQLite com SQLAlchemy (`Page`, `TimelineItem`, `CardItem`, `MenuItem`, `ContentHistory`)
 - Autenticação por sessão (`/api/auth/login`, `/api/auth/logout`, `/api/auth/me`)
+- Troca de senha autenticada (`POST /api/auth/change-password`)
 - CRUD inicial para:
   - `pages` (`/api/pages`)
   - `timeline` (`/api/timeline`)
@@ -39,6 +40,8 @@ Este documento inicia a **fase 3** da migração: backend CMS em Flask + SQLite,
   - filtros por entidade, ação e limite
   - recarga manual da lista
   - restauração por registro via botão `Restaurar`
+- Seção de segurança no admin:
+  - alteração de senha (senha atual + nova senha)
 - Header público consumindo menu dinâmico via `GET /api/menu`
 - Páginas públicas com consumo de API:
   - `timeline.html` via `/api/pages/timeline` + `/api/timeline/:page_id`
@@ -91,6 +94,7 @@ docker exec -it memoria-cms python backend/scripts/migrate_csv_to_db.py
 - `POST /api/auth/login`
 - `POST /api/auth/logout`
 - `GET /api/auth/me`
+- `POST /api/auth/change-password`
 - `GET|POST /api/pages`
 - `GET /api/pages/<slug>`
 - `PUT|DELETE /api/pages/<id>`

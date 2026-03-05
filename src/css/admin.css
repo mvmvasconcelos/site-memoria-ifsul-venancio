@@ -408,6 +408,26 @@ button {
   font-size: 12px;
 }
 
+.password-section .content-editor-wrapper input[type="password"] {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.password-section .content-editor-wrapper input[type="password"]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(44, 95, 45, 0.1);
+}
+
+.password-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .gallery-table input[type="text"],
 .gallery-table textarea {
   width: 100%;

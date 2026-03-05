@@ -214,6 +214,16 @@ async function logout() {
   await apiRequest('/api/auth/logout', { method: 'POST' });
 }
 
+async function changePassword(currentPassword, newPassword) {
+  return apiRequest('/api/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({
+      current_password: currentPassword,
+      new_password: newPassword,
+    }),
+  });
+}
+
 async function uploadImage(file, folder = 'timeline') {
   const formData = new FormData();
   formData.append('file', file);
@@ -906,6 +916,33 @@ function attachEventListeners() {
   document.getElementById('pageContentPageSelect').addEventListener('change', loadSelectedPageContent);
   document.getElementById('addGalleryItemBtn').addEventListener('click', addGalleryItem);
   document.getElementById('saveGalleryBtn').addEventListener('click', saveGallery);
+  document.getElementById('changePasswordBtn').addEventListener('click', async () => {
+    const currentInput = document.getElementById('currentPasswordInput');
+    const newInput = document.getElementById('newPasswordInput');
+    const currentPassword = currentInput.value;
+    const newPassword = newInput.value;
+
+    if (!currentPassword || !newPassword) {
+      showToast('Preencha senha atual e nova senha.', 'error');
+      return;
+    }
+    if (newPassword.length < 8) {
+      showToast('A nova senha deve ter pelo menos 8 caracteres.', 'error');
+      return;
+    }
+
+    try {
+      setSyncStatus('syncing', '⟳ Alterando senha...');
+      const result = await changePassword(currentPassword, newPassword);
+      currentInput.value = '';
+      newInput.value = '';
+      setSyncStatus('synced', '✓ Senha alterada');
+      showToast(result?.message || 'Senha alterada com sucesso.', 'success');
+    } catch (error) {
+      setSyncStatus('error', '⚠ Erro ao alterar senha');
+      showToast(error.message, 'error');
+    }
+  });
   document.getElementById('applyHistoryFiltersBtn').addEventListener('click', async () => {
     try {
       syncHistoryFiltersFromUI();

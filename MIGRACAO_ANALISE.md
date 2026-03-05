@@ -808,6 +808,7 @@ site-memoria-ifsul-venancio/
 - Estrutura `backend/` criada com Flask + SQLAlchemy + SQLite
 - Endpoints implementados:
   - `auth`: login/logout/me
+    - alteração de senha autenticada (`POST /api/auth/change-password`)
   - `pages`: CRUD + reorder
   - `timeline`: CRUD + reorder
   - `cards`: CRUD + reorder
@@ -853,6 +854,10 @@ site-memoria-ifsul-venancio/
   - filtros por entidade, ação e limite
   - atualização manual via botão de recarga
   - restauração básica por registro via botão `Restaurar`
+
+- Interface admin para segurança implementada:
+  - alteração de senha (senha atual + nova senha)
+  - validação mínima de nova senha (8+ caracteres)
 
 - Restauração backend implementada:
   - endpoint autenticado `POST /api/history/:id/restore`
