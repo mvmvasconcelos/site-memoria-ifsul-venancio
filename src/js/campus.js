@@ -38,6 +38,32 @@ document.addEventListener('DOMContentLoaded', function () {
     return `${getAppBasePath()}/${imagePath}`;
   }
 
+  function formatDisplayDate(dateValue) {
+    const value = (dateValue || '').trim();
+    const match = value.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
+    if (!match) return value;
+
+    const year = match[1];
+    const month = match[2];
+    const day = match[3];
+    const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+    if (!month) {
+      return year;
+    }
+
+    const monthIndex = Number(month) - 1;
+    if (monthIndex < 0 || monthIndex > 11) {
+      return value;
+    }
+
+    if (!day) {
+      return `${months[monthIndex]} - ${year}`;
+    }
+
+    return `${Number(day)} de ${months[monthIndex]} de ${year}`;
+  }
+
   async function loadCampusData() {
     try {
       const page = await apiGetJson('/api/pages/campus');
@@ -68,21 +94,13 @@ document.addEventListener('DOMContentLoaded', function () {
       timelineEntry.classList.add('territorio-entry');
       timelineEntry.dataset.year = entry.date.split('-')[0]; // Assume que a data está no formato YYYY-MM-DD ou apenas YYYY
   
-      let formattedDate;
-      if (entry.date.length === 4) { // Verifica se a data contém apenas o ano
-        formattedDate = entry.date;
-      } else {
-        // Formata a data para o formato "1º de janeiro de 1913" ou "8 de maio de 1913"
-        const date = new Date(entry.date);
-        const options = { day: 'numeric', month: 'long', year: 'numeric' };
-        formattedDate = date.toLocaleDateString('pt-BR', options);
-      }
+      const formattedDate = formatDisplayDate(entry.date);
   
       timelineEntry.innerHTML = `
         <h3>${entry.title}</h3>
         <div class="image-container">
           <img src="${resolveImageUrl(entry.imageUrl)}" alt="${entry.altText}">
-          <p class="date">${formattedDate}</p> <!-- Exibe a data completa no formato "1º de janeiro de 1913" ou "8 de maio de 1913" -->
+          <p class="date">${formattedDate}</p>
         </div>
         <p class="legend">${entry.altText}</p>
         <p>${entry.description}</p>

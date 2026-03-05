@@ -46,7 +46,7 @@ function formatTimelineDate(dateValue) {
   const year = match[1];
   const month = match[2];
   const day = match[3];
-  const months = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+  const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
   if (!month) {
     return year;
@@ -58,12 +58,11 @@ function formatTimelineDate(dateValue) {
   }
 
   if (!day) {
-    return `${months[monthIndex]} de ${year}`;
+    return `${months[monthIndex]} - ${year}`;
   }
 
   const dayNumber = Number(day);
-  const formattedDay = dayNumber === 1 ? `${dayNumber}º` : String(dayNumber);
-  return `${formattedDay} de ${months[monthIndex]} de ${year}`;
+  return `${dayNumber} de ${months[monthIndex]} de ${year}`;
 }
 
 async function loadTimelineData() {
@@ -148,7 +147,7 @@ function showEntriesForYear(year) {
       <h3>${entry.title}</h3>
       <div class="image-container">
         <img src="${resolveImageUrl(entry.imageUrl)}" alt="${entry.altText}">
-        <p class="date">${formattedDate}</p> <!-- Exibe a data completa no formato "1º de janeiro de 1913" ou "8 de maio de 1913" -->
+        <p class="date">${formattedDate}</p>
       </div>
       <p class="legend">${entry.altText}</p>
       <p>${entry.description}</p>
