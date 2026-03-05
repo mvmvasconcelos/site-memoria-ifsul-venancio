@@ -13,6 +13,12 @@ function buildApiUrl(path) {
   return `${getAppBasePath()}${path}`;
 }
 
+function buildAssetUrl(path) {
+  const basePath = getAppBasePath();
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+  return `${basePath}${normalized}`;
+}
+
 function buildMenuUrl(url) {
   const basePath = getAppBasePath();
   const raw = (url || '').trim();
@@ -63,11 +69,11 @@ function renderDynamicMenu(items) {
 
 // Função para carregar o header e o footer
 async function loadHeaderFooter() {
-  const headerResponse = await fetch('header.html');
+  const headerResponse = await fetch(buildAssetUrl('/header.html'));
   const headerText = await headerResponse.text();
   document.getElementById('header-placeholder').innerHTML = headerText;
 
-  const footerResponse = await fetch('footer.html');
+  const footerResponse = await fetch(buildAssetUrl('/footer.html'));
   const footerText = await footerResponse.text();
   document.getElementById('footer-placeholder').innerHTML = footerText;
 

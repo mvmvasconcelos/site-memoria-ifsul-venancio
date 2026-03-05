@@ -57,6 +57,11 @@ def create_app():
 
     @app.get("/<string:slug>")
     def clean_page(slug):
+        if "." in slug:
+            candidate = project_root / slug
+            if candidate.exists() and candidate.is_file():
+                return send_from_directory(project_root, slug)
+
         static_mapping = {
             "timeline": "timeline.html",
             "territorio": "territorio.html",
