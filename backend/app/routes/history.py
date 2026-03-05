@@ -130,6 +130,9 @@ def restore_from_history(history_id):
 @login_required
 def list_history_entries():
     raw_limit = request.args.get("limit", default="100")
+    entity_type = (request.args.get("entity_type") or "").strip()
+    action = (request.args.get("action") or "").strip()
+
     try:
         limit = int(raw_limit)
     except ValueError:
@@ -140,11 +143,13 @@ def list_history_entries():
     if limit > 500:
         limit = 500
 
-    entries = (
-        ContentHistory.query.order_by(ContentHistory.timestamp.desc(), ContentHistory.id.desc())
-        .limit(limit)
-        .all()
-    )
+    query = ContentHistory.query
+    if entity_type:
+        query = query.filter(ContentHistory.entity_type == entity_type)
+    if action:
+        query = query.filter(ContentHistory.action == action)
+
+    entries = query.order_by(ContentHistory.timestamp.desc(), ContentHistory.id.desc()).limit(limit).all()
 
     user_ids = {entry.user_id for entry in entries}
     users = User.query.filter(User.id.in_(user_ids)).all() if user_ids else []

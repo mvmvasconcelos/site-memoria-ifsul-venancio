@@ -156,6 +156,27 @@
         <div class="menu-section-header">
           <h2>Histórico de Alterações</h2>
           <div class="menu-actions">
+            <select id="historyEntityFilter" class="content-page-select">
+              <option value="">Entidade: todas</option>
+              <option value="page">page</option>
+              <option value="timeline_item">timeline_item</option>
+              <option value="card_item">card_item</option>
+              <option value="gallery_item">gallery_item</option>
+              <option value="menu">menu</option>
+            </select>
+            <select id="historyActionFilter" class="content-page-select">
+              <option value="">Ação: todas</option>
+              <option value="create">create</option>
+              <option value="update">update</option>
+              <option value="delete">delete</option>
+              <option value="restore">restore</option>
+            </select>
+            <select id="historyLimitFilter" class="content-page-select">
+              <option value="50">Últimos 50</option>
+              <option value="100" selected>Últimos 100</option>
+              <option value="200">Últimos 200</option>
+            </select>
+            <button id="applyHistoryFiltersBtn" class="btn-secondary">Aplicar filtros</button>
             <button id="refreshHistoryBtn" class="btn-secondary">Recarregar histórico</button>
           </div>
         </div>

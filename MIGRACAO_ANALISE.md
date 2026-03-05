@@ -844,6 +844,7 @@ site-memoria-ifsul-venancio/
 - Interface admin para histórico implementada:
   - listagem das últimas alterações de conteúdo
   - colunas: data/hora, usuário, entidade, id e ação
+  - filtros por entidade, ação e limite
   - atualização manual via botão de recarga
   - restauração básica por registro via botão `Restaurar`
 

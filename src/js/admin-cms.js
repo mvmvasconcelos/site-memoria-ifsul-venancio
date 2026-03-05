@@ -5,6 +5,11 @@ const state = {
   pages: [],
   menuItems: [],
   historyItems: [],
+  historyFilters: {
+    entityType: '',
+    action: '',
+    limit: 100,
+  },
   galleryItems: [],
   deletedGalleryIds: [],
   editablePageSlugs: ['trabalhos', 'catalogacao'],
@@ -247,8 +252,30 @@ async function loadMenu() {
 }
 
 async function loadHistory() {
-  state.historyItems = await apiRequest('/api/history?limit=100');
+  const params = new URLSearchParams();
+  params.set('limit', String(state.historyFilters.limit || 100));
+  if (state.historyFilters.entityType) {
+    params.set('entity_type', state.historyFilters.entityType);
+  }
+  if (state.historyFilters.action) {
+    params.set('action', state.historyFilters.action);
+  }
+
+  state.historyItems = await apiRequest(`/api/history?${params.toString()}`);
   renderHistoryTable();
+}
+
+function syncHistoryFiltersFromUI() {
+  const entitySelect = document.getElementById('historyEntityFilter');
+  const actionSelect = document.getElementById('historyActionFilter');
+  const limitSelect = document.getElementById('historyLimitFilter');
+  if (!entitySelect || !actionSelect || !limitSelect) return;
+
+  state.historyFilters = {
+    entityType: (entitySelect.value || '').trim(),
+    action: (actionSelect.value || '').trim(),
+    limit: Number(limitSelect.value) || 100,
+  };
 }
 
 function formatHistoryTimestamp(isoValue) {
@@ -879,8 +906,20 @@ function attachEventListeners() {
   document.getElementById('pageContentPageSelect').addEventListener('change', loadSelectedPageContent);
   document.getElementById('addGalleryItemBtn').addEventListener('click', addGalleryItem);
   document.getElementById('saveGalleryBtn').addEventListener('click', saveGallery);
+  document.getElementById('applyHistoryFiltersBtn').addEventListener('click', async () => {
+    try {
+      syncHistoryFiltersFromUI();
+      setSyncStatus('syncing', '⟳ Aplicando filtros do histórico...');
+      await loadHistory();
+      setSyncStatus('synced', '✓ Histórico filtrado');
+    } catch (error) {
+      setSyncStatus('error', '⚠ Erro ao filtrar histórico');
+      showToast(error.message, 'error');
+    }
+  });
   document.getElementById('refreshHistoryBtn').addEventListener('click', async () => {
     try {
+      syncHistoryFiltersFromUI();
       setSyncStatus('syncing', '⟳ Carregando histórico...');
       await loadHistory();
       setSyncStatus('synced', '✓ Histórico atualizado');
