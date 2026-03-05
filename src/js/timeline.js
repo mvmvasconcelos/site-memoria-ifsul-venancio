@@ -38,6 +38,34 @@ function resolveImageUrl(imagePath) {
   return `${getAppBasePath()}/${imagePath}`;
 }
 
+function formatTimelineDate(dateValue) {
+  const value = (dateValue || '').trim();
+  const match = value.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
+  if (!match) return value;
+
+  const year = match[1];
+  const month = match[2];
+  const day = match[3];
+  const months = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+
+  if (!month) {
+    return year;
+  }
+
+  const monthIndex = Number(month) - 1;
+  if (monthIndex < 0 || monthIndex > 11) {
+    return value;
+  }
+
+  if (!day) {
+    return `${months[monthIndex]} de ${year}`;
+  }
+
+  const dayNumber = Number(day);
+  const formattedDay = dayNumber === 1 ? `${dayNumber}º` : String(dayNumber);
+  return `${formattedDay} de ${months[monthIndex]} de ${year}`;
+}
+
 async function loadTimelineData() {
   try {
     const page = await apiGetJson('/api/pages/timeline');
@@ -113,16 +141,7 @@ function showEntriesForYear(year) {
     timelineEntry.classList.add('timeline-entry');
     timelineEntry.dataset.year = entry.date.split('-')[0];
 
-    // Converte a data para o formato "1º de janeiro de 1913" ou "8 de maio de 1913"
-    const [yyyy, mm, dd] = entry.date.split('-');
-    let formattedDate;
-    if (mm && dd) {
-      const months = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-      const day = parseInt(dd) === 1 ? `${parseInt(dd)}º` : parseInt(dd);
-      formattedDate = `${day} de ${months[parseInt(mm) - 1]} de ${yyyy}`;
-    } else {
-      formattedDate = yyyy;
-    }
+    const formattedDate = formatTimelineDate(entry.date);
 
     // Define o conteúdo HTML da entrada da linha do tempo
     timelineEntry.innerHTML = `

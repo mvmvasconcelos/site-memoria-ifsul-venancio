@@ -1,3 +1,6 @@
+import re
+from datetime import date
+
 from flask import Blueprint, jsonify, request, session
 
 from ..auth_utils import login_required, to_dict
@@ -6,6 +9,8 @@ from ..history import log_history
 from ..models import TimelineItem
 
 timeline_bp = Blueprint("timeline", __name__)
+
+TIMELINE_DATE_REGEX = re.compile(r"^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$")
 
 TIMELINE_FIELDS = [
     "id",
@@ -28,6 +33,34 @@ def serialize_item(item: TimelineItem):
     return data
 
 
+def is_valid_timeline_date(value: str) -> bool:
+    match = TIMELINE_DATE_REGEX.match((value or "").strip())
+    if not match:
+        return False
+
+    year = int(match.group(1))
+    month_raw = match.group(2)
+    day_raw = match.group(3)
+
+    if month_raw is None:
+        return True
+
+    month = int(month_raw)
+    if month < 1 or month > 12:
+        return False
+
+    if day_raw is None:
+        return True
+
+    day = int(day_raw)
+    try:
+        date(year, month, day)
+    except ValueError:
+        return False
+
+    return True
+
+
 @timeline_bp.get("/<int:page_id>")
 def list_timeline(page_id):
     items = TimelineItem.query.filter_by(page_id=page_id).order_by(
@@ -46,6 +79,9 @@ def create_timeline_item():
 
     if not title or not date or not page_id:
         return jsonify({"error": "title, date e page_id são obrigatórios"}), 400
+
+    if not is_valid_timeline_date(date):
+        return jsonify({"error": "date inválida. Use AAAA, AAAA-MM ou AAAA-MM-DD"}), 400
 
     item = TimelineItem(
         page_id=int(page_id),
@@ -84,7 +120,10 @@ def update_timeline_item(item_id):
     if "title" in payload:
         item.title = (payload.get("title") or "").strip()
     if "date" in payload:
-        item.date = (payload.get("date") or "").strip()
+        candidate_date = (payload.get("date") or "").strip()
+        if not is_valid_timeline_date(candidate_date):
+            return jsonify({"error": "date inválida. Use AAAA, AAAA-MM ou AAAA-MM-DD"}), 400
+        item.date = candidate_date
     if "image_path" in payload:
         item.image_path = (payload.get("image_path") or "").strip() or None
     if "source" in payload:

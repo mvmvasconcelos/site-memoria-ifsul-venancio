@@ -145,27 +145,41 @@ function resolveAssetUrl(imagePath) {
 }
 
 function normalizeDateForInput(dateValue) {
+  return normalizeTimelineDate(dateValue);
+}
+
+function normalizeTimelineDate(dateValue) {
   const value = (dateValue || '').trim();
   if (!value) return '';
 
-  const yearOnly = /^\d{4}$/;
-  if (yearOnly.test(value)) {
-    return `${value}-01-01`;
+  const match = value.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
+  if (!match) return '';
+
+  const year = Number(match[1]);
+  const month = match[2] ? Number(match[2]) : null;
+  const day = match[3] ? Number(match[3]) : null;
+
+  if (month !== null && (month < 1 || month > 12)) return '';
+
+  if (day !== null) {
+    if (month === null) return '';
+    const date = new Date(Date.UTC(year, month - 1, day));
+    const valid =
+      date.getUTCFullYear() === year &&
+      date.getUTCMonth() === month - 1 &&
+      date.getUTCDate() === day;
+    if (!valid) return '';
   }
 
-  const isoDate = /^\d{4}-\d{2}-\d{2}$/;
-  if (isoDate.test(value)) {
-    return value;
+  if (day !== null) {
+    return `${match[1]}-${match[2]}-${match[3]}`;
   }
 
-  const brDate = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-  const brMatch = value.match(brDate);
-  if (brMatch) {
-    const [, day, month, year] = brMatch;
-    return `${year}-${month}-${day}`;
+  if (month !== null) {
+    return `${match[1]}-${match[2]}`;
   }
 
-  return '';
+  return match[1];
 }
 
 async function apiRequest(path, options = {}) {
@@ -806,18 +820,24 @@ async function saveEventFromForm(event) {
 
   const selectedFile = document.getElementById('eventImageFile').files[0];
   let imagePath = document.getElementById('eventImage').value.trim();
+  const normalizedDate = normalizeTimelineDate(document.getElementById('eventDate').value);
 
   const payload = {
     page_id: state.timelinePageId,
-    date: document.getElementById('eventDate').value,
+    date: normalizedDate,
     title: document.getElementById('eventTitle').value.trim(),
     image_path: null,
     source: document.getElementById('eventLegend').value.trim() || null,
     description: document.getElementById('eventText').value.trim() || null,
   };
 
-  if (!payload.date || !payload.title) {
+  if (!payload.title) {
     showToast('Data e título são obrigatórios.', 'error');
+    return;
+  }
+
+  if (!payload.date) {
+    showToast('Data inválida. Use AAAA, AAAA-MM ou AAAA-MM-DD.', 'error');
     return;
   }
 
