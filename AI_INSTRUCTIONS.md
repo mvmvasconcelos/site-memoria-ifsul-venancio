@@ -200,7 +200,7 @@ docker inspect memoria-ifsul-venancio | grep -A 5 Health
 - `src/campus.csv` - ~10 itens do campus (2KB)
 - `src/territorio.csv` - ~3 transformações (689B)
 
-**⚠️ IMPORTANTE**: Admin desabilitado (admin.html bloqueado pelo Nginx) devido a token exposto.
+**⚠️ IMPORTANTE**: Admin desabilitado (admin.html bloqueado pelo Nginx). Sistema antigo não funcional.
 
 ---
 
@@ -367,7 +367,7 @@ git checkout -b nova-feature
 1. **[README.md](README.md)** - Visão geral do projeto (pública)
 2. **[README_DEPLOY.md](README_DEPLOY.md)** - Guia completo de deployment
 3. **[MIGRACAO_ANALISE.md](MIGRACAO_ANALISE.md)** - Análise técnica da migração
-4. **[ADMIN_README.md](ADMIN_README.md)** - Instruções administrativas
+4. **[AI_INSTRUCTIONS.md](AI_INSTRUCTIONS.md)** - Instruções para agente de IA (este arquivo)
 5. **[info.md](info.md)** - Link simbólico para `/home/ifsul/docs/info.md` (infraestrutura do servidor)
 
 ### Comandos de Referência Rápida

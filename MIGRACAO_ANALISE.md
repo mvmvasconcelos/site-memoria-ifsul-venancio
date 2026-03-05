@@ -248,16 +248,16 @@ memoriaifsulvenancio.com.br  →  A record  →  200.132.86.251 (IP do servidor)
 
 ## 🔒 Questões de Segurança
 
-### Token GitHub Exposto
-**Risco**: Token `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` está hardcoded no código
-
-**Ação Necessária**:
-1. ⚠️ **URGENTE**: Revogar este token no GitHub
-2. Remover do código fonte
-3. Se manter GitHub, usar variável de ambiente
-
 ### Área Administrativa
-**Situação**: Não funcional atualmente
+**Situação**: Desabilitada permanentemente na Fase 1
+
+**Histórico**:
+- Sistema antigo tentou usar GitHub como backend (limitações do GitHub Pages)
+- Token exposto foi revogado em Março/2026
+- Área admin bloqueada pelo Nginx (retorna 404)
+- Código mantido apenas como referência
+
+**Solução**: Fase 3 implementará backend próprio (Flask + SQLite + autenticação JWT)
 
 **Opções**:
 1. Desabilitar completamente
