@@ -20,7 +20,6 @@ check_url "${BASE_URL}/timeline"
 check_url "${BASE_URL}/territorio"
 check_url "${BASE_URL}/campus"
 check_url "${BASE_URL}/trabalhos"
-check_url "${BASE_URL}/catalogacao"
 check_url "${BASE_URL}/contact"
 check_url "${BASE_URL}/admin"
 

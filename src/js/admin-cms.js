@@ -24,7 +24,6 @@ const MANAGED_PAGE_DEFS = [
   { slug: 'territorio', title: 'Transformações Territoriais', type: 'cards', menu_order: 2, is_visible: true },
   { slug: 'campus', title: 'Campus', type: 'cards', menu_order: 3, is_visible: true },
   { slug: 'trabalhos', title: 'Trabalhos Acadêmicos', type: 'gallery', menu_order: 4, is_visible: true },
-  { slug: 'catalogacao', title: 'Catalogação', type: 'list', menu_order: 5, is_visible: true },
   { slug: 'contact', title: 'Contato', type: 'page', menu_order: 6, is_visible: true },
 ];
 
@@ -437,7 +436,7 @@ function getPageBySlug(slug) {
 }
 
 function getEditablePages() {
-  return state.pages.filter((page) => page.slug !== 'timeline');
+  return state.pages.filter((page) => !['timeline', 'catalogacao'].includes(page.slug));
 }
 
 function renderPageManagerTable() {
@@ -475,8 +474,10 @@ function closePageContentEditor() {
   state.currentPageEditId = null;
   const wrapper = document.getElementById('pageEditorWrapper');
   const title = document.getElementById('pageEditorTitle');
+  const pageTitleInput = document.getElementById('pageTitleInput');
   if (wrapper) wrapper.style.display = 'none';
   if (title) title.textContent = 'Editar página';
+  if (pageTitleInput) pageTitleInput.value = '';
   setPageEditorView('visual');
   setPageEditorContent('');
 }
@@ -526,12 +527,18 @@ function clearPageEditorDraft(page) {
 }
 
 function buildCardTemplateHtml() {
+  const page = getCurrentEditingPage();
+  const isCampus = page?.slug === 'campus';
+  const imagePath = isCampus ? 'src/images/campus/image1.jpg' : 'src/images/territorio/image6.png';
+  const imageAlt = isCampus ? 'Imagem do campus' : 'Imagem da transformação territorial';
+  const defaultDate = isCampus ? '2012' : '2005';
+
   return `
 <div class="territorio-entry">
   <h3>Título do Card</h3>
   <div class="image-container">
-    <img src="src/images/campus/exemplo.jpg" alt="Descrição da imagem">
-    <p class="date">2026</p>
+    <img src="${imagePath}" alt="${imageAlt}">
+    <p class="date">${defaultDate}</p>
   </div>
   <p class="legend">Fonte: inserir referência</p>
   <p>Descreva aqui o conteúdo do card.</p>
@@ -603,6 +610,29 @@ function insertHtmlAtCursor(html) {
   syncPageEditorTextarea();
   recordPageEditorHistory(getPageEditorContent());
   savePageEditorDraft();
+}
+
+function insertCardTemplateIntoTerritorioSection(templateHtml) {
+  const content = getPageEditorContent();
+  const openTagMatch = content.match(/<section[^>]*id=["']territorio["'][^>]*>/i);
+  if (!openTagMatch || openTagMatch.index === undefined) {
+    return false;
+  }
+
+  const sectionContentStart = openTagMatch.index + openTagMatch[0].length;
+  const sectionCloseIndex = content.indexOf('</section>', sectionContentStart);
+  if (sectionCloseIndex === -1) {
+    return false;
+  }
+
+  const separator = content[sectionCloseIndex - 1] === '\n' ? '' : '\n';
+  const insertion = `${separator}${templateHtml}\n`;
+  const nextContent = `${content.slice(0, sectionCloseIndex)}${insertion}${content.slice(sectionCloseIndex)}`;
+
+  setPageEditorContent(nextContent);
+  recordPageEditorHistory(nextContent);
+  savePageEditorDraft();
+  return true;
 }
 
 function ensurePageEditorStructure(wrapper, textarea) {
@@ -748,7 +778,16 @@ function initializePageContentEditor() {
       if (!imageUrl) return;
       document.execCommand('insertImage', false, imageUrl);
     } else if (command === 'insertTemplateCard') {
-      insertHtmlAtCursor(buildCardTemplateHtml());
+      const page = getCurrentEditingPage();
+      const templateHtml = buildCardTemplateHtml();
+      const insertedInTargetSection =
+        (page?.slug === 'territorio' || page?.slug === 'campus') &&
+        insertCardTemplateIntoTerritorioSection(templateHtml);
+
+      if (!insertedInTargetSection) {
+        insertHtmlAtCursor(templateHtml);
+      }
+
       showToast('Template de card inserido no editor.', 'success');
       return;
     } else if (command === 'insertHorizontalRule') {
@@ -825,6 +864,10 @@ function setPageEditorContent(content) {
 function getPageEditorContent() {
   const textarea = document.getElementById('pageContentInput');
 
+  if (pageEditorViewMode === 'html' && textarea) {
+    return (textarea.value || '').trim();
+  }
+
   if (!pageContentEditor) {
     return textarea ? textarea.value : '';
   }
@@ -847,8 +890,10 @@ async function openPageContentEditor(pageId) {
   state.currentPageEditId = Number(page.id);
   const wrapper = document.getElementById('pageEditorWrapper');
   const title = document.getElementById('pageEditorTitle');
+  const pageTitleInput = document.getElementById('pageTitleInput');
   if (wrapper) wrapper.style.display = 'block';
   if (title) title.textContent = `Editar: ${page.title} (${page.slug})`;
+  if (pageTitleInput) pageTitleInput.value = page.title || '';
   setPageEditorView('visual');
   setPageEditorContent('<p>Carregando conteúdo...</p>');
   resetPageEditorHistory('');
@@ -862,16 +907,12 @@ async function openPageContentEditor(pageId) {
     const draftKey = getPageDraftStorageKey(page);
     const draft = draftKey ? window.localStorage.getItem(draftKey) : null;
     if (draft && draft !== serverContent) {
-      const restoreDraft = window.confirm('Existe um rascunho local não salvo para esta página. Deseja restaurar?');
-      if (restoreDraft) {
-        setPageEditorContent(draft);
-        resetPageEditorHistory(draft);
-        showToast('Rascunho local restaurado no editor.', 'info');
-      }
+      clearPageEditorDraft(page);
     }
 
     if (payload?.source === 'generated') {
       showToast('Conteúdo inicial carregado a partir da versão atual do site. Salve para persistir no banco.', 'info');
+      showToast('Nesta tela você edita o conteúdo principal da página (dentro de <main>).', 'info');
     }
   } catch (error) {
     setPageEditorContent(page?.content || '');
@@ -901,12 +942,20 @@ async function saveSelectedPageContent() {
   }
 
   const content = getPageEditorContent();
+  const titleInput = document.getElementById('pageTitleInput');
+  const nextTitle = (titleInput?.value || '').trim();
+
+  if (!nextTitle) {
+    showToast('Informe um título para a página.', 'error');
+    titleInput?.focus();
+    return;
+  }
 
   try {
     setSyncStatus('syncing', '⟳ Salvando conteúdo...');
     const updated = await apiRequest(`/api/pages/${selectedId}`, {
       method: 'PUT',
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ title: nextTitle, content }),
     });
 
     const index = state.pages.findIndex((page) => Number(page.id) === Number(selectedId));
@@ -1034,6 +1083,24 @@ function clearGalleryItemImage(index) {
   renderGalleryTable();
 }
 
+function buildTrabalhosPageContentFromGalleryItems(items) {
+  const sections = (items || []).map((item) => {
+    const title = sanitize(item.title || 'Trabalho acadêmico');
+    const imagePath = sanitize(item.image_path || '');
+    const caption = item.caption || '';
+
+    return `
+<section class="trabalhos">
+  <h2>${title}</h2>
+  ${imagePath ? `<img src="${imagePath}" alt="${title}">` : ''}
+  ${caption ? `<p>${caption}</p>` : ''}
+</section>
+    `.trim();
+  });
+
+  return `<h1>Trabalhos mestrado ProfEPT servidores do câmpus</h1>\n${sections.join('\n')}`;
+}
+
 async function saveGallery() {
   if (!state.trabalhosPageId) {
     showToast('Página trabalhos não encontrada para salvar galeria.', 'error');
@@ -1077,6 +1144,17 @@ async function saveGallery() {
           }),
         });
       }
+    }
+
+    const trabalhosContent = buildTrabalhosPageContentFromGalleryItems(state.galleryItems);
+    const updatedPage = await apiRequest(`/api/pages/${state.trabalhosPageId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ content: trabalhosContent }),
+    });
+
+    const pageIndex = state.pages.findIndex((page) => Number(page.id) === Number(state.trabalhosPageId));
+    if (pageIndex >= 0) {
+      state.pages[pageIndex] = updatedPage;
     }
 
     await loadGallery();

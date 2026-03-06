@@ -464,6 +464,21 @@ button {
   font-weight: 500;
 }
 
+#pageTitleInput {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+#pageTitleInput:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(44, 95, 45, 0.1);
+}
+
 .page-editor-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -503,6 +518,20 @@ button {
   font-size: 14px;
   line-height: 1.5;
   overflow-y: auto;
+}
+
+.page-wysiwyg-host img {
+  max-width: 100%;
+  height: auto;
+}
+
+.page-wysiwyg-host .territorio-entry {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: #fff;
 }
 
 .page-wysiwyg-host:focus {

@@ -19,6 +19,55 @@ function buildAssetUrl(path) {
   return `${basePath}${normalized}`;
 }
 
+function getCurrentPageSlug() {
+  const basePath = getAppBasePath();
+  let path = window.location.pathname || '/';
+
+  if (basePath && path.startsWith(basePath)) {
+    path = path.slice(basePath.length) || '/';
+  }
+
+  const normalized = path.replace(/\/+$/, '');
+  if (!normalized || normalized === '/') {
+    return 'index';
+  }
+
+  return normalized.replace(/^\/+/, '');
+}
+
+async function loadPageMainFromCms() {
+  const slug = getCurrentPageSlug();
+  if (!slug || slug === 'admin') {
+    return;
+  }
+
+  const main = document.querySelector('main');
+  if (!main) {
+    return;
+  }
+
+  try {
+    const response = await fetch(buildApiUrl(`/api/pages/${slug}`), { cache: 'no-store' });
+    if (!response.ok) {
+      return;
+    }
+
+    const page = await response.json();
+    const content = (page?.content || '').trim();
+    if (content) {
+      main.innerHTML = content;
+      return;
+    }
+
+    const strictSlugs = new Set(['index', 'contact', 'territorio', 'campus', 'trabalhos', 'timeline']);
+    if (strictSlugs.has(slug)) {
+      main.innerHTML = '<section><p>Conteúdo não publicado no banco para esta página.</p></section>';
+    }
+  } catch (error) {
+    console.warn(`Falha ao carregar conteúdo CMS da página ${slug}:`, error);
+  }
+}
+
 function buildMenuUrl(url) {
   const basePath = getAppBasePath();
   const raw = (url || '').trim();
@@ -96,6 +145,8 @@ function normalizeStaticMenuLinks() {
 
 // Função para carregar o header e o footer
 async function loadHeaderFooter() {
+  await loadPageMainFromCms();
+
   const headerResponse = await fetch(buildAssetUrl('/header.html'));
   const headerText = await headerResponse.text();
   document.getElementById('header-placeholder').innerHTML = headerText;

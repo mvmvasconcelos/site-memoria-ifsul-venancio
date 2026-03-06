@@ -7,7 +7,9 @@ Sistema de memória institucional do IFSul Campus Venâncio Aires.
 - Ambiente ativo: `https://ifva.duckdns.org/memoria/`
 - Stack principal em produção: **Flask + SQLite** (Fase 3)
 - Admin funcional em `.../memoria/admin`
-- Edição de páginas com editor visual (WYSIWYG), modo HTML/Preview, rascunho local e histórico de alterações
+- Render público **DB-only** para páginas gerenciáveis (sem fallback runtime para CSV/HTML legado)
+- Páginas gerenciáveis ativas: `index`, `territorio`, `campus`, `trabalhos`, `contact`, `timeline`
+- `catalogacao` desativada no fluxo ativo
 
 ## Funcionalidades implementadas
 
@@ -17,7 +19,7 @@ Sistema de memória institucional do IFSul Campus Venâncio Aires.
 - Menu dinâmico
 - Galeria de trabalhos com upload
 - Histórico com restauração
-- Fallback de conteúdo no editor para páginas sem `content` no banco
+- Sincronização de conteúdo no banco para publicação pública consistente
 
 ## Estrutura resumida
 

@@ -1,8 +1,26 @@
 # Análise de Migração - Site Memória IFSul Venâncio Aires
 
 **Data Inicial**: 4 de março de 2026  
-**Última Atualização**: 5 de março de 2026 - validação de navegação/frontend em subpath  
-**Status**: ✅ **MIGRAÇÃO FASE 1 CONCLUÍDA COM SUCESSO**
+**Última Atualização**: 6 de março de 2026 - validação operacional (smoke + backup + crescimento)  
+**Status**: ✅ **MIGRAÇÃO FASE 1 CONCLUÍDA E FASE 3 (CMS) EM OPERAÇÃO**
+
+## Atualização de status (06/03/2026)
+
+- CMS Flask + SQLite ativo em produção (`docker-compose.fase3.yml`).
+- Admin funcional em `/memoria/admin` com autenticação por sessão.
+- Operação validada nesta data:
+  - `scripts/smoke_memoria.sh` sem falhas (`200` em health, páginas públicas e admin)
+  - `scripts/backup_memoria.sh` executado com sucesso (`backups/20260306-145013`)
+  - crescimento atual registrado: `database/memoria.db` = `80K`; `uploads/` = `296K`
+- Observação: validação de UX do editor Visual/HTML/Preview continua manual (pendente de checklist funcional em navegador).
+- Manutenção estrutural aplicada no frontend público:
+  - carregamento de conteúdo CMS centralizado em `src/js/main.js`
+  - remoção de scripts legados por página que duplicavam lógica de render
+  - `catalogacao` removida do fluxo ativo (rota limpa em `404`, sem página no CMS/menu)
+- Operação pública em modo estrito DB-only:
+  - páginas ativas renderizam `page.content` do SQLite
+  - conteúdo faltante foi preenchido no banco para `campus`, `contact`, `timeline` e `trabalhos`
+  - fallback público em runtime para CSV/HTML legado desativado
 
 ---
 
@@ -319,10 +337,10 @@ SQLite (para dados) + API REST opcional (para admin futuro)
 ## ❓ Decisões Tomadas e Implementadas
 
 ### ✅ DECISÃO 1: Arquitetura de Dados
-- [x] **B) Manter CSV** - IMPLEMENTADO
-  - Estrutura atual preservada
-  - Sem área admin por enquanto
-  - Preparado para migração futura
+- [x] **Cenário transitório com CSV** - CONCLUÍDO HISTORICAMENTE
+  - Utilizado na fase inicial de migração
+  - Substituído na operação atual por SQLite + backend CMS
+  - Mantido apenas como referência de transição
 
 ### ✅ DECISÃO 2: Configuração de Domínio
 - [x] **A) Começar em subpath `/memoria/`** - IMPLEMENTADO
@@ -331,10 +349,10 @@ SQLite (para dados) + API REST opcional (para admin futuro)
   - Migração para domínio próprio planejada
 
 ### ✅ DECISÃO 3: Área Administrativa
-- [x] **A) Desabilitar por enquanto** - IMPLEMENTADO
+- [x] **Desativação temporária do admin legado** - CONCLUÍDA HISTORICAMENTE
   - Token GitHub exposto removido
-  - Acesso bloqueado pelo Nginx (404)
-  - Nova implementação planejada na refatoração
+  - Fase transitória encerrada
+  - Estado atual: admin novo do CMS ativo com autenticação por sessão
 
 ### ✅ DECISÃO 4: Porta do Host
 - [x] **Porta 8092** - IMPLEMENTADO E FUNCIONANDO
@@ -879,19 +897,17 @@ site-memoria-ifsul-venancio/
   - carregamento de `GET /api/menu` em `src/js/main.js`
   - fallback para menu estático em caso de erro da API
   - suporte ao subpath remoto `/memoria`
-- Conteúdo público parcialmente migrado para API:
-  - `src/js/timeline.js` consumindo `/api/pages/timeline` + `/api/timeline/:page_id`
-  - `src/js/campus.js` consumindo `/api/pages/campus` + `/api/cards/:page_id`
-  - `src/js/territorio.js` consumindo `/api/pages/territorio` + `/api/cards/:page_id`
-  - `src/js/trabalhos.js` consumindo `/api/pages/trabalhos` (API-first com fallback para conteúdo estático)
-    - sem `content`, fallback intermediário para `/api/gallery/:page_id`
-  - `src/js/catalogacao.js` consumindo `/api/pages/catalogacao` (API-first com fallback para conteúdo estático)
-  - fallback para CSV/HTML estático mantido para segurança operacional
+- Conteúdo público migrado para API com fluxo unificado:
+  - `src/js/main.js` aplica `page.content` no `<main>` para páginas públicas gerenciáveis
+  - `src/js/timeline.js` permanece específico para timeline (`/api/pages/timeline` + `/api/timeline/:page_id`)
+  - `src/js/trabalhos.js` mantém fallback para `/api/gallery/:page_id` apenas quando `content` estiver vazio
+  - scripts legados por página (`index/contact/territorio/campus/page-content-loader`) removidos para simplificar manutenção
+  - `catalogacao` removida do fluxo ativo (rota limpa desativada)
 
 ### ✅ Validação remota MVP (05/03/2026)
 
 - Endpoints públicos essenciais com retorno `200`:
-  - `/api/health`, `/api/pages/{timeline,campus,territorio,trabalhos,catalogacao}`, `/api/menu`
+  - `/api/health`, `/api/pages/{timeline,campus,territorio,trabalhos}`, `/api/menu`
 - Endpoints de conteúdo com retorno `200`:
   - `/api/timeline/:page_id`, `/api/cards/:page_id`, `/api/gallery/:page_id`
 - Endpoints autenticados com retorno `200` (sessão admin):
@@ -903,7 +919,7 @@ site-memoria-ifsul-venancio/
 - [x] CRUD da timeline (criar, editar, excluir)
 - [x] Upload e vínculo de imagem na timeline
 - [x] Edição e salvamento do menu
-- [x] Edição de conteúdo das páginas `trabalhos` e `catalogacao`
+- [x] Edição de conteúdo das páginas gerenciáveis ativas (`index`, `territorio`, `campus`, `trabalhos`, `contact`)
 - [x] CRUD da galeria de trabalhos (incluindo upload e ordenação)
 - [x] Consulta de histórico e teste de restauração por registro
 - [x] Validação pública das páginas em `https://ifva.duckdns.org/memoria/`

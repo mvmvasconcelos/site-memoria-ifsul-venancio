@@ -94,6 +94,20 @@ def build_content_from_gallery(page_id: int) -> str:
 
 
 def build_editor_default_content(page: Page) -> str:
+    static_mapping = {
+        "index": "index.html",
+        "contact": "contact.html",
+        "territorio": "territorio.html",
+        "campus": "campus.html",
+        "trabalhos": "trabalhos.html",
+    }
+
+    file_name = static_mapping.get(page.slug)
+    if file_name:
+        static_content = extract_main_html(file_name)
+        if static_content:
+            return static_content
+
     if page.slug in {"territorio", "campus"}:
         content = build_content_from_cards(page.id)
         if content:
@@ -104,19 +118,7 @@ def build_editor_default_content(page: Page) -> str:
         if content:
             return content
 
-    static_mapping = {
-        "index": "index.html",
-        "contact": "contact.html",
-        "catalogacao": "catalogacao.html",
-        "territorio": "territorio.html",
-        "campus": "campus.html",
-        "trabalhos": "trabalhos.html",
-    }
-
-    file_name = static_mapping.get(page.slug)
-    if not file_name:
-        return ""
-    return extract_main_html(file_name)
+    return ""
 
 
 @pages_bp.get("")

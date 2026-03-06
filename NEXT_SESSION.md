@@ -1,35 +1,47 @@
 # Próxima Sessão - Plano Objetivo
 
-## 1) Validação final do editor de páginas
+## Contexto consolidado (06/03/2026)
 
-- Testar fluxo completo em `index`, `campus`, `territorio`, `trabalhos`, `catalogacao`, `contact`:
+- Produção ativa em `https://ifva.duckdns.org/memoria/`
+- CMS em modo público **DB-only** para páginas gerenciáveis
+- Páginas ativas no fluxo: `index`, `territorio`, `campus`, `trabalhos`, `contact`, `timeline`
+- `catalogacao` removida do fluxo ativo (`404` na rota limpa)
+- Smoke operacional validado após deploy
+
+## 1) Homologação funcional final (manual)
+
+- Validar edição e publicação em cada página ativa:
   - abrir editor
   - editar no modo Visual
   - alternar para HTML
   - validar Preview
   - salvar
-  - confirmar reflexo no público
+  - confirmar reflexo no público (hard reload)
+- Validar especificamente em `campus` e `territorio`:
+  - inserção por Template Card
+  - manutenção do estilo visual esperado
+  - comportamento responsivo (desktop e mobile)
 
-## 2) Melhorias rápidas de UX (se necessário)
+Status: pendente.
 
-- Ajustar template de card para variantes por página (`campus` e `territorio`).
-- Adicionar botão de “duplicar bloco” no editor (opcional, baixo risco).
-- Rever mensagens de toast para reduzir ruído.
+## 2) Qualidade de conteúdo e UX
 
-## 3) Estabilidade operacional
+- Revisar mensagens de toast do editor para reduzir ruído.
+- Avaliar inclusão de módulos extras de bloco (ex.: seção, imagem+legenda) no editor.
+- Revisar consistência tipográfica após integração dos CSS globais.
 
-- Rodar `scripts/smoke_memoria.sh` após deploy.
-- Confirmar backup com `scripts/backup_memoria.sh`.
-- Registrar tamanho do banco e pasta `uploads/` para controle de crescimento.
+Status: pendente.
 
-## 4) Pendências de médio prazo
+## 3) Operação e segurança
 
-- Revisar `MIGRACAO_ANALISE.md` e marcar itens já concluídos.
-- Definir política simples de versionamento de conteúdo (quantidade e retenção).
-- Planejar migração DNS (quando autorizado), sem bloquear evolução do CMS.
+- Rodar `scripts/smoke_memoria.sh` após cada deploy.
+- Rodar `scripts/backup_memoria.sh` ao final da sessão.
+- Registrar crescimento de `database/memoria.db` e `uploads/`.
+
+Status: rotina obrigatória por sessão.
 
 ## Critério de encerramento da próxima sessão
 
-- Editor validado em todas as páginas gerenciáveis.
-- Smoke e backup executados sem erro.
-- Commit com mensagem clara e documentação atualizada.
+- Homologação manual concluída sem divergência entre editor e público.
+- Smoke e backup executados com sucesso.
+- Documentação atualizada e commit final realizado.

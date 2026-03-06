@@ -60,7 +60,6 @@ def create_app():
                 "/territorio",
                 "/campus",
                 "/trabalhos",
-                "/catalogacao",
                 "/contact",
                 "/admin",
             }
@@ -93,7 +92,6 @@ def create_app():
             "territorio": "territorio.html",
             "campus": "campus.html",
             "trabalhos": "trabalhos.html",
-            "catalogacao": "catalogacao.html",
             "contact": "contact.html",
             "admin": "admin.html",
         }

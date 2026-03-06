@@ -179,7 +179,6 @@ def main():
         page_territorio = upsert_page("territorio", "Transformações Territoriais", "cards", 2)
         page_campus = upsert_page("campus", "Campus", "cards", 3)
         page_trabalhos = upsert_page("trabalhos", "Trabalhos Acadêmicos", "gallery", 4)
-        upsert_page("catalogacao", "Catalogação", "list", 5)
 
         migrate_timeline(project_root, page_timeline)
         migrate_cards(project_root, page_territorio, "territorio.csv", "territorio")

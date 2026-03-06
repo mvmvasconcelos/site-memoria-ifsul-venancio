@@ -265,6 +265,47 @@ main {
   margin-right: auto;
 }
 
+/* Card base reutilizavel no CMS/publico */
+main .territorio-entry {
+  position: relative;
+  width: 80%;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  border-radius: 5px;
+  margin: 0 auto 20px;
+  opacity: 1;
+}
+
+main .territorio-entry .image-container {
+  position: relative;
+}
+
+main .territorio-entry .image-container .date {
+  position: absolute;
+  top: 10px;
+  background-color: rgba(46, 125, 50, 0.7);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-weight: bold;
+  z-index: 10;
+}
+
+main .territorio-entry img {
+  width: 100%;
+  height: auto;
+  border-radius: 5px;
+}
+
+main .territorio-entry .legend {
+  font-style: italic;
+  color: #2e7d32;
+  margin-top: 5px;
+  font-size: 0.9em;
+  text-align: right;
+}
+
 .form-group {
   margin-bottom: 15px;
 }
@@ -333,5 +374,10 @@ button[type="submit"]:hover {
   .trabalhos img {
     width: 100%;
     height: auto;
+  }
+
+  main .territorio-entry {
+    width: 100%;
+    padding: 14px;
   }
 }
