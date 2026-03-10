@@ -1,40 +1,49 @@
 const state = {
   timelinePageId: null,
-  trabalhosPageId: null,
   events: [],
   pages: [],
   menuItems: [],
   historyItems: [],
+  mediaFiles: [],
   historyFilters: {
     entityType: '',
     action: '',
     limit: 100,
   },
-  galleryItems: [],
-  deletedGalleryIds: [],
   currentEditId: null,
   deleteId: null,
+  currentEditMediaId: null,
+  deleteMediaId: null,
   eventFormInitialState: null,
   activePanel: 'dashboard',
   currentPageEditId: null,
+  imagePickerContext: null, // 'event' para formulário de eventos, 'editor' para editor de página
 };
 
 const MANAGED_PAGE_DEFS = [
   { slug: 'index', title: 'Início', type: 'page', menu_order: 0, is_visible: true },
   { slug: 'territorio', title: 'Transformações Territoriais', type: 'cards', menu_order: 2, is_visible: true },
   { slug: 'campus', title: 'Campus', type: 'cards', menu_order: 3, is_visible: true },
-  { slug: 'trabalhos', title: 'Trabalhos Acadêmicos', type: 'gallery', menu_order: 4, is_visible: true },
   { slug: 'contact', title: 'Contato', type: 'page', menu_order: 6, is_visible: true },
 ];
 
 function getAppBasePath() {
   const path = window.location.pathname || '';
+  console.log('[DEBUG] getAppBasePath() - window.location.pathname:', path);
+  
+  // Check if we're running under /memoria subpath
   if (path.startsWith('/memoria/')) {
+    console.log('[DEBUG] getAppBasePath() - returning /memoria (from /memoria/ path)');
     return '/memoria';
   }
   if (path === '/memoria') {
+    console.log('[DEBUG] getAppBasePath() - returning /memoria (exact match)');
     return '/memoria';
   }
+  
+  // If we're at root (nginx is stripping /memoria), return empty
+  // because Flask is already at root in the container
+  console.log('[DEBUG] getAppBasePath() - returning empty string (assuming nginx subpath)');
   return '';
 }
 
@@ -125,12 +134,12 @@ function setActivePanel(panelName) {
 function updateDashboardCards() {
   const timelineCount = document.getElementById('dashTimelineCount');
   const menuCount = document.getElementById('dashMenuCount');
-  const galleryCount = document.getElementById('dashGalleryCount');
+  const mediaCount = document.getElementById('dashMediaCount');
   const historyCount = document.getElementById('dashHistoryCount');
 
   if (timelineCount) timelineCount.textContent = String(state.events.length || 0);
   if (menuCount) menuCount.textContent = String(state.menuItems.length || 0);
-  if (galleryCount) galleryCount.textContent = String(state.galleryItems.length || 0);
+  if (mediaCount) mediaCount.textContent = String(state.mediaFiles.length || 0);
   if (historyCount) historyCount.textContent = String(state.historyItems.length || 0);
 }
 
@@ -774,9 +783,8 @@ function initializePageContentEditor() {
       if (!url) return;
       document.execCommand('createLink', false, url);
     } else if (command === 'insertImage') {
-      const imageUrl = window.prompt('Digite a URL da imagem:', 'https://');
-      if (!imageUrl) return;
-      document.execCommand('insertImage', false, imageUrl);
+      openImagePickerModal();
+      return;
     } else if (command === 'insertTemplateCard') {
       const page = getCurrentEditingPage();
       const templateHtml = buildCardTemplateHtml();
@@ -975,239 +983,7 @@ async function saveSelectedPageContent() {
   }
 }
 
-async function loadGallery() {
-  const trabalhosPage = getPageBySlug('trabalhos');
-  if (!trabalhosPage) {
-    state.trabalhosPageId = null;
-    state.galleryItems = [];
-    renderGalleryTable();
-    return;
-  }
-
-  state.trabalhosPageId = trabalhosPage.id;
-  state.deletedGalleryIds = [];
-  state.galleryItems = await apiRequest(`/api/gallery/${state.trabalhosPageId}`);
-  renderGalleryTable();
-}
-
-function renderGalleryTable() {
-  const tbody = document.getElementById('galleryTableBody');
-  if (!tbody) return;
-
-  tbody.innerHTML = state.galleryItems
-    .map(
-      (item, index) => `
-      <tr data-index="${index}" data-id="${item.id || ''}">
-        <td>
-          ${item.image_path
-            ? `<img class="gallery-thumb" src="${sanitize(resolveAssetUrl(item.image_path))}" alt="${sanitize(item.title || 'Imagem da galeria')}" data-default-src="${sanitize(resolveAssetUrl(item.image_path))}" />`
-            : '<span class="no-image">Sem imagem</span>'}
-        </td>
-        <td>
-          <input type="text" class="gallery-title" value="${sanitize(item.title || '')}" placeholder="Título" />
-        </td>
-        <td>
-          <input type="text" class="gallery-image-path" value="${sanitize(item.image_path || '')}" placeholder="src/images/trabalhos/exemplo.jpg" />
-          <div class="gallery-upload-inline">
-            <input type="file" class="gallery-image-file" accept="image/*" />
-            <button class="btn-secondary btn-small" data-gallery-action="upload">Upload</button>
-          </div>
-        </td>
-        <td>
-          <textarea class="gallery-caption" rows="2" placeholder="Legenda (aceita HTML)">${sanitize(item.caption || '')}</textarea>
-        </td>
-        <td class="table-actions">
-          <button class="btn-secondary btn-small" data-gallery-action="up">↑</button>
-          <button class="btn-secondary btn-small" data-gallery-action="down">↓</button>
-          <button class="btn-secondary btn-small" data-gallery-action="clear-image">Limpar imagem</button>
-          <button class="btn-danger btn-small" data-gallery-action="remove">Remover</button>
-        </td>
-      </tr>
-    `
-    )
-    .join('');
-
-  updateDashboardCards();
-}
-
-function syncGalleryItemsFromTable() {
-  const rows = Array.from(document.querySelectorAll('#galleryTableBody tr'));
-  state.galleryItems = rows.map((row) => {
-    const idValue = row.dataset.id;
-    return {
-      id: idValue ? Number(idValue) : null,
-      title: row.querySelector('.gallery-title').value.trim() || null,
-      image_path: row.querySelector('.gallery-image-path').value.trim(),
-      caption: row.querySelector('.gallery-caption').value.trim() || null,
-    };
-  });
-}
-
-function addGalleryItem() {
-  state.galleryItems.push({
-    id: null,
-    title: '',
-    image_path: '',
-    caption: '',
-  });
-  renderGalleryTable();
-}
-
-function moveGalleryItem(index, direction) {
-  const target = direction === 'up' ? index - 1 : index + 1;
-  if (target < 0 || target >= state.galleryItems.length) return;
-
-  const temp = state.galleryItems[index];
-  state.galleryItems[index] = state.galleryItems[target];
-  state.galleryItems[target] = temp;
-  renderGalleryTable();
-}
-
-function removeGalleryItem(index) {
-  const item = state.galleryItems[index];
-  if (item?.id) {
-    state.deletedGalleryIds.push(item.id);
-  }
-  state.galleryItems.splice(index, 1);
-  renderGalleryTable();
-}
-
-function clearGalleryItemImage(index) {
-  const item = state.galleryItems[index];
-  if (!item) return;
-
-  const shouldClear = window.confirm('Deseja remover a imagem deste item da galeria?');
-  if (!shouldClear) return;
-
-  item.image_path = '';
-  renderGalleryTable();
-}
-
-function buildTrabalhosPageContentFromGalleryItems(items) {
-  const sections = (items || []).map((item) => {
-    const title = sanitize(item.title || 'Trabalho acadêmico');
-    const imagePath = sanitize(item.image_path || '');
-    const caption = item.caption || '';
-
-    return `
-<section class="trabalhos">
-  <h2>${title}</h2>
-  ${imagePath ? `<img src="${imagePath}" alt="${title}">` : ''}
-  ${caption ? `<p>${caption}</p>` : ''}
-</section>
-    `.trim();
-  });
-
-  return `<h1>Trabalhos mestrado ProfEPT servidores do câmpus</h1>\n${sections.join('\n')}`;
-}
-
-async function saveGallery() {
-  if (!state.trabalhosPageId) {
-    showToast('Página trabalhos não encontrada para salvar galeria.', 'error');
-    return;
-  }
-
-  syncGalleryItemsFromTable();
-
-  if (state.galleryItems.some((item) => !item.image_path)) {
-    showToast('Todos os itens da galeria precisam de caminho de imagem.', 'error');
-    return;
-  }
-
-  try {
-    setSyncStatus('syncing', '⟳ Salvando galeria...');
-
-    for (const itemId of state.deletedGalleryIds) {
-      await apiRequest(`/api/gallery/${itemId}`, { method: 'DELETE' });
-    }
-
-    for (let index = 0; index < state.galleryItems.length; index += 1) {
-      const item = state.galleryItems[index];
-      const payload = {
-        title: item.title,
-        image_path: item.image_path,
-        caption: item.caption,
-        order_index: index,
-      };
-
-      if (item.id) {
-        await apiRequest(`/api/gallery/${item.id}`, {
-          method: 'PUT',
-          body: JSON.stringify(payload),
-        });
-      } else {
-        await apiRequest('/api/gallery', {
-          method: 'POST',
-          body: JSON.stringify({
-            page_id: state.trabalhosPageId,
-            ...payload,
-          }),
-        });
-      }
-    }
-
-    const trabalhosContent = buildTrabalhosPageContentFromGalleryItems(state.galleryItems);
-    const updatedPage = await apiRequest(`/api/pages/${state.trabalhosPageId}`, {
-      method: 'PUT',
-      body: JSON.stringify({ content: trabalhosContent }),
-    });
-
-    const pageIndex = state.pages.findIndex((page) => Number(page.id) === Number(state.trabalhosPageId));
-    if (pageIndex >= 0) {
-      state.pages[pageIndex] = updatedPage;
-    }
-
-    await loadGallery();
-    setSyncStatus('synced', '✓ Galeria salva');
-    showToast('Galeria de trabalhos salva com sucesso.', 'success');
-  } catch (error) {
-    setSyncStatus('error', '⚠ Erro ao salvar galeria');
-    showToast(error.message, 'error');
-  }
-}
-
-function updateGalleryRowPreviewFromFile(row, file) {
-  const thumb = row.querySelector('.gallery-thumb');
-  if (!thumb || !file) return;
-
-  const objectUrl = URL.createObjectURL(file);
-  thumb.src = objectUrl;
-  thumb.dataset.tempObjectUrl = objectUrl;
-}
-
-function updateGalleryRowPreviewFromPath(row, imagePath) {
-  const thumb = row.querySelector('.gallery-thumb');
-  if (!thumb) return;
-
-  const path = (imagePath || '').trim();
-  if (!path) return;
-  thumb.src = resolveAssetUrl(path);
-  thumb.dataset.defaultSrc = resolveAssetUrl(path);
-}
-
-async function uploadGalleryRowImage(row) {
-  const fileInput = row.querySelector('.gallery-image-file');
-  const imagePathInput = row.querySelector('.gallery-image-path');
-  const file = fileInput?.files?.[0];
-
-  if (!file) {
-    showToast('Selecione uma imagem antes de enviar.', 'error');
-    return;
-  }
-
-  try {
-    setSyncStatus('syncing', '⟳ Enviando imagem da galeria...');
-    const uploadResult = await uploadImage(file, 'trabalhos');
-    imagePathInput.value = uploadResult.image_path;
-    syncGalleryItemsFromTable();
-    renderGalleryTable();
-    setSyncStatus('synced', '✓ Imagem enviada');
-    showToast('Imagem enviada e vinculada ao item da galeria.', 'success');
-  } catch (error) {
-    setSyncStatus('error', '⚠ Erro no upload da imagem');
-    showToast(error.message, 'error');
-  }
-}
+// Gallery functions removed - 2026-03-10
 
 function renderMenuTable() {
   const tbody = document.getElementById('menuTableBody');
@@ -1313,8 +1089,9 @@ async function loadAdminData() {
   await loadPages();
   await ensureManagedPages();
   await loadPages();
-  await Promise.all([loadEvents(), loadMenu(), loadGallery(), loadHistory()]);
+  await Promise.all([loadEvents(), loadMenu(), loadMedia(), loadHistory()]);
   initializeContentEditor();
+  attachMediaEventListeners();
   updateDashboardCards();
 }
 
@@ -1499,6 +1276,398 @@ async function confirmDelete() {
   }
 }
 
+// ============= MEDIA MANAGER FUNCTIONS =============
+
+async function loadMedia() {
+  const folder = document.getElementById('mediaFolderFilter')?.value || '';
+  console.log('[LOAD_MEDIA] Starting loadMedia(), folder:', folder);
+  
+  try {
+    setSyncStatus('syncing', '⟳ Carregando mídia...');
+    const url = folder ? `/api/media/public-list?folder=${encodeURIComponent(folder)}` : '/api/media/public-list';
+    console.log('[LOAD_MEDIA] API URL:', url);
+    const items = await apiRequest(url);
+    console.log('[LOAD_MEDIA] API Response:', items);
+    console.log('[LOAD_MEDIA] Number of items:', items ? items.length : 0);
+    state.mediaFiles = items || [];
+    console.log('[LOAD_MEDIA] state.mediaFiles updated, length:', state.mediaFiles.length);
+    
+    updateDashboardCards();
+    console.log('[LOAD_MEDIA] Rendering both views (grid and table)');
+    renderMediaTable();
+    renderMediaGrid();
+    
+    const emptyState = document.getElementById('emptyMediaState');
+    if (emptyState) {
+      emptyState.style.display = state.mediaFiles.length === 0 ? 'block' : 'none';
+    }
+    
+    setSyncStatus('synced', '✓ Mídia carregada');
+    console.log('[LOAD_MEDIA] Finished successfully');
+  } catch (error) {
+    console.error('[LOAD_MEDIA] ERROR:', error);
+    setSyncStatus('error', '⚠ Erro ao carregar mídia');
+    showToast(error.message, 'error');
+  }
+}
+
+function renderMediaTable() {
+  console.log('[RENDER_TABLE] Starting renderMediaTable()');
+  const tbody = document.getElementById('mediaTableBody');
+  console.log('[RENDER_TABLE] tbody element:', tbody);
+  if (!tbody) {
+    console.error('[RENDER_TABLE] tbody not found!');
+    return;
+  }
+
+  console.log('[RENDER_TABLE] Processing', state.mediaFiles.length, 'items');
+  const rows = (state.mediaFiles || []).map((item) => {
+    const filePath = sanitize(item.file_path || '');
+    const imageUrl = `${APP_BASE_PATH}/media/serve/${filePath}`;
+    console.log('[RENDER_TABLE] Item:', item.filename, '-> URL:', imageUrl);
+    const filename = sanitize(item.filename || 'Sem nome');
+    const folder = sanitize(item.folder || 'uploads');
+    const fileSize = formatFileSize(item.file_size || 0);
+    const createdDate = item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : '-';
+
+    return `
+      <tr data-media-id="${item.id}">
+        <td>
+          <img class="media-thumb" src="${imageUrl}" alt="${filename}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><rect fill=%22%23ccc%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22>Erro</text></svg>'">
+        </td>
+        <td><code>${filename}</code></td>
+        <td>${folder}</td>
+        <td>${fileSize}</td>
+        <td>${createdDate}</td>
+        <td>
+          <button class="btn-secondary btn-small" data-media-action="edit" data-media-id="${item.id}">✎ Editar</button>
+          <button class="btn-danger btn-small" data-media-action="delete" data-media-id="${item.id}">🗑 Deletar</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  tbody.innerHTML = rows || '<tr><td colspan="6">Nenhuma mídia encontrada</td></tr>';
+  console.log('[RENDER_TABLE] DOM updated, tbody.innerHTML length:', tbody.innerHTML.length);
+  console.log('[RENDER_TABLE] Finished');
+}
+
+function renderMediaGrid() {
+  console.log('[RENDER_GRID] Starting renderMediaGrid()');
+  const container = document.getElementById('mediaGridContainer');
+  console.log('[RENDER_GRID] container element:', container);
+  if (!container) {
+    console.error('[RENDER_GRID] container not found!');
+    return;
+  }
+
+  console.log('[RENDER_GRID] Processing', state.mediaFiles.length, 'items');
+  const items = (state.mediaFiles || []).map((item) => {
+    const filePath = sanitize(item.file_path || '');
+    const imageUrl = `${APP_BASE_PATH}/media/serve/${filePath}`;
+    console.log('[RENDER_GRID] Item:', item.filename, '-> URL:', imageUrl);
+    const filename = sanitize(item.filename || 'Sem nome');
+    const folder = sanitize(item.folder || 'uploads');
+
+    return `
+      <div class="media-grid-item" data-media-id="${item.id}">
+        <div class="media-grid-image">
+          <img src="${imageUrl}" alt="${filename}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22><rect fill=%22%23e0e0e0%22 width=%22200%22 height=%22200%22/><text x=%22100%22 y=%22100%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22>Erro ao carregar</text></svg>'">
+        </div>
+        <div class="media-grid-info">
+          <div class="media-grid-name" title="${filename}">${filename}</div>
+          <div class="media-grid-folder">${folder}</div>
+          <div class="media-grid-actions">
+            <button class="btn-secondary btn-small" data-media-action="edit" data-media-id="${item.id}">✎</button>
+            <button class="btn-danger btn-small" data-media-action="delete" data-media-id="${item.id}">🗑</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = items || '<p style="grid-column: 1/-1; text-align: center; color: #999;">Nenhuma mídia encontrada</p>';
+  console.log('[RENDER_GRID] DOM updated, container.innerHTML length:', container.innerHTML.length);
+  console.log('[RENDER_GRID] Finished');
+}
+
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+function toggleMediaView() {
+  const listView = document.getElementById('mediaListView');
+  const gridView = document.getElementById('mediaGridView');
+  const toggleBtn = document.getElementById('toggleMediaViewBtn');
+  
+  if (!listView || !gridView || !toggleBtn) return;
+
+  const isCurrentlyGrid = gridView.style.display !== 'none';
+  
+  if (isCurrentlyGrid) {
+    // Switch to list
+    listView.style.display = 'block';
+    gridView.style.display = 'none';
+    toggleBtn.textContent = 'Grid';
+    toggleBtn.dataset.view = 'grid';
+  } else {
+    // Switch to grid
+    listView.style.display = 'none';
+    gridView.style.display = 'block';
+    toggleBtn.textContent = 'Lista';
+    toggleBtn.dataset.view = 'list';
+  }
+}
+
+function uploadMediaFile() {
+  const fileInput = document.getElementById('mediaFileInput');
+  if (fileInput) {
+    fileInput.click();
+  }
+}
+
+async function handleMediaFileSelection(file) {
+  if (!file) return;
+
+  const folder = document.getElementById('mediaFolderFilter')?.value || 'uploads';
+  if (!['timeline', 'territorio', 'campus'].includes(folder)) {
+    showToast('Selecione uma pasta válida antes de fazer upload.', 'error');
+    document.getElementById('mediaFileInput').value = '';
+    return;
+  }
+
+  try {
+    setSyncStatus('syncing', '📤 Enviando arquivo...');
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+
+    const result = await apiRequest('/api/media', {
+      method: 'POST',
+      body: formData,
+    });
+
+    showToast(`Arquivo "${file.name}" enviado com sucesso.`, 'success');
+    document.getElementById('mediaFileInput').value = '';
+    await loadMedia();
+  } catch (error) {
+    setSyncStatus('error', '⚠ Erro ao enviar arquivo');
+    showToast(error.message, 'error');
+  }
+}
+
+function openMediaEditModal(mediaId) {
+  const media = state.mediaFiles.find(item => item.id === mediaId);
+  if (!media) return;
+
+  state.currentEditMediaId = mediaId;
+
+  const preview = document.getElementById('mediaEditPreview');
+  const altTextInput = document.getElementById('mediaEditAltText');
+  const descriptionInput = document.getElementById('mediaEditDescription');
+  const infoDiv = document.getElementById('mediaEditInfo');
+
+  if (preview) {
+    preview.src = `${APP_BASE_PATH}/media/serve/${sanitize(media.file_path)}`;
+    preview.alt = media.alt_text || media.filename;
+  }
+
+  if (altTextInput) altTextInput.value = media.alt_text || '';
+  if (descriptionInput) descriptionInput.value = media.description || '';
+
+  if (infoDiv) {
+    const fileSize = formatFileSize(media.file_size || 0);
+    const createdDate = media.created_at ? new Date(media.created_at).toLocaleDateString('pt-BR') : '-';
+    infoDiv.innerHTML = `
+      <div class="info-row">
+        <strong>Nome:</strong> <code>${sanitize(media.filename)}</code>
+      </div>
+      <div class="info-row">
+        <strong>Pasta:</strong> ${sanitize(media.folder)}
+      </div>
+      <div class="info-row">
+        <strong>Tamanho:</strong> ${fileSize}
+      </div>
+      <div class="info-row">
+        <strong>Caminho:</strong> <code>${sanitize(media.file_path)}</code>
+      </div>
+      <div class="info-row">
+        <strong>Data de upload:</strong> ${createdDate}
+      </div>
+    `;
+  }
+
+  showModal('mediaEditModal');
+}
+
+async function saveMediaEdit() {
+  if (!state.currentEditMediaId) return;
+
+  const altText = document.getElementById('mediaEditAltText')?.value || '';
+  const description = document.getElementById('mediaEditDescription')?.value || '';
+
+  try {
+    setSyncStatus('syncing', '⟳ Salvando metadados...');
+    
+    await apiRequest(`/api/media/${state.currentEditMediaId}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        alt_text: altText.trim() || null,
+        description: description.trim() || null,
+      }),
+    });
+
+    hideModal('mediaEditModal');
+    state.currentEditMediaId = null;
+    showToast('Metadados atualizados com sucesso.', 'success');
+    await loadMedia();
+  } catch (error) {
+    setSyncStatus('error', '⚠ Erro ao salvar');
+    showToast(error.message, 'error');
+  }
+}
+
+function openDeleteMediaModal(mediaId) {
+  const media = state.mediaFiles.find(item => item.id === mediaId);
+  if (!media) return;
+
+  state.deleteMediaId = mediaId;
+  const filename = document.getElementById('deleteMediaFilename');
+  if (filename) {
+    filename.textContent = media.filename;
+  }
+
+  showModal('deleteMediaConfirmModal');
+}
+
+async function confirmDeleteMedia() {
+  if (!state.deleteMediaId) return;
+
+  try {
+    setSyncStatus('syncing', '⟳ Deletando arquivo...');
+    
+    await apiRequest(`/api/media/${state.deleteMediaId}`, {
+      method: 'DELETE',
+    });
+
+    hideModal('deleteMediaConfirmModal');
+    state.deleteMediaId = null;
+    showToast('Arquivo deletado com sucesso.', 'success');
+    await loadMedia();
+  } catch (error) {
+    setSyncStatus('error', '⚠ Erro ao deletar');
+    showToast(error.message, 'error');
+  }
+}
+
+function attachMediaEventListeners() {
+  const toggleBtn = document.getElementById('toggleMediaViewBtn');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', toggleMediaView);
+  }
+
+  const uploadBtn = document.getElementById('uploadMediaBtn');
+  if (uploadBtn) {
+    uploadBtn.addEventListener('click', uploadMediaFile);
+  }
+
+  const fileInput = document.getElementById('mediaFileInput');
+  if (fileInput) {
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        handleMediaFileSelection(file);
+      }
+    });
+  }
+
+  const folderFilter = document.getElementById('mediaFolderFilter');
+  if (folderFilter) {
+    folderFilter.addEventListener('change', loadMedia);
+  }
+
+  const mediaTableBody = document.getElementById('mediaTableBody');
+  if (mediaTableBody) {
+    mediaTableBody.addEventListener('click', (event) => {
+      const editBtn = event.target.closest('button[data-media-action="edit"]');
+      const deleteBtn = event.target.closest('button[data-media-action="delete"]');
+
+      if (editBtn) {
+        const mediaId = Number(editBtn.dataset.mediaId);
+        openMediaEditModal(mediaId);
+      } else if (deleteBtn) {
+        const mediaId = Number(deleteBtn.dataset.mediaId);
+        openDeleteMediaModal(mediaId);
+      }
+    });
+  }
+
+  const mediaGridContainer = document.getElementById('mediaGridContainer');
+  if (mediaGridContainer) {
+    mediaGridContainer.addEventListener('click', (event) => {
+      const editBtn = event.target.closest('button[data-media-action="edit"]');
+      const deleteBtn = event.target.closest('button[data-media-action="delete"]');
+
+      if (editBtn) {
+        const mediaId = Number(editBtn.dataset.mediaId);
+        openMediaEditModal(mediaId);
+      } else if (deleteBtn) {
+        const mediaId = Number(deleteBtn.dataset.mediaId);
+        openDeleteMediaModal(mediaId);
+      }
+    });
+  }
+
+  const closeMediaEditBtn = document.getElementById('closeMediaEditBtn');
+  if (closeMediaEditBtn) {
+    closeMediaEditBtn.addEventListener('click', () => {
+      state.currentEditMediaId = null;
+      hideModal('mediaEditModal');
+    });
+  }
+
+  const cancelMediaEditBtn = document.getElementById('cancelMediaEditBtn');
+  if (cancelMediaEditBtn) {
+    cancelMediaEditBtn.addEventListener('click', () => {
+      state.currentEditMediaId = null;
+      hideModal('mediaEditModal');
+    });
+  }
+
+  const saveMediaEditBtn = document.getElementById('saveMediaEditBtn');
+  if (saveMediaEditBtn) {
+    saveMediaEditBtn.addEventListener('click', saveMediaEdit);
+  }
+
+  const deleteMediaBtn = document.getElementById('deleteMediaBtn');
+  if (deleteMediaBtn) {
+    deleteMediaBtn.addEventListener('click', () => {
+      hideModal('mediaEditModal');
+      if (state.currentEditMediaId) {
+        openDeleteMediaModal(state.currentEditMediaId);
+      }
+    });
+  }
+
+  const cancelDeleteMediaBtn = document.getElementById('cancelDeleteMediaBtn');
+  if (cancelDeleteMediaBtn) {
+    cancelDeleteMediaBtn.addEventListener('click', () => {
+      state.deleteMediaId = null;
+      hideModal('deleteMediaConfirmModal');
+    });
+  }
+
+  const confirmDeleteMediaBtn = document.getElementById('confirmDeleteMediaBtn');
+  if (confirmDeleteMediaBtn) {
+    confirmDeleteMediaBtn.addEventListener('click', confirmDeleteMedia);
+  }
+}
+
 function attachEventListeners() {
   document.getElementById('loginBtn').addEventListener('click', async () => {
     const username = 'admin';
@@ -1541,8 +1710,6 @@ function attachEventListeners() {
   document.getElementById('saveMenuBtn').addEventListener('click', saveMenu);
   document.getElementById('savePageContentBtn').addEventListener('click', saveSelectedPageContent);
   document.getElementById('cancelPageContentBtn').addEventListener('click', closePageContentEditor);
-  document.getElementById('addGalleryItemBtn').addEventListener('click', addGalleryItem);
-  document.getElementById('saveGalleryBtn').addEventListener('click', saveGallery);
   document.getElementById('changePasswordBtn').addEventListener('click', async () => {
     const currentInput = document.getElementById('currentPasswordInput');
     const newInput = document.getElementById('newPasswordInput');
@@ -1646,6 +1813,11 @@ function attachEventListeners() {
     updateImagePreviewFromPath('');
   });
 
+  document.getElementById('selectMediaBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+    openImagePickerForEvent();
+  });
+
   document.getElementById('eventImage').addEventListener('input', (event) => {
     updateImagePreviewFromPath(event.target.value);
   });
@@ -1707,53 +1879,6 @@ function attachEventListeners() {
     }
   });
 
-  document.getElementById('galleryTableBody').addEventListener('click', (event) => {
-    const button = event.target.closest('button[data-gallery-action]');
-    if (!button) return;
-
-    const row = button.closest('tr');
-    const index = Number(row?.dataset.index);
-    const action = button.dataset.galleryAction;
-
-    if (action === 'upload') {
-      uploadGalleryRowImage(row);
-      return;
-    }
-
-    syncGalleryItemsFromTable();
-
-    if (action === 'up') {
-      moveGalleryItem(index, 'up');
-    } else if (action === 'down') {
-      moveGalleryItem(index, 'down');
-    } else if (action === 'clear-image') {
-      clearGalleryItemImage(index);
-    } else if (action === 'remove') {
-      removeGalleryItem(index);
-    }
-  });
-
-  document.getElementById('galleryTableBody').addEventListener('change', (event) => {
-    const target = event.target;
-    if (!target.classList.contains('gallery-image-file')) return;
-
-    const row = target.closest('tr');
-    const file = target.files?.[0];
-    if (!row || !file) return;
-
-    updateGalleryRowPreviewFromFile(row, file);
-  });
-
-  document.getElementById('galleryTableBody').addEventListener('input', (event) => {
-    const target = event.target;
-    if (!target.classList.contains('gallery-image-path')) return;
-
-    const row = target.closest('tr');
-    if (!row) return;
-
-    updateGalleryRowPreviewFromPath(row, target.value);
-  });
-
   document.getElementById('historyTableBody').addEventListener('click', (event) => {
     const button = event.target.closest('button[data-history-action="restore"]');
     if (!button) return;
@@ -1777,6 +1902,7 @@ async function bootstrap() {
   initPanelNavigation();
   setActivePanel('dashboard');
   attachEventListeners();
+  attachImagePickerListeners();
 
   const authenticated = await checkSession();
   if (authenticated) {
@@ -1789,6 +1915,385 @@ async function bootstrap() {
     }
   } else {
     showModal('loginModal');
+  }
+}
+
+// ============= IMAGE PICKER MODAL FUNCTIONS =============
+
+let selectedImageForEditor = null;
+
+async function loadImagesForPicker() {
+  const folder = document.getElementById('imagePickerFolderFilter')?.value || '';
+  const grid = document.getElementById('imagePickerGrid');
+
+  if (!grid) return;
+
+  try {
+    grid.innerHTML = '<div class="loading">Carregando imagens...</div>';
+
+    const url = folder 
+      ? `/api/media/list-for-editor?folder=${encodeURIComponent(folder)}`
+      : '/api/media/list-for-editor';
+
+    const images = await apiRequest(url);
+
+    if (!images || images.length === 0) {
+      grid.innerHTML = `
+        <div class="loading" style="grid-column: 1 / -1; color: #999;">
+          Nenhuma imagem encontrada nesta pasta
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = images
+      .map((img) => {
+        const editorInsertUrl = img.url || '';
+        const previewUrl = resolveAssetUrl(editorInsertUrl);
+        const storedPath = editorInsertUrl.replace(/^\//, '');
+
+        return `
+        <div class="image-picker-item"
+          data-image-id="${img.id}"
+          data-image-url="${sanitize(previewUrl)}"
+          data-image-insert-url="${sanitize(editorInsertUrl)}"
+          data-image-path="${sanitize(storedPath)}"
+          data-image-folder="${sanitize(img.folder || '')}"
+          data-image-description="${sanitize(img.description || '')}"
+          data-image-alt="${sanitize(img.alt_text || '')}"
+          data-image-size="${sanitize(String(img.size || 0))}">
+          <img src="${sanitize(previewUrl)}" alt="${sanitize(img.filename)}" loading="lazy">
+          <div class="image-picker-item-check">✓</div>
+          <div class="image-picker-item-name">${sanitize(img.filename)}</div>
+        </div>
+      `;
+      })
+      .join('');
+
+    // Attach click listeners to image items
+    grid.querySelectorAll('.image-picker-item').forEach((item) => {
+      item.addEventListener('click', () => selectImageForEditor(item));
+    });
+  } catch (error) {
+    grid.innerHTML = `<div class="loading" style="grid-column: 1 / -1; color: #e74c3c;">Erro ao carregar imagens: ${error.message}</div>`;
+  }
+}
+
+function selectImageForEditor(element) {
+  const grid = document.getElementById('imagePickerGrid');
+  
+  // Remove previous selection
+  grid?.querySelectorAll('.image-picker-item.selected').forEach((item) => {
+    item.classList.remove('selected');
+  });
+
+  // Add selection to clicked item
+  element.classList.add('selected');
+
+  // Store selected image data
+  selectedImageForEditor = {
+    id: Number(element.dataset.imageId),
+    url: element.dataset.imageUrl,
+    insertUrl: element.dataset.imageInsertUrl || element.dataset.imageUrl,
+    filename: element.querySelector('.image-picker-item-name')?.textContent || 'Imagem',
+    path: element.dataset.imagePath || element.dataset.imageUrl,
+    folder: element.dataset.imageFolder || '',
+    description: element.dataset.imageDescription || '',
+    altText: element.dataset.imageAlt || '',
+    size: Number(element.dataset.imageSize || 0),
+  };
+
+  // Update preview section
+  updateImagePickerPreview();
+
+  // Enable insert button
+  const insertBtn = document.getElementById('imagePickerInsertBtn');
+  if (insertBtn) {
+    insertBtn.disabled = false;
+  }
+}
+
+function updateImagePickerPreview() {
+  const previewImg = document.getElementById('imagePickerPreviewImg');
+  const noPreview = document.getElementById('imagePickerNoPreview');
+  const infoDiv = document.getElementById('imagePickerPreviewInfo');
+
+  if (!selectedImageForEditor) {
+    if (previewImg) previewImg.style.display = 'none';
+    if (noPreview) noPreview.style.display = 'block';
+    if (infoDiv) infoDiv.style.display = 'none';
+    return;
+  }
+
+  if (previewImg) {
+    previewImg.src = selectedImageForEditor.url;
+    previewImg.style.display = 'block';
+  }
+
+  if (noPreview) {
+    noPreview.style.display = 'none';
+  }
+
+  if (infoDiv) {
+    infoDiv.innerHTML = `
+      <p><strong>Nome:</strong> <span>${sanitize(selectedImageForEditor.filename)}</span></p>
+      <p><strong>Pasta:</strong> <span>${sanitize(selectedImageForEditor.folder || document.getElementById('imagePickerFolderFilter')?.value || 'Todas')}</span></p>
+      <p><strong>Tamanho:</strong> <span>${sanitize(formatFileSize(selectedImageForEditor.size || 0))}</span></p>
+      <p><strong>Descrição:</strong> <span>${sanitize(selectedImageForEditor.description || '—')}</span></p>
+      <p><strong>URL:</strong> <span>${sanitize(selectedImageForEditor.url)}</span></p>
+    `;
+    infoDiv.style.display = 'block';
+  }
+}
+
+function getDefaultImagePickerFolder(context = 'editor') {
+  if (context === 'event') {
+    return 'timeline';
+  }
+
+  const currentPage = state.pages.find((page) => Number(page.id) === Number(state.currentPageEditId));
+  const slug = (currentPage?.slug || '').trim().toLowerCase();
+
+  if (['campus', 'territorio', 'timeline', 'trabalhos'].includes(slug)) {
+    return slug;
+  }
+
+  return '';
+}
+
+function openImagePickerModal(context = 'editor') {
+  state.imagePickerContext = context;
+  const title = document.getElementById('imagePickerModalTitle');
+  const insertBtn = document.getElementById('imagePickerInsertBtn');
+  const folderFilter = document.getElementById('imagePickerFolderFilter');
+  const uploadFolder = document.getElementById('imagePickerUploadFolder');
+  const searchInput = document.getElementById('imagePickerSearch');
+  if (title) {
+    if (context === 'event') {
+      title.textContent = 'Selecionar Imagem para Evento';
+    } else {
+      title.textContent = 'Inserir Imagem no Editor';
+    }
+  }
+
+  if (insertBtn) {
+    insertBtn.textContent = context === 'event' ? '✓ Usar no Evento' : '✓ Inserir Imagem';
+    insertBtn.disabled = true;
+  }
+
+  const defaultFolder = getDefaultImagePickerFolder(context);
+  if (folderFilter) folderFilter.value = defaultFolder;
+  if (uploadFolder) uploadFolder.value = defaultFolder || 'timeline';
+  if (searchInput) searchInput.value = '';
+
+  selectedImageForEditor = null;
+  updateImagePickerPreview();
+  showModal('imagePickerModal');
+  
+  // Reset to select tab
+  setImagePickerTab('select');
+  
+  // Load images
+  loadImagesForPicker();
+}
+
+function closeImagePickerModal() {
+  hideModal('imagePickerModal');
+  selectedImageForEditor = null;
+  state.imagePickerContext = null;
+}
+
+function setImagePickerTab(tabName) {
+  const tabs = document.querySelectorAll('.image-picker-tab-content');
+  const tabButtons = document.querySelectorAll('.image-picker-tab');
+
+  tabs.forEach((tab) => {
+    const isActive = tab.id === `imagePicker${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Tab`;
+    tab.classList.toggle('active', isActive);
+    tab.style.display = isActive ? 'block' : 'none';
+  });
+
+  tabButtons.forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.tab === tabName);
+  });
+
+  // Reset upload form when switching to upload tab
+  if (tabName === 'upload') {
+    const fileInput = document.getElementById('imagePickerFile');
+    if (fileInput) fileInput.value = '';
+  }
+}
+
+async function handleImagePickerUpload() {
+  const fileInput = document.getElementById('imagePickerFile');
+  const folderSelect = document.getElementById('imagePickerUploadFolder');
+  const file = fileInput?.files?.[0];
+
+  if (!file) {
+    showToast('Selecione uma imagem para fazer upload.', 'error');
+    return;
+  }
+
+  const folder = (folderSelect?.value || 'campus').toLowerCase();
+
+  try {
+    setSyncStatus('syncing', '📤 Fazendo upload da imagem...');
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+    formData.append('alt_text', document.getElementById('imagePickerUploadAlt')?.value || '');
+    formData.append('description', document.getElementById('imagePickerUploadDescription')?.value || '');
+
+    const result = await apiRequest('/api/media', {
+      method: 'POST',
+      body: formData,
+    });
+
+    showToast(`"${file.name}" enviado com sucesso!`, 'success');
+
+    // Set as selected image
+    selectedImageForEditor = {
+      id: result.id,
+      url: resolveAssetUrl(`/media/serve/${result.file_path}`),
+      insertUrl: `/media/serve/${result.file_path}`,
+      filename: result.filename,
+      path: `media/serve/${result.file_path}`,
+      folder: result.folder,
+      description: result.description || '',
+      altText: result.alt_text || '',
+      size: Number(result.file_size || 0),
+    };
+
+    // Switch to select tab to show the new image
+    setImagePickerTab('select');
+    await loadImagesForPicker();
+    updateImagePickerPreview();
+
+    // Enable insert button
+    const insertBtn = document.getElementById('imagePickerInsertBtn');
+    if (insertBtn) insertBtn.disabled = false;
+
+    setSyncStatus('synced', '✓ Imagem enviada');
+  } catch (error) {
+    setSyncStatus('error', '⚠ Erro ao enviar imagem');
+    showToast(error.message, 'error');
+  }
+}
+
+function insertSelectedImage() {
+  if (!selectedImageForEditor) return;
+
+  const context = state.imagePickerContext || 'editor';
+
+  if (context === 'event') {
+    // Inserir na imagem do evento
+    const eventImageField = document.getElementById('eventImage');
+    if (eventImageField) {
+      const imagePath = selectedImageForEditor.path || selectedImageForEditor.filename;
+      eventImageField.value = imagePath;
+      document.getElementById('eventImageFile').value = '';
+      updateImagePreviewFromPath(imagePath);
+      showToast('Imagem selecionada para o evento.', 'success');
+    }
+  } else if (context === 'editor' && pageContentEditor) {
+    // Inserir no editor de página
+    pageContentEditor.focus();
+    document.execCommand('insertImage', false, selectedImageForEditor.insertUrl || selectedImageForEditor.url);
+    syncPageEditorTextarea();
+    recordPageEditorHistory(getPageEditorContent());
+    savePageEditorDraft();
+    showToast('Imagem inserida no editor.', 'success');
+  }
+
+  closeImagePickerModal();
+  selectedImageForEditor = null;
+}
+
+function openImagePickerForEvent() {
+  openImagePickerModal('event');
+}
+
+function attachImagePickerListeners() {
+  // Close buttons
+  const closeBtn = document.getElementById('closeImagePickerBtn');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeImagePickerModal);
+  }
+
+  const cancelBtn = document.getElementById('imagePickerCancelBtn');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', closeImagePickerModal);
+  }
+
+  // Tab buttons
+  const tabButtons = document.querySelectorAll('.image-picker-tab');
+  tabButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      setImagePickerTab(btn.dataset.tab);
+    });
+  });
+
+  // Folder filter
+  const folderFilter = document.getElementById('imagePickerFolderFilter');
+  if (folderFilter) {
+    folderFilter.addEventListener('change', loadImagesForPicker);
+  }
+
+  // Search input
+  const searchInput = document.getElementById('imagePickerSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.toLowerCase();
+      const items = document.querySelectorAll('.image-picker-item');
+      items.forEach((item) => {
+        const name = item.querySelector('.image-picker-item-name')?.textContent.toLowerCase() || '';
+        const description = (item.dataset.imageDescription || '').toLowerCase();
+        const altText = (item.dataset.imageAlt || '').toLowerCase();
+        const matches = !query || name.includes(query) || description.includes(query) || altText.includes(query);
+        item.style.display = matches ? '' : 'none';
+      });
+    });
+  }
+
+  // Refresh button
+  const refreshBtn = document.getElementById('imagePickerRefreshBtn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', loadImagesForPicker);
+  }
+
+  // Upload file input
+  const fileInput = document.getElementById('imagePickerFile');
+  if (fileInput) {
+    fileInput.addEventListener('change', () => {
+      const fileName = fileInput.files?.[0]?.name || '(nenhuma imagem selecionada)';
+      const label = document.querySelector(`label[for="imagePickerFile"]`);
+      if (label) {
+        label.textContent = `Escolha uma imagem: ${fileName}`;
+      }
+    });
+  }
+
+  // Upload button
+  const uploadBtn = document.getElementById('imagePickerUploadBtn');
+  if (uploadBtn) {
+    uploadBtn.addEventListener('click', handleImagePickerUpload);
+  }
+
+  // Insert button
+  const insertBtn = document.getElementById('imagePickerInsertBtn');
+  if (insertBtn) {
+    insertBtn.addEventListener('click', insertSelectedImage);
+  }
+
+  // Modal backdrop click
+  const modal = document.getElementById('imagePickerModal');
+  if (modal) {
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        closeImagePickerModal();
+      }
+    });
   }
 }
 

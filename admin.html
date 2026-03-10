@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>Admin - Timeline Memorial IFSul</title>
-  <link rel="stylesheet" href="src/css/styles.css?v=20260306-3">
-  <link rel="stylesheet" href="src/css/admin.css?v=20260306-3">
+  <link rel="stylesheet" href="src/css/styles.css?v=20260310-1">
+  <link rel="stylesheet" href="src/css/admin.css?v=20260310-1">
 </head>
 <body>
   <!-- 
@@ -48,7 +48,7 @@
           <button class="admin-nav-item" data-panel-target="timeline">Linha do Tempo</button>
           <button class="admin-nav-item" data-panel-target="menu">Menu</button>
           <button class="admin-nav-item" data-panel-target="content">Gerenciar Páginas</button>
-          <button class="admin-nav-item" data-panel-target="gallery">Galeria</button>
+          <button class="admin-nav-item" data-panel-target="media">🖼️ Mídia</button>
           <button class="admin-nav-item" data-panel-target="history">Histórico</button>
           <button class="admin-nav-item" data-panel-target="security">Segurança</button>
         </aside>
@@ -69,8 +69,8 @@
                 <strong id="dashMenuCount">0</strong>
               </article>
               <article class="dashboard-card">
-                <span>Itens de galeria</span>
-                <strong id="dashGalleryCount">0</strong>
+                <span>Arquivos de mídia</span>
+                <strong id="dashMediaCount">0</strong>
               </article>
               <article class="dashboard-card">
                 <span>Registros no histórico</span>
@@ -208,29 +208,47 @@
             </section>
           </section>
 
-          <section class="admin-panel" data-panel="gallery">
-            <section class="menu-section gallery-section">
+          <section class="admin-panel" data-panel="media">
+            <section class="menu-section media-section">
               <div class="menu-section-header">
-                <h2>Galeria de Trabalhos</h2>
+                <h2>🖼️ Gerenciador de Mídia</h2>
                 <div class="menu-actions">
-                  <button id="addGalleryItemBtn" class="btn-secondary">+ Adicionar item</button>
-                  <button id="saveGalleryBtn" class="btn-primary">Salvar Galeria</button>
+                  <select id="mediaFolderFilter" class="content-page-select">
+                    <option value="">Pasta: Todos</option>
+                    <option value="timeline">Timeline</option>
+                    <option value="trabalhos">Trabalhos</option>
+                    <option value="territorio">Território</option>
+                    <option value="campus">Campus</option>
+                  </select>
+                  <button id="uploadMediaBtn" class="btn-primary">📤 Upload de Arquivo</button>
+                  <button id="toggleMediaViewBtn" class="btn-secondary" data-view="grid">Grid</button>
                 </div>
               </div>
 
-              <div class="table-container">
-                <table class="events-table gallery-table">
+              <input type="file" id="mediaFileInput" accept="image/*" style="display: none;">
+
+              <div id="mediaListView" class="media-list-view">
+                <table class="events-table media-table">
                   <thead>
                     <tr>
                       <th>Prévia</th>
-                      <th>Título</th>
-                      <th>Imagem (caminho)</th>
-                      <th>Legenda/HTML</th>
+                      <th>Nome do Arquivo</th>
+                      <th>Pasta</th>
+                      <th>Tamanho</th>
+                      <th>Data de Upload</th>
                       <th>Ações</th>
                     </tr>
                   </thead>
-                  <tbody id="galleryTableBody"></tbody>
+                  <tbody id="mediaTableBody"></tbody>
                 </table>
+              </div>
+
+              <div id="mediaGridView" class="media-grid-view">
+                <div id="mediaGridContainer" class="media-grid-container"></div>
+              </div>
+
+              <div id="emptyMediaState" class="empty-state" style="display: none;">
+                <p>📭 Nenhuma mídia encontrada</p>
               </div>
             </section>
           </section>
@@ -245,7 +263,6 @@
                     <option value="page">page</option>
                     <option value="timeline_item">timeline_item</option>
                     <option value="card_item">card_item</option>
-                    <option value="gallery_item">gallery_item</option>
                     <option value="menu">menu</option>
                   </select>
                   <select id="historyActionFilter" class="content-page-select">
@@ -329,16 +346,20 @@
 
         <div class="form-group">
           <label for="eventImage">Imagem</label>
-          <div class="file-input-wrapper">
-            <input type="file" id="eventImageFile" accept="image/*">
-            <span>ou</span>
-            <input type="text" id="eventImage" placeholder="Nome do arquivo (ex: imagem.jpg)">
+          <div class="image-selection-container">
+            <div class="file-input-wrapper">
+              <input type="file" id="eventImageFile" accept="image/*">
+              <span>ou</span>
+              <button type="button" class="btn-secondary btn-small" id="selectMediaBtn">🖼️ Selecionar mídia</button>
+              <span>ou</span>
+              <input type="text" id="eventImage" placeholder="Nome do arquivo (ex: imagem.jpg)">
+            </div>
+            <small>Selecione da mídia disponível, faça upload de nova imagem ou digite o nome de uma existente</small>
+            <div class="image-actions">
+              <button type="button" class="btn-secondary btn-small" id="removeImageBtn">Remover imagem atual</button>
+            </div>
+            <div id="imagePreview" class="image-preview"></div>
           </div>
-          <small>Faça upload de uma nova imagem ou digite o nome de uma imagem existente</small>
-          <div class="image-actions">
-            <button type="button" class="btn-secondary btn-small" id="removeImageBtn">Remover imagem atual</button>
-          </div>
-          <div id="imagePreview" class="image-preview"></div>
         </div>
 
         <div class="form-group">
@@ -372,10 +393,152 @@
     </div>
   </div>
 
+  <!-- Media Edit Modal -->
+  <div id="mediaEditModal" class="modal">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2>Editar Mídia</h2>
+        <button class="close-btn" id="closeMediaEditBtn">&times;</button>
+      </div>
+      
+      <div class="media-edit-content">
+        <div class="media-preview-section">
+          <img id="mediaEditPreview" src="" alt="Prévia" class="media-edit-preview-img">
+        </div>
+        
+        <div class="media-edit-form">
+          <div class="form-group">
+            <label for="mediaEditAltText">Texto Alternativo</label>
+            <input type="text" id="mediaEditAltText" placeholder="Descrição para acessibilidade">
+          </div>
+
+          <div class="form-group">
+            <label for="mediaEditDescription">Descrição</label>
+            <textarea id="mediaEditDescription" placeholder="Descrição da mídia" rows="3"></textarea>
+          </div>
+
+          <div id="mediaEditInfo" class="media-edit-info"></div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" id="cancelMediaEditBtn">Cancelar</button>
+            <button type="button" class="btn-primary" id="saveMediaEditBtn">Salvar</button>
+            <button type="button" class="btn-danger" id="deleteMediaBtn">Excluir Arquivo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Media Confirmation Modal -->
+  <div id="deleteMediaConfirmModal" class="modal">
+    <div class="modal-content">
+      <h2>⚠️ Confirmar Exclusão de Mídia</h2>
+      <p>Tem certeza que deseja excluir este arquivo?</p>
+      <p><strong id="deleteMediaFilename"></strong></p>
+      <p style="font-size: 0.9em; color: #666;">Esta ação não pode ser desfeita.</p>
+      <div class="form-actions">
+        <button class="btn-secondary" id="cancelDeleteMediaBtn">Cancelar</button>
+        <button class="btn-danger" id="confirmDeleteMediaBtn">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Picker Modal for Editor and Events -->
+  <div id="imagePickerModal" class="modal">
+    <div class="modal-content modal-large image-picker-modal">
+      <div class="modal-header">
+        <h2 id="imagePickerModalTitle">Inserir Imagem</h2>
+        <button class="close-btn" id="closeImagePickerBtn">&times;</button>
+      </div>
+      
+      <div class="image-picker-container">
+        <!-- Tabs -->
+        <div class="image-picker-tabs">
+          <button class="image-picker-tab active" data-tab="select">📋 Selecionar</button>
+          <button class="image-picker-tab" data-tab="upload">📤 Upload</button>
+        </div>
+
+        <!-- Select Tab -->
+        <div class="image-picker-tab-content" id="imagePickerSelectTab" style="display: block;">
+          <div class="image-picker-header">
+            <select id="imagePickerFolderFilter" class="content-page-select">
+              <option value="">Pasta: Todas</option>
+              <option value="timeline">Timeline</option>
+              <option value="trabalhos">Trabalhos</option>
+              <option value="territorio">Território</option>
+              <option value="campus">Campus</option>
+            </select>
+            <input type="text" id="imagePickerSearch" placeholder="Buscar por nome ou descrição...">
+            <button id="imagePickerRefreshBtn" class="btn-secondary btn-small">🔄 Recarregar</button>
+          </div>
+
+          <div class="image-picker-grid" id="imagePickerGrid">
+            <div class="loading">Carregando imagens...</div>
+          </div>
+        </div>
+
+        <!-- Upload Tab -->
+        <div class="image-picker-tab-content" id="imagePickerUploadTab" style="display: none;">
+          <div class="image-picker-upload-form">
+            <div class="form-group">
+              <label for="imagePickerFile">Escolha uma imagem</label>
+              <input type="file" id="imagePickerFile" accept="image/*" placeholder="Selecione arquivo">
+            </div>
+
+            <div class="form-group">
+              <label for="imagePickerUploadFolder">Pasta</label>
+              <select id="imagePickerUploadFolder" class="content-page-select">
+                <option value="campus">Campus</option>
+                <option value="territorio">Território</option>
+                <option value="timeline">Timeline</option>
+                <option value="trabalhos">Trabalhos</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="imagePickerUploadAlt">Texto Alternativo (opcional)</label>
+              <input type="text" id="imagePickerUploadAlt" placeholder="Descrição para acessibilidade">
+            </div>
+
+            <div class="form-group">
+              <label for="imagePickerUploadDescription">Descrição (opcional)</label>
+              <textarea id="imagePickerUploadDescription" placeholder="Descrição da imagem" rows="2"></textarea>
+            </div>
+
+            <button id="imagePickerUploadBtn" class="btn-primary">📤 Fazer Upload</button>
+          </div>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="image-picker-preview-section">
+          <div class="image-picker-preview-preview">
+            <img id="imagePickerPreviewImg" src="" alt="Preview" style="display: none;">
+            <div id="imagePickerNoPreview" style="text-align: center; color: #999; padding: 20px;">
+              Nenhuma imagem selecionada
+            </div>
+          </div>
+
+          <div id="imagePickerPreviewInfo" style="display: none;">
+            <p><strong>Nome:</strong> <span id="imagePickerPreviewName"></span></p>
+            <p><strong>Pasta:</strong> <span id="imagePickerPreviewFolder"></span></p>
+            <p><strong>Tamanho:</strong> <span id="imagePickerPreviewSize"></span></p>
+            <p><strong>Alt Text:</strong> <span id="imagePickerPreviewAlt"></span></p>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" id="imagePickerCancelBtn">Cancelar</button>
+          <button type="button" class="btn-primary" id="imagePickerInsertBtn" disabled>✓ Inserir Imagem</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notifications -->
   <div id="toastContainer" class="toast-container"></div>
 
-  <script src="src/js/date-format.js?v=20260305-5"></script>
-  <script src="src/js/admin-cms.js?v=20260306-6"></script>
+  <script src="src/js/date-format.js?v=20260310-1"></script>
+  <script src="src/js/admin-cms.js?v=20260310-1"></script>
 </body>
 </html>

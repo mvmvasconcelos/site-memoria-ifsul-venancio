@@ -59,7 +59,7 @@ async function loadPageMainFromCms() {
       return;
     }
 
-    const strictSlugs = new Set(['index', 'contact', 'territorio', 'campus', 'trabalhos', 'timeline']);
+    const strictSlugs = new Set(['index', 'contact']);
     if (strictSlugs.has(slug)) {
       main.innerHTML = '<section><p>Conteúdo não publicado no banco para esta página.</p></section>';
     }

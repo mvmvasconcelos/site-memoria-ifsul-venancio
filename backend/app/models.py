@@ -84,6 +84,19 @@ class GalleryItem(TimestampMixin, db.Model):
     order_index = db.Column(db.Integer, default=0, nullable=False)
 
 
+class MediaFile(TimestampMixin, db.Model):
+    __tablename__ = "media_file"
+
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(255), nullable=False, unique=True)
+    file_path = db.Column(db.String(500), nullable=False)
+    folder = db.Column(db.String(50), nullable=False, default="uploads", index=True)
+    file_size = db.Column(db.Integer, nullable=True)
+    mime_type = db.Column(db.String(50), nullable=True)
+    description = db.Column(db.Text, nullable=True)
+    alt_text = db.Column(db.String(255), nullable=True)
+
+
 class MenuItem(TimestampMixin, db.Model):
     __tablename__ = "menu_item"
 

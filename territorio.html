@@ -71,8 +71,12 @@
   </main>
   <div id="footer-placeholder"></div>
   <script src="src/js/main.js?v=20260306-3"></script>
+  <script src="src/js/cards.js?v=20260309-1"></script>
   <script>
     loadHeaderFooter();
+    document.addEventListener('DOMContentLoaded', () => {
+      loadCardsData('territorio');
+    });
   </script>
 
 </body>
