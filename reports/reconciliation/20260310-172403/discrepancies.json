@@ -1,0 +1,56 @@
+{
+  "high_risk_findings": [
+    "nenhuma"
+  ],
+  "timeline": {
+    "db_count": 29,
+    "truth_csv_count": 29,
+    "db_image_paths_count": 27,
+    "truth_expected_paths_count": 27,
+    "missing_media_entries_by_filename": [],
+    "missing_paths_in_db_vs_csv": [],
+    "extra_paths_in_db_vs_csv": []
+  },
+  "media": {
+    "media_by_folder": {
+      "campus": 38,
+      "territorio": 2,
+      "trabalhos": 4
+    },
+    "src_images_root_file_count": 31,
+    "src_images_subfolder_file_count": {
+      "campus": 15,
+      "territorio": 7,
+      "trabalhos": 4,
+      "timeline": 1
+    },
+    "missing_expected_media_entries": [
+      "campus/image1.jpeg",
+      "campus/image10.jpeg",
+      "campus/image11.jpeg",
+      "campus/image12.png",
+      "campus/image13.png",
+      "campus/image14.jpeg",
+      "campus/image14.png",
+      "campus/image2.jpeg",
+      "campus/image3.jpeg",
+      "campus/image4.jpeg",
+      "campus/image5.jpeg",
+      "campus/image6.jpeg",
+      "campus/image7.jpeg",
+      "campus/image8.jpeg",
+      "campus/image9.jpeg",
+      "territorio/image1.jpeg",
+      "territorio/image2.jpeg",
+      "territorio/image3.jpeg",
+      "territorio/image4.jpeg",
+      "territorio/image5.jpeg",
+      "territorio/image6.png",
+      "territorio/image7.png",
+      "trabalhos/image1.png",
+      "trabalhos/image2.png",
+      "trabalhos/image3.png",
+      "trabalhos/lei12711.jpeg"
+    ]
+  }
+}

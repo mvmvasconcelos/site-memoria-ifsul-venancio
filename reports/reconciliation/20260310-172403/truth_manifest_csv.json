@@ -1,0 +1,417 @@
+{
+  "timeline": {
+    "page": "timeline",
+    "exists": true,
+    "rows": [
+      {
+        "order": 1,
+        "date": "2005",
+        "title": "Intenção do município de Venâncio Aires em sediar uma Escola Técnica: Município busca investimentos e local para implantar Sede da UERGS",
+        "image": "image1.png",
+        "expected_image_path": "src/images/image1.png",
+        "legend": "Fonte: Jornal Folha do Mate 11 de março de 2005 – Pág.04",
+        "text": ""
+      },
+      {
+        "order": 2,
+        "date": "2006",
+        "title": "Busca de Escola Técnica Agrícola: Município faz tratativas com o Governo do Estado para busca de recursos para instalar Ensino Médio Profissionalizante na Escola Wolfram Metzler",
+        "image": "image2.png",
+        "expected_image_path": "src/images/image2.png",
+        "legend": "Fonte: Jornal Folha do Mate 07 de novembro de 2006 – Pág.06",
+        "text": ""
+      },
+      {
+        "order": 3,
+        "date": "2007",
+        "title": "Liberação de Crédito Orçamentário para implantação de Escola Técnica: 4 Milhões para Criação de Escola Técnica",
+        "image": "image3.png",
+        "expected_image_path": "src/images/image3.png",
+        "legend": "Fonte: Capa Jornal Folha do Mate Edição do dia 09 de janeiro de 2007",
+        "text": ""
+      },
+      {
+        "order": 4,
+        "date": "2007",
+        "title": "Primeiras Movimentações Políticas: Giovane Wickert, Assessor Parlamentar da Deputada Maria do Rosário comunica que ocorrerá a construção de 40 novas Escolas Técnicas em Cidades Polo do RS. O argumento para trazer para o município de Venâncio Aires, é que Venâncio Aires atenderia as Regiões do Vale do Rio Pardo e Taquari",
+        "image": "image4.png",
+        "expected_image_path": "src/images/image4.png",
+        "legend": "Fonte: Folha do Mate 12 de Janeiro de 2007 – Pág.05",
+        "text": ""
+      },
+      {
+        "order": 5,
+        "date": "2007",
+        "title": "Audiência Pública para candidatura da cidade para ter uma escola técnica: Município aguarda a chancela do Presidente Lula",
+        "image": "image5.png",
+        "expected_image_path": "src/images/image5.png",
+        "legend": "Fonte: Folha do Mate 16 de Março de 2007 – Pág.08",
+        "text": ""
+      },
+      {
+        "order": 6,
+        "date": "2007",
+        "title": "Presidente Lula confirma escola técnica para Venâncio Aires: Prefeito Almedo Dettenborn participa, em Brasília, do Plano de Desenvolvimento da Educação, que prevê a construção de 150 novas escolas técnicas profissionalizantes",
+        "image": "image6.png",
+        "expected_image_path": "src/images/image6.png",
+        "legend": "Fonte: Folha do Mate 24 de Abril de 2007 – Pág.07",
+        "text": ""
+      },
+      {
+        "order": 7,
+        "date": "2008",
+        "title": "Lei de Criação dos Institutos Federais",
+        "image": "lei2008.jpg",
+        "expected_image_path": "src/images/lei2008.jpg",
+        "legend": "Link (https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2008/lei/l11892.htm)",
+        "text": ""
+      },
+      {
+        "order": 8,
+        "date": "2008",
+        "title": "II Fase da Expansão - Câmpus Venâncio",
+        "image": "fase2.jpg",
+        "expected_image_path": "src/images/fase2.jpg",
+        "legend": "Fonte: Relatório do Auditoria Tribunal de Contas da União. TC 026.062/2011-9. Disponível em <https://www.ifmg.edu.br/portal/acesso-a-informacao/auditorias/acordao-legado-113027_tcu.pdf>",
+        "text": "Plano de Expansão – Fase II (150 unidades) Em sua segunda fase, iniciada em 2007, o governo federal estabelece como meta a criação de 150 novas unidades da rede federal. A intenção do plano de expansão, fase II, era implantar uma escola técnica em cada cidade polo do País. Foram contemplados municípios de todos estados e do Distrito Federal. (Portal MEC)"
+      },
+      {
+        "order": 9,
+        "date": "2008",
+        "title": "Secretário do MEC confirma Escola Técnica em Venâncio Aires: Eliezer Pacheco, Setec/MEC, garantiu a efetivação da implantação de uma unidade da Escola Técnica Federal em Venâncio Aires.",
+        "image": "image7.png",
+        "expected_image_path": "src/images/image7.png",
+        "legend": "Fonte: Folha do Mate 18 de Março de 2008 – Pág.08",
+        "text": ""
+      },
+      {
+        "order": 10,
+        "date": "2008",
+        "title": "19/05 Audiência pública para definição dos cursos: Reunião para definição dos Cinco cursos para a nova Escola",
+        "image": "image8.png",
+        "expected_image_path": "src/images/image8.png",
+        "legend": "Fonte: Folha do Mate 15 de Março de 2008 – Pág.05",
+        "text": ""
+      },
+      {
+        "order": 11,
+        "date": "2008",
+        "title": "Doação Terreno para implantação: Localizado no Bairro Universitário, o terreno de 85.01,59 m² pertence à Unisc e será doado para o Governo Federal.",
+        "image": "image9.png",
+        "expected_image_path": "src/images/image9.png",
+        "legend": "Fonte: Folha do Mate 03 de Maio de 2008 – Pág.07",
+        "text": ""
+      },
+      {
+        "order": 12,
+        "date": "2008",
+        "title": "Mudança de Local: Problemas para nivelamento do terreno, com o custo de até 1,5 milhão, faz com que a Administração Municipal procure uma nova área para a implantação da Escola Técnica",
+        "image": "image10.png",
+        "expected_image_path": "src/images/image10.png",
+        "legend": "Fonte: Folha do Mate 07 de Agosto de 2008 – Pág.05",
+        "text": ""
+      },
+      {
+        "order": 13,
+        "date": "2008",
+        "title": "Início da Obra –Terraplanagem: Com novo local definido, Prefeitura Municipal inicia obras de nivelamento do Terreno",
+        "image": "image11.png",
+        "expected_image_path": "src/images/image11.png",
+        "legend": "Fonte: Folha do Mate 04 de Dezembro de 2008 – Pág.09",
+        "text": ""
+      },
+      {
+        "order": 14,
+        "date": "2008",
+        "title": "Início da Obra –Terraplanagem: Com novo local definido, Prefeitura Municipal inicia obras de nivelamento do Terreno",
+        "image": "image12.png",
+        "expected_image_path": "src/images/image12.png",
+        "legend": "Fonte: Folha do Mate 20 de Dezembro de 2008 – Pág.11",
+        "text": ""
+      },
+      {
+        "order": 15,
+        "date": "2009",
+        "title": "Nomeação Primeiro Diretor e Cerimônia de Lançamento da Pedra Fundamental: Solenidade marcou oficialmente o início das Obras de construção do Câmpus",
+        "image": "image13.png",
+        "expected_image_path": "src/images/image13.png",
+        "legend": "Fonte: Diário Oficial da União 13 de Fevereiro de 2009 – Seção 2 Pág.18",
+        "text": ""
+      },
+      {
+        "order": 16,
+        "date": "2009",
+        "title": "Nomeação Primeiro Diretor e Cerimônia de Lançamento da Pedra Fundamental: Solenidade marcou oficialmente o início das Obras de construção do Câmpus",
+        "image": "image14.png",
+        "expected_image_path": "src/images/image14.png",
+        "legend": "Fonte: Folha do Mate 12 de Maio de 2009 – Pág.05",
+        "text": ""
+      },
+      {
+        "order": 17,
+        "date": "2010",
+        "title": "Primeiros Concursos - Troca de Gestão do Câmpus – Paralisação das Obras: Concurso para a contratação de Professores e Técnicos Administrativos. Previsão da construção: 3.668 m². Atraso no Cronograma da Obra",
+        "image": "image15.png",
+        "expected_image_path": "src/images/image15.png",
+        "legend": "Fonte: Folha do Mate 30 de Março de 2010 – Pág.05",
+        "text": ""
+      },
+      {
+        "order": 18,
+        "date": "2010",
+        "title": "Primeiros Concursos - Troca de Gestão do Câmpus – Paralisação das Obras: Concurso para a contratação de Professores e Técnicos Administrativos. Previsão da construção: 3.668 m². Atraso no Cronograma da Obra",
+        "image": "image16.png",
+        "expected_image_path": "src/images/image16.png",
+        "legend": "Fonte: Folha do Mate 18 de Maio de 2010 – Pág.03",
+        "text": ""
+      },
+      {
+        "order": 19,
+        "date": "2010",
+        "title": "Primeiro processo seletivo do IFSul: Mesmo sem Sede própria, Câmpus realiza seu primeiro Concurso Vestibular",
+        "image": "image17.png",
+        "expected_image_path": "src/images/image17.png",
+        "legend": "Fonte: Folha do Mate 21 de Dezembro de 2010 – Pág.14",
+        "text": ""
+      },
+      {
+        "order": 20,
+        "date": "2011",
+        "title": "Publicação no Diário Oficial da Portaria nº 578/2011, autorizando o funcionamento do Câmpus, em 16 de maio",
+        "image": "",
+        "expected_image_path": "",
+        "legend": "",
+        "text": ""
+      },
+      {
+        "order": 21,
+        "date": "2011",
+        "title": "Reportagem sobre relação do câmpus como Município",
+        "image": "reportagem30jun.jpg",
+        "expected_image_path": "src/images/reportagem30jun.jpg",
+        "legend": "Fonte: Folha do Mate 30 de Julho de 2011 – Pág.15",
+        "text": ""
+      },
+      {
+        "order": 22,
+        "date": "2011",
+        "title": "Sala Servidores Administrativos Parque do Chimarrão: Trabalhos Administrativos ocorrem em local emprestado pela Prefeitura Municipal até que ocorra a inauguração do Câmpus",
+        "image": "image18.jpeg",
+        "expected_image_path": "src/images/image18.jpeg",
+        "legend": "Fonte: Arquivo Pessoal – Servidor André Ruschel de Assumpção",
+        "text": ""
+      },
+      {
+        "order": 23,
+        "date": "2011",
+        "title": "Sala Servidores Administrativos Parque do Chimarrão: Trabalhos Administrativos ocorrem em local emprestado pela Prefeitura Municipal até que ocorra a inauguração do Câmpus",
+        "image": "image19.jpeg",
+        "expected_image_path": "src/images/image19.jpeg",
+        "legend": "Fonte: Arquivo Pessoal – Servidor André Ruschel de Assumpção",
+        "text": ""
+      },
+      {
+        "order": 24,
+        "date": "2011",
+        "title": "Início das aulas sem Câmpus: Mesmo sem Sede própria,  4 turmas iniciam o ano escolar “espalhadas” em salas da Rede Estadual, Municipal e Privada do Município",
+        "image": "image20.jpeg",
+        "expected_image_path": "src/images/image20.jpeg",
+        "legend": "Fonte: Folha do Mate 05 de Fevereiro de 2011 – Pág.05",
+        "text": ""
+      },
+      {
+        "order": 25,
+        "date": "2011",
+        "title": "Início das aulas sem Câmpus: Mesmo sem Sede própria,  4 turmas iniciam o ano escolar “espalhadas” em salas da Rede Estadual, Municipal e Privada do Município",
+        "image": "image21.jpeg",
+        "expected_image_path": "src/images/image21.jpeg",
+        "legend": "Fonte: Capa, na íntegra, da edição de 26 de novembro de 2011 do Jornal Folha do Mate",
+        "text": ""
+      },
+      {
+        "order": 26,
+        "date": "2011",
+        "title": "Início das aulas sem Câmpus: Mesmo sem Sede própria,  4 turmas iniciam o ano escolar “espalhadas” em salas da Rede Estadual, Municipal e Privada do Município",
+        "image": "image22.png",
+        "expected_image_path": "src/images/image22.png",
+        "legend": "Fonte: Jornal Folha do Mate 26 de novembro de 2011 – Pág.07",
+        "text": ""
+      },
+      {
+        "order": 27,
+        "date": "2012",
+        "title": "17/01 – Termo de Recebimento Definitivo da Obra",
+        "image": "",
+        "expected_image_path": "",
+        "legend": "",
+        "text": ""
+      },
+      {
+        "order": 28,
+        "date": "2012",
+        "title": "Mudança Primeiras aulas no Câmpus: Início das Aulas na Sede Definitiva.",
+        "image": "image23.jpeg",
+        "expected_image_path": "src/images/image23.jpeg",
+        "legend": "Fonte: Arquivo Pessoal – Servidor André Ruschel de Assumpção",
+        "text": ""
+      },
+      {
+        "order": 29,
+        "date": "2012",
+        "title": "Mudança Primeiras aulas no Câmpus: Início das Aulas na Sede Definitiva.",
+        "image": "image24.jpeg",
+        "expected_image_path": "src/images/image24.jpeg",
+        "legend": "Fonte: Jornal Folha do Mate 07 de fevereiro de 2012 – Pág.05",
+        "text": ""
+      }
+    ],
+    "summary": {
+      "count": 29,
+      "image_prefixes": {
+        "src/images/": 27,
+        "<empty>": 2
+      }
+    }
+  },
+  "campus": {
+    "page": "campus",
+    "exists": true,
+    "rows": [
+      {
+        "order": 1,
+        "date": "2010",
+        "title": "Vista Aérea da Obra",
+        "image": "image1.jpeg",
+        "expected_image_path": "src/images/campus/image1.jpeg",
+        "legend": "Fonte: Arquivo Pessoal - Servidor André Ruschel de Assumpção",
+        "text": ""
+      },
+      {
+        "order": 2,
+        "date": "2011",
+        "title": "Depósito dos Móveis e Equipamentos - Localizado na Rua Duque de Caxias, no Centro da Cidade",
+        "image": "image2.jpeg",
+        "expected_image_path": "src/images/campus/image2.jpeg",
+        "legend": "Fonte: Arquivo Pessoal - Servidor André Ruschel de Assumpção",
+        "text": ""
+      },
+      {
+        "order": 3,
+        "date": "2012",
+        "title": "Depósito dos Móveis e Equipamentos - Localizado na Rua Duque de Caxias, no Centro da Cidade",
+        "image": "image3.jpeg",
+        "expected_image_path": "src/images/campus/image3.jpeg",
+        "legend": "Fonte: Arquivo Pessoal - Servidor André Ruschel de Assumpção",
+        "text": ""
+      },
+      {
+        "order": 4,
+        "date": "2012",
+        "title": "Depósito dos Móveis e Equipamentos - Localizado na Rua Duque de Caxias, no Centro da Cidade",
+        "image": "image4.jpeg",
+        "expected_image_path": "src/images/campus/image4.jpeg",
+        "legend": "Fonte: Arquivo Pessoal - Servidor André Ruschel de Assumpção",
+        "text": ""
+      },
+      {
+        "order": 5,
+        "date": "2012",
+        "title": "Mudança – Saindo do Depósito",
+        "image": "image5.jpeg",
+        "expected_image_path": "src/images/campus/image5.jpeg",
+        "legend": "Fonte: Arquivo Pessoal - Servidor André Ruschel de Assumpção",
+        "text": ""
+      },
+      {
+        "order": 6,
+        "date": "2012",
+        "title": "Mudança dos Equipamentos para a Sede do Câmpus",
+        "image": "image6.jpeg",
+        "expected_image_path": "src/images/campus/image6.jpeg",
+        "legend": "Fonte: Arquivo Pessoal - Servidor André Ruschel de Assumpção",
+        "text": ""
+      },
+      {
+        "order": 7,
+        "date": "2012",
+        "title": "Mudança dos Equipamentos para a Sede do Câmpus",
+        "image": "image7.jpeg",
+        "expected_image_path": "src/images/campus/image7.jpeg",
+        "legend": "Fonte: Arquivo Pessoal - Servidor André Ruschel de Assumpção",
+        "text": ""
+      },
+      {
+        "order": 8,
+        "date": "2012",
+        "title": "Mudança dos Equipamentos para a Sede do Câmpus",
+        "image": "image8.jpeg",
+        "expected_image_path": "src/images/campus/image8.jpeg",
+        "legend": "Fonte: Arquivo Pessoal - Servidor André Ruschel de Assumpção",
+        "text": ""
+      },
+      {
+        "order": 9,
+        "date": "2012",
+        "title": "Mudança dos Equipamentos para a Sede do Câmpus",
+        "image": "image9.jpeg",
+        "expected_image_path": "src/images/campus/image9.jpeg",
+        "legend": "Fonte: Arquivo Pessoal - Servidor André Ruschel de Assumpção",
+        "text": ""
+      },
+      {
+        "order": 10,
+        "date": "2012",
+        "title": "Mudança dos Equipamentos para a Sede do Câmpus",
+        "image": "image10.jpeg",
+        "expected_image_path": "src/images/campus/image10.jpeg",
+        "legend": "Fonte: Arquivo Pessoal - Servidor André Ruschel de Assumpção",
+        "text": ""
+      },
+      {
+        "order": 11,
+        "date": "2011",
+        "title": "1º Aulão do Câmpus Câmara de Vereadores",
+        "image": "image11.jpeg",
+        "expected_image_path": "src/images/campus/image11.jpeg",
+        "legend": "Fonte: Arquivo Pessoal - Servidor André Ruschel de Assumpção",
+        "text": ""
+      },
+      {
+        "order": 12,
+        "date": "2017",
+        "title": "Visita Prof. Eliezer Pacheco - Um dos criadores das Concepções e Diretrizes dos Institutos Federais",
+        "image": "image14.jpeg",
+        "expected_image_path": "src/images/campus/image14.jpeg",
+        "legend": "Fonte: Arquivo Pessoal - Servidor André Ruschel de Assumpção",
+        "text": "Da Esquerda para Direta: Prof. Gelson Peter, André Assumpção, Prof. Eliezer Pacheco e Diretor Cristian Oliveira"
+      }
+    ],
+    "summary": {
+      "count": 12,
+      "image_prefixes": {
+        "src/images/campus/": 12
+      }
+    }
+  },
+  "territorio": {
+    "page": "territorio",
+    "exists": true,
+    "rows": [
+      {
+        "order": 1,
+        "date": "2007",
+        "title": "Terreno Antes da Implantação – Zona Rural",
+        "image": "image1.jpeg",
+        "expected_image_path": "src/images/territorio/image1.jpeg",
+        "legend": "Fonte: Secretaria Municipal de Planejamento e Urbanismo de Venâncio Aires,\"\n2010\"",
+        "text": "Obra em andamento"
+      }
+    ],
+    "summary": {
+      "count": 1,
+      "image_prefixes": {
+        "src/images/territorio/": 1
+      }
+    }
+  }
+}

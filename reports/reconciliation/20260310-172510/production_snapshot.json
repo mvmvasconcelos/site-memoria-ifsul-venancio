@@ -1,0 +1,98 @@
+[
+  {
+    "slug": "index",
+    "url": "https://memoriaifsulvenancio.com.br/",
+    "status": 200,
+    "title": "Memorial IFSul Campus Venâncio Aires",
+    "image_refs": [],
+    "h1": [
+      "Bem-vindo ao Projeto de Memória do IFSul Campus Venâncio Aires!"
+    ],
+    "h2": [],
+    "h3": [],
+    "error": null
+  },
+  {
+    "slug": "timeline",
+    "url": "https://memoriaifsulvenancio.com.br/timeline.html",
+    "status": 200,
+    "title": "Linha do Tempo - Memorial IFSul Campus Venâncio Aires",
+    "image_refs": [],
+    "h1": [
+      "Linha do Tempo"
+    ],
+    "h2": [],
+    "h3": [],
+    "error": null
+  },
+  {
+    "slug": "territorio",
+    "url": "https://memoriaifsulvenancio.com.br/territorio.html",
+    "status": 200,
+    "title": "Transformações no Território - Memorial IFSul Campus Venâncio Aires",
+    "image_refs": [
+      "src/images/territorio/image6.png",
+      "src/images/territorio/image7.png"
+    ],
+    "h1": [
+      "Transformações no Território"
+    ],
+    "h2": [
+      "Transformações no Plano Diretor do Município"
+    ],
+    "h3": [
+      "Mapa Zoneamento - Antes da Implantação",
+      "Mapa Zoneamento – Alteração de Zoneamento em virtude da utilização - Zona Especial (destaque em Rosa)"
+    ],
+    "error": null
+  },
+  {
+    "slug": "campus",
+    "url": "https://memoriaifsulvenancio.com.br/campus.html",
+    "status": 200,
+    "title": "O Câmpus em Foco - Memorial IFSul Campus Venâncio Aires",
+    "image_refs": [],
+    "h1": [
+      "O Câmpus em Foco"
+    ],
+    "h2": [],
+    "h3": [],
+    "error": null
+  },
+  {
+    "slug": "trabalhos",
+    "url": "https://memoriaifsulvenancio.com.br/trabalhos.html",
+    "status": 200,
+    "title": "Trabalhos de Mestrado - Memorial IFSul Campus Venâncio Aires",
+    "image_refs": [
+      "src/images/trabalhos/image1.png",
+      "src/images/trabalhos/image2.png",
+      "src/images/trabalhos/image3.png",
+      "src/images/trabalhos/lei12711.jpeg"
+    ],
+    "h1": [
+      "Trabalhos mestrado ProfEPT servidores do câmpus"
+    ],
+    "h2": [
+      "Documentário Narrativas dos Sujeitos do PROEJA do Curso Secretariado do IFSul Câmpus Venâncio Aires",
+      "Produto Educacional Mestrado ProfEPT Servidora Giselle Schweickardt “PROGRAMA MULHERES MIL NO CÂMPUS VENÂNCIO AIRES DO IFSUL: HISTÓRIAS DE INCLUSÃO E EMANCIPAÇÃO DE MULHERES”",
+      "Produto Educacional Mestrado ProfEPT Servidora Danielle Schweickardt “Oficina de bem-estar: um guia prático para atividades em público\"",
+      "Produto Educacional Mestrado ProfEPT Servidora Daiana Schons"
+    ],
+    "h3": [],
+    "error": null
+  },
+  {
+    "slug": "publicacoes",
+    "url": "https://memoriaifsulvenancio.com.br/catalogacao.html",
+    "status": 200,
+    "title": "Dados publicados em jornal - Memorial IFSul Campus Venâncio Aires",
+    "image_refs": [],
+    "h1": [
+      "Cobertura Jornalística da Imprensa Local: A pesquisa Histórica"
+    ],
+    "h2": [],
+    "h3": [],
+    "error": null
+  }
+]

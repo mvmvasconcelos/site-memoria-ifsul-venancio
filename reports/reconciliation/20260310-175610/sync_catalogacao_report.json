@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-03-10T17:56:10.518639",
+  "mode": "apply",
+  "source_url": "https://memoriaifsulvenancio.com.br/catalogacao.html",
+  "content_length": 1869,
+  "changes_count": 3,
+  "changes": [
+    {
+      "entity": "page",
+      "action": "insert",
+      "details": {
+        "slug": "catalogacao",
+        "title": "Publicações em Jornais",
+        "type": "page",
+        "content": "<section>\n      <h1>Cobertura Jornalística da Imprensa Local: A pesquisa Histórica</h1>\n      <p>\n        Linha do Tempo só foi possível de ser construída em virtude da colaboração do Jornal Folha do Mate que, gentilmente cedeu o acesso às Edições para que a pesquisa fosse realizada. Número de Edições pesquisadas:\n    </p>\n      <table>\n        <tr>\n            <th>ANO</th>\n            <th>NÚMERO DE EDIÇÕES</th>\n            <th>PÁGINAS COM REPORTAGENS</th>\n        </tr>\n        <tr>\n            <td>2005</td>\n            <td class=\"bold\">103</td>\n            <td>7</td>\n        </tr>\n        <tr>\n            <td>2006</td>\n            <td class=\"bold\">104</td>\n            <td>3</td>\n        </tr>\n        <tr>\n            <td>2007</td>\n            <td class=\"bold\">106</td>\n            <td>23</td>\n        </tr>\n        <tr>\n            <td>2008</td>\n            <td class=\"bold\">154</td>\n            <td>28</td>\n        </tr>\n        <tr>\n            <td>2009</td>\n            <td class=\"bold\">154</td>\n            <td>16</td>\n        </tr>\n        <tr>\n            <td>2010</td>\n            <td class=\"bold\">153</td>\n            <td>39</td>\n        </tr>\n        <tr>\n            <td>2011</td>\n            <td class=\"bold\">172</td>\n            <td>62</td>\n        </tr>\n        <tr>\n            <td>2012</td>\n            <td class=\"bold\">256</td>\n            <td>108</td>\n        </tr>\n        <tr>\n            <td class=\"bold\">TOTAL</td>\n            <td class=\"bold\">1.202</td>\n            <td class=\"bold\">286</td>\n        </tr>\n    </table>\n <p>Jornal Folha do Mate: <a href=\"https://folhadomate.com/noticias/geral/registros-de-uma-historia-marcada-pela-parceria-com-a-comunidade/\" target=\"_blank\" rel=\"noopener noreferrer\">https://folhadomate.com/noticias/geral/registros-de-uma-historia-marcada-pela-parceria-com-a-comunidade/</a></p>\n      \n    </section>",
+        "is_visible": 1,
+        "menu_order": 5
+      }
+    },
+    {
+      "entity": "menu_item",
+      "action": "insert",
+      "details": {
+        "page_id": 8,
+        "label": "Publicações em Jornais",
+        "url": "/catalogacao",
+        "is_visible": 1,
+        "order_index": 5
+      }
+    },
+    {
+      "entity": "menu_item",
+      "action": "update",
+      "details": {
+        "id": 6,
+        "updates": {
+          "order_index": {
+            "from": 5,
+            "to": 6
+          }
+        }
+      }
+    }
+  ]
+}

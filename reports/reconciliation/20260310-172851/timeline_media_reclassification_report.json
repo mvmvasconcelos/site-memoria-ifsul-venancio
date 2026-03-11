@@ -1,0 +1,295 @@
+{
+  "generated_at": "2026-03-10T17:28:51.827051",
+  "db_path": "/home/ifsul/projects/site-memoria-ifsul-venancio/database/memoria.db",
+  "uploads_path": "/home/ifsul/projects/site-memoria-ifsul-venancio/uploads",
+  "mode": "apply",
+  "move_files": false,
+  "timeline_candidate_filenames": 28,
+  "planned_actions": 28,
+  "actions": [
+    {
+      "media_id": 10,
+      "filename": "image13.png",
+      "old_folder": "campus",
+      "old_file_path": "campus/6ceb6270adda429fa18e90fb642fee3f.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/6ceb6270adda429fa18e90fb642fee3f.png",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 11,
+      "filename": "image12.png",
+      "old_folder": "campus",
+      "old_file_path": "campus/4fed467281c5436aae028a25cf9d664c.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/4fed467281c5436aae028a25cf9d664c.png",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 14,
+      "filename": "image14.png",
+      "old_folder": "campus",
+      "old_file_path": "campus/660eb8bea64b4ac68f8a6f03a686334f.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/660eb8bea64b4ac68f8a6f03a686334f.png",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 16,
+      "filename": "image7.png",
+      "old_folder": "territorio",
+      "old_file_path": "territorio/ebac3a62a61c41dd99d0b94fd6b08ef7.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/ebac3a62a61c41dd99d0b94fd6b08ef7.png",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 17,
+      "filename": "image6.png",
+      "old_folder": "territorio",
+      "old_file_path": "territorio/717cb72979004168914a40ddd68c4325.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/717cb72979004168914a40ddd68c4325.png",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 18,
+      "filename": "image1.png",
+      "old_folder": "trabalhos",
+      "old_file_path": "trabalhos/dccc4e048afd402f8f05e66aae71f038.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/dccc4e048afd402f8f05e66aae71f038.png",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 19,
+      "filename": "image3.png",
+      "old_folder": "trabalhos",
+      "old_file_path": "trabalhos/782d918502ad4233b81b0a881307a894.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/782d918502ad4233b81b0a881307a894.png",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 21,
+      "filename": "image2.png",
+      "old_folder": "trabalhos",
+      "old_file_path": "trabalhos/93e53e20560345ae95f44a57cbeba4f9.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/93e53e20560345ae95f44a57cbeba4f9.png",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 22,
+      "filename": "image8.png",
+      "old_folder": "campus",
+      "old_file_path": "campus/f8f0c7a513f643f193ffed797bdc8baf.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/f8f0c7a513f643f193ffed797bdc8baf.png",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 23,
+      "filename": "image21.jpeg",
+      "old_folder": "campus",
+      "old_file_path": "campus/2d48915e1e064f50a56e6c5dfe83c977.jpeg",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/2d48915e1e064f50a56e6c5dfe83c977.jpeg",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 24,
+      "filename": "image16.png",
+      "old_folder": "campus",
+      "old_file_path": "campus/f88c1efd7a42433ab0d1532e89b5b2a1.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/f88c1efd7a42433ab0d1532e89b5b2a1.png",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 26,
+      "filename": "image11.png",
+      "old_folder": "campus",
+      "old_file_path": "campus/a7360bdaeb41447293bb9a4ab5d6b241.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/a7360bdaeb41447293bb9a4ab5d6b241.png",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 27,
+      "filename": "image24.jpeg",
+      "old_folder": "campus",
+      "old_file_path": "campus/a05f873bfc8a4810a785bacc6b32aa5e.jpeg",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/a05f873bfc8a4810a785bacc6b32aa5e.jpeg",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 28,
+      "filename": "reportagem30jun.jpg",
+      "old_folder": "campus",
+      "old_file_path": "campus/4b9504f4c7a844e0883e3dade30e15b2.jpg",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/4b9504f4c7a844e0883e3dade30e15b2.jpg",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 30,
+      "filename": "image18.jpeg",
+      "old_folder": "campus",
+      "old_file_path": "campus/4ebda0e48be044e28166d1a73e0d1a27.jpeg",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/4ebda0e48be044e28166d1a73e0d1a27.jpeg",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 31,
+      "filename": "image19.jpeg",
+      "old_folder": "campus",
+      "old_file_path": "campus/06eb4a75e97c4dcfb30b7b892be132a1.jpeg",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/06eb4a75e97c4dcfb30b7b892be132a1.jpeg",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 32,
+      "filename": "image10.png",
+      "old_folder": "campus",
+      "old_file_path": "campus/af6dc8ca0ad7422691be4d855078ada7.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/af6dc8ca0ad7422691be4d855078ada7.png",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 33,
+      "filename": "image15.png",
+      "old_folder": "campus",
+      "old_file_path": "campus/84488133325047bfb2157ab6e49b0f7e.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/84488133325047bfb2157ab6e49b0f7e.png",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 34,
+      "filename": "image4.png",
+      "old_folder": "campus",
+      "old_file_path": "campus/9184e92417fa44e98dac87e057054d69.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/9184e92417fa44e98dac87e057054d69.png",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 35,
+      "filename": "image17.png",
+      "old_folder": "campus",
+      "old_file_path": "campus/e52b23fe808940fdaaa665c00682c75b.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/e52b23fe808940fdaaa665c00682c75b.png",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 36,
+      "filename": "image22.png",
+      "old_folder": "campus",
+      "old_file_path": "campus/beb40ca5247b4d608b452c13a8e17b13.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/beb40ca5247b4d608b452c13a8e17b13.png",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 38,
+      "filename": "image23.jpeg",
+      "old_folder": "campus",
+      "old_file_path": "campus/441c60c544fd47feaba336a78e56862a.jpeg",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/441c60c544fd47feaba336a78e56862a.jpeg",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 39,
+      "filename": "image9.png",
+      "old_folder": "campus",
+      "old_file_path": "campus/dd76e6e6ecde4c16a0ef9c26f6bf1a54.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/dd76e6e6ecde4c16a0ef9c26f6bf1a54.png",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 40,
+      "filename": "lei2008.jpg",
+      "old_folder": "campus",
+      "old_file_path": "campus/15bf7e67898e4398a458c7a12abae7aa.jpg",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/15bf7e67898e4398a458c7a12abae7aa.jpg",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 41,
+      "filename": "pesquisa.jpg",
+      "old_folder": "campus",
+      "old_file_path": "campus/e41093bbd2864a8ebc3b3d3b3f433285.jpg",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/e41093bbd2864a8ebc3b3d3b3f433285.jpg",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 42,
+      "filename": "image20.jpeg",
+      "old_folder": "campus",
+      "old_file_path": "campus/d526db008b06497186b18fc4262b98c2.jpeg",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/d526db008b06497186b18fc4262b98c2.jpeg",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 43,
+      "filename": "fase2.jpg",
+      "old_folder": "campus",
+      "old_file_path": "campus/5aaf180a3e3145ad91f10f44abcf293d.jpg",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/5aaf180a3e3145ad91f10f44abcf293d.jpg",
+      "file_exists": true,
+      "move_needed": true
+    },
+    {
+      "media_id": 44,
+      "filename": "image5.png",
+      "old_folder": "campus",
+      "old_file_path": "campus/7d0ed40bc10f4dc0b2ad48f2a302ffb8.png",
+      "new_folder": "timeline",
+      "new_file_path": "timeline/7d0ed40bc10f4dc0b2ad48f2a302ffb8.png",
+      "file_exists": true,
+      "move_needed": true
+    }
+  ],
+  "apply_stats": {
+    "updated_rows": 28,
+    "moved_files": 0
+  }
+}
