@@ -8,7 +8,7 @@ if str(BACKEND_ROOT) not in sys.path:
 
 from app import create_app
 from app.extensions import db
-from app.models import CardItem, GalleryItem, MenuItem, Page, TimelineItem
+from app.models import CardItem, MenuItem, Page, TimelineItem
 
 
 def upsert_page(slug: str, title: str, page_type: str, menu_order: int) -> Page:
@@ -87,8 +87,8 @@ def migrate_cards(project_root: Path, page: Page, csv_filename: str, image_folde
             db.session.add(card)
 
 
-def migrate_trabalhos_gallery(page: Page):
-    GalleryItem.query.filter_by(page_id=page.id).delete()
+def migrate_trabalhos_cards(page: Page):
+    CardItem.query.filter_by(page_id=page.id).delete()
 
     items = [
         {
@@ -114,14 +114,14 @@ def migrate_trabalhos_gallery(page: Page):
     ]
 
     for index, item in enumerate(items):
-        gallery_item = GalleryItem(
+        card_item = CardItem(
             page_id=page.id,
             title=item["title"],
-            caption=item["caption"],
             image_path=item["image_path"],
+            description=item["caption"],
             order_index=index,
         )
-        db.session.add(gallery_item)
+        db.session.add(card_item)
 
 
 def sync_menu_items():
@@ -178,12 +178,12 @@ def main():
         page_timeline = upsert_page("timeline", "Linha do Tempo", "timeline", 1)
         page_territorio = upsert_page("territorio", "Transformações Territoriais", "cards", 2)
         page_campus = upsert_page("campus", "Campus", "cards", 3)
-        page_trabalhos = upsert_page("trabalhos", "Trabalhos Acadêmicos", "gallery", 4)
+        page_trabalhos = upsert_page("trabalhos", "Trabalhos Acadêmicos", "cards", 4)
 
         migrate_timeline(project_root, page_timeline)
         migrate_cards(project_root, page_territorio, "territorio.csv", "territorio")
         migrate_cards(project_root, page_campus, "campus.csv", "campus")
-        migrate_trabalhos_gallery(page_trabalhos)
+        migrate_trabalhos_cards(page_trabalhos)
         sync_menu_items()
 
         db.session.commit()

@@ -21,6 +21,7 @@
   <meta property="twitter:description" content="Descubra a história do IFSul Campus Venâncio Aires e sua implantação, resgatando memórias e celebrando a evolução da educação profissional no Brasil. Explore coleções que refletem o impacto social e geográfico do campus na região de Venâncio Aires." />
   <meta property="twitter:image" content="https://memoriaifsulvenancio.com.br/src/images/header.jpg" />
   <link rel="stylesheet" href="src/css/styles.css?v=20260306-3">
+  <link rel="stylesheet" href="src/css/territorio.css?v=20260306-1">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -28,22 +29,24 @@
 </head>
 <body>
   <div id="header-placeholder"></div>
-  <main id="trabalhos-content">
-    <section>
+  <main>
+    <section class="territorio-header">
       <h1>Trabalhos mestrado ProfEPT servidores do câmpus</h1>
-      <div
-        id="gallery-container"
-        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; padding: 20px;"
-      ></div>
+      <div class="territorio-years" id="territorio-years">
+        <!-- Years will be populated here -->
+      </div>
+    </section>
+    <section class="territorio" id="territorio">
+      <!-- Cards will be populated here -->
     </section>
   </main>
   <div id="footer-placeholder"></div>
   <script src="src/js/main.js?v=20260306-3"></script>
-  <script src="src/js/gallery.js?v=20260309-1"></script>
+  <script src="src/js/cards.js?v=20260311-1"></script>
   <script>
     loadHeaderFooter();
     document.addEventListener('DOMContentLoaded', () => {
-      loadGalleryData();
+      loadCardsData('trabalhos');
     });
   </script>
 

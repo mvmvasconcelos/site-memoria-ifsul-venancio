@@ -74,7 +74,21 @@ function renderCard(card) {
   `;
 }
 
-function populateCards(cards) {
+function renderTrabalhosCard(card) {
+  const imageUrl = resolveCardImageUrl(card);
+  const title = cardsSanitize(card?.title || '');
+  const descriptionHtml = card?.description || '';
+
+  return `
+    <section class="trabalhos territorio-entry" data-id="${card.id}">
+      <h2>${title}</h2>
+      ${imageUrl ? `<img src="${imageUrl}" alt="${title}" class="card-image" />` : ''}
+      ${descriptionHtml ? `<div class="card-desc">${descriptionHtml}</div>` : ''}
+    </section>
+  `;
+}
+
+function populateCards(cards, pageSlug) {
   const containerYears = document.getElementById('territorio-years');
   const containerItems = document.getElementById('territorio');
 
@@ -82,6 +96,15 @@ function populateCards(cards) {
     console.error('[CARDS] Containers #territorio-years ou #territorio não encontrados');
     return;
   }
+
+  if (pageSlug === 'trabalhos') {
+    containerYears.innerHTML = '';
+    containerYears.style.display = 'none';
+    containerItems.innerHTML = cards.map((card) => renderTrabalhosCard(card)).join('');
+    return;
+  }
+
+  containerYears.style.display = '';
 
   const grouped = {};
   cards.forEach((card) => {
@@ -132,7 +155,7 @@ async function loadCardsData(pageSlug) {
   try {
     const page = await cardsApiGetJson(`/api/pages/${pageSlug}`);
     const cards = await cardsApiGetJson(`/api/cards/${page.id}`);
-    populateCards(cards || []);
+    populateCards(cards || [], pageSlug);
   } catch (error) {
     console.error('[CARDS] Erro ao carregar cards:', error);
     showCardsError();

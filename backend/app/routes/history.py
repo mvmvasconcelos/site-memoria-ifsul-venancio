@@ -5,7 +5,7 @@ from flask import Blueprint, jsonify, request, session
 from ..auth_utils import login_required
 from ..extensions import db
 from ..history import log_history
-from ..models import CardItem, ContentHistory, GalleryItem, Page, TimelineItem, User
+from ..models import CardItem, ContentHistory, Page, TimelineItem, User
 
 history_bp = Blueprint("history", __name__)
 
@@ -30,10 +30,6 @@ ENTITY_CONFIG = {
     "card_item": {
         "model": CardItem,
         "fields": ["id", "page_id", "title", "description", "image_path", "date_label", "source", "order_index"],
-    },
-    "gallery_item": {
-        "model": GalleryItem,
-        "fields": ["id", "page_id", "title", "caption", "image_path", "order_index"],
     },
     "page": {
         "model": Page,

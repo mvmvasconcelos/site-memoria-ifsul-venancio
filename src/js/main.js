@@ -49,6 +49,7 @@ async function loadPageMainFromCms() {
   try {
     const response = await fetch(buildApiUrl(`/api/pages/${slug}`), { cache: 'no-store' });
     if (!response.ok) {
+      main.innerHTML = '<section><p>Nao foi possivel carregar o conteudo desta pagina. Tente novamente mais tarde.</p></section>';
       return;
     }
 
@@ -59,12 +60,10 @@ async function loadPageMainFromCms() {
       return;
     }
 
-    const strictSlugs = new Set(['index', 'contact', 'catalogacao']);
-    if (strictSlugs.has(slug)) {
-      main.innerHTML = '<section><p>Conteúdo não publicado no banco para esta página.</p></section>';
-    }
+    main.innerHTML = '<section><p>Conteudo nao publicado no banco para esta pagina.</p></section>';
   } catch (error) {
     console.warn(`Falha ao carregar conteúdo CMS da página ${slug}:`, error);
+    main.innerHTML = '<section><p>Nao foi possivel carregar o conteudo desta pagina. Tente novamente mais tarde.</p></section>';
   }
 }
 
@@ -116,6 +115,15 @@ function renderDynamicMenu(items) {
     .join('');
 }
 
+function renderMenuError() {
+  const navList = document.querySelector('header nav ul');
+  if (!navList) {
+    return;
+  }
+
+  navList.innerHTML = '<li><a href="#" aria-disabled="true">Menu indisponivel. Tente novamente mais tarde.</a></li>';
+}
+
 function normalizeStaticMenuLinks() {
   const navLinks = document.querySelectorAll('header nav a[href]');
   if (!navLinks.length) {
@@ -161,7 +169,8 @@ async function loadHeaderFooter() {
     const menuItems = await loadMenuFromApi();
     renderDynamicMenu(menuItems);
   } catch (error) {
-    console.warn('Menu dinâmico indisponível, mantendo menu estático.', error);
+    console.warn('Falha ao carregar menu dinamico:', error);
+    renderMenuError();
   }
 
   const hamburger = document.querySelector('.hamburger');

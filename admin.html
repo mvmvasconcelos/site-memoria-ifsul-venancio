@@ -7,6 +7,10 @@
   <title>Admin - Timeline Memorial IFSul</title>
   <link rel="stylesheet" href="src/css/styles.css?v=20260310-1">
   <link rel="stylesheet" href="src/css/admin.css?v=20260310-1">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="manifest" href="site.webmanifest">
 </head>
 <body>
   <!-- 
@@ -348,13 +352,10 @@
           <label for="eventImage">Imagem</label>
           <div class="image-selection-container">
             <div class="file-input-wrapper">
-              <input type="file" id="eventImageFile" accept="image/*">
-              <span>ou</span>
               <button type="button" class="btn-secondary btn-small" id="selectMediaBtn">🖼️ Selecionar mídia</button>
-              <span>ou</span>
-              <input type="text" id="eventImage" placeholder="Nome do arquivo (ex: imagem.jpg)">
+              <input type="hidden" id="eventImage">
             </div>
-            <small>Selecione da mídia disponível, faça upload de nova imagem ou digite o nome de uma existente</small>
+            <small>Selecione uma imagem já cadastrada na biblioteca de mídia</small>
             <div class="image-actions">
               <button type="button" class="btn-secondary btn-small" id="removeImageBtn">Remover imagem atual</button>
             </div>
@@ -455,7 +456,6 @@
         <!-- Tabs -->
         <div class="image-picker-tabs">
           <button class="image-picker-tab active" data-tab="select">📋 Selecionar</button>
-          <button class="image-picker-tab" data-tab="upload">📤 Upload</button>
         </div>
 
         <!-- Select Tab -->
@@ -474,38 +474,6 @@
 
           <div class="image-picker-grid" id="imagePickerGrid">
             <div class="loading">Carregando imagens...</div>
-          </div>
-        </div>
-
-        <!-- Upload Tab -->
-        <div class="image-picker-tab-content" id="imagePickerUploadTab" style="display: none;">
-          <div class="image-picker-upload-form">
-            <div class="form-group">
-              <label for="imagePickerFile">Escolha uma imagem</label>
-              <input type="file" id="imagePickerFile" accept="image/*" placeholder="Selecione arquivo">
-            </div>
-
-            <div class="form-group">
-              <label for="imagePickerUploadFolder">Pasta</label>
-              <select id="imagePickerUploadFolder" class="content-page-select">
-                <option value="campus">Campus</option>
-                <option value="territorio">Território</option>
-                <option value="timeline">Timeline</option>
-                <option value="trabalhos">Trabalhos</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="imagePickerUploadAlt">Texto Alternativo (opcional)</label>
-              <input type="text" id="imagePickerUploadAlt" placeholder="Descrição para acessibilidade">
-            </div>
-
-            <div class="form-group">
-              <label for="imagePickerUploadDescription">Descrição (opcional)</label>
-              <textarea id="imagePickerUploadDescription" placeholder="Descrição da imagem" rows="2"></textarea>
-            </div>
-
-            <button id="imagePickerUploadBtn" class="btn-primary">📤 Fazer Upload</button>
           </div>
         </div>
 

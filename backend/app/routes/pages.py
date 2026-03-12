@@ -1,12 +1,9 @@
-import re
-from pathlib import Path
-
 from flask import Blueprint, jsonify, request, session
 
 from ..auth_utils import login_required, to_dict
 from ..extensions import db
 from ..history import log_history
-from ..models import CardItem, GalleryItem, Page
+from ..models import Page
 
 pages_bp = Blueprint("pages", __name__)
 
@@ -28,97 +25,6 @@ def serialize_page(page: Page):
     data["created_at"] = page.created_at.isoformat() if page.created_at else None
     data["updated_at"] = page.updated_at.isoformat() if page.updated_at else None
     return data
-
-
-def extract_main_html(file_name: str) -> str:
-    project_root = Path(__file__).resolve().parents[3]
-    file_path = project_root / file_name
-    if not file_path.exists() or not file_path.is_file():
-        return ""
-
-    html = file_path.read_text(encoding="utf-8")
-    match = re.search(r"<main[^>]*>(.*?)</main>", html, flags=re.IGNORECASE | re.DOTALL)
-    if not match:
-        return ""
-    return match.group(1).strip()
-
-
-def build_content_from_cards(page_id: int) -> str:
-    cards = CardItem.query.filter_by(page_id=page_id).order_by(
-        CardItem.order_index.asc(), CardItem.id.asc()
-    )
-    items = []
-    for card in cards:
-        image = f'<img src="{card.image_path}" alt="{card.title}">' if card.image_path else ""
-        date = f'<p class="date">{card.date_label}</p>' if card.date_label else ""
-        source = f'<p class="legend">{card.source}</p>' if card.source else ""
-        description = f"<p>{card.description}</p>" if card.description else ""
-        items.append(
-            f"""
-<div class=\"territorio-entry\">
-  <h3>{card.title}</h3>
-  <div class=\"image-container\">{image}{date}</div>
-  {source}
-  {description}
-</div>
-            """.strip()
-        )
-
-    if not items:
-        return ""
-    return "\n".join(items)
-
-
-def build_content_from_gallery(page_id: int) -> str:
-    items = GalleryItem.query.filter_by(page_id=page_id).order_by(
-        GalleryItem.order_index.asc(), GalleryItem.id.asc()
-    )
-    sections = []
-    for item in items:
-        image = f'<img src="{item.image_path}" alt="{item.title or "Trabalho acadêmico"}">' if item.image_path else ""
-        caption = f"<p>{item.caption}</p>" if item.caption else ""
-        title = item.title or "Trabalho acadêmico"
-        sections.append(
-            f"""
-<section class=\"trabalhos\">
-  <h2>{title}</h2>
-  {image}
-  {caption}
-</section>
-            """.strip()
-        )
-
-    if not sections:
-        return ""
-    return "<h1>Trabalhos mestrado ProfEPT servidores do câmpus</h1>" + "\n" + "\n".join(sections)
-
-
-def build_editor_default_content(page: Page) -> str:
-    static_mapping = {
-        "index": "index.html",
-        "contact": "contact.html",
-        "territorio": "territorio.html",
-        "campus": "campus.html",
-        "trabalhos": "trabalhos.html",
-    }
-
-    file_name = static_mapping.get(page.slug)
-    if file_name:
-        static_content = extract_main_html(file_name)
-        if static_content:
-            return static_content
-
-    if page.slug in {"territorio", "campus"}:
-        content = build_content_from_cards(page.id)
-        if content:
-            return content
-
-    if page.slug == "trabalhos":
-        content = build_content_from_gallery(page.id)
-        if content:
-            return content
-
-    return ""
 
 
 @pages_bp.get("")
@@ -146,11 +52,7 @@ def get_editor_content(slug):
     if current_content:
         return jsonify({"content": current_content, "source": "db"})
 
-    generated = build_editor_default_content(page)
-    if generated:
-        return jsonify({"content": generated, "source": "generated"})
-
-    return jsonify({"content": "", "source": "empty"})
+    return jsonify({"content": "", "source": "db_empty"})
 
 
 @pages_bp.post("")

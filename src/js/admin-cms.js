@@ -85,7 +85,6 @@ function getEventFormState() {
     imagePath: document.getElementById('eventImage').value.trim(),
     legend: document.getElementById('eventLegend').value.trim(),
     description: document.getElementById('eventText').value.trim(),
-    hasSelectedFile: (document.getElementById('eventImageFile').files || []).length > 0,
   };
 }
 
@@ -1172,7 +1171,6 @@ function fillEventForm(event = null) {
   document.getElementById('eventImage').value = event?.image_path || '';
   document.getElementById('eventLegend').value = event?.source || '';
   document.getElementById('eventText').value = event?.description || '';
-  document.getElementById('eventImageFile').value = '';
   updateImagePreviewFromPath(event?.image_path || '');
   captureEventFormInitialState();
 }
@@ -1202,8 +1200,7 @@ function openDeleteModal(id) {
 async function saveEventFromForm(event) {
   event.preventDefault();
 
-  const selectedFile = document.getElementById('eventImageFile').files[0];
-  let imagePath = document.getElementById('eventImage').value.trim();
+  const imagePath = document.getElementById('eventImage').value.trim();
   const normalizedDate = normalizeTimelineDate(document.getElementById('eventDate').value);
 
   const payload = {
@@ -1226,14 +1223,6 @@ async function saveEventFromForm(event) {
   }
 
   try {
-    if (selectedFile) {
-      setSyncStatus('syncing', '⟳ Enviando imagem...');
-      const uploadResult = await uploadImage(selectedFile);
-      imagePath = uploadResult.image_path;
-      document.getElementById('eventImage').value = imagePath;
-      showToast('Imagem enviada com sucesso.', 'success');
-    }
-
     payload.image_path = imagePath || null;
     setSyncStatus('syncing', '⟳ Salvando...');
     if (state.currentEditId) {
@@ -1809,7 +1798,6 @@ function attachEventListeners() {
   document.getElementById('eventForm').addEventListener('submit', saveEventFromForm);
   document.getElementById('removeImageBtn').addEventListener('click', () => {
     document.getElementById('eventImage').value = '';
-    document.getElementById('eventImageFile').value = '';
     updateImagePreviewFromPath('');
   });
 
@@ -1820,11 +1808,6 @@ function attachEventListeners() {
 
   document.getElementById('eventImage').addEventListener('input', (event) => {
     updateImagePreviewFromPath(event.target.value);
-  });
-
-  document.getElementById('eventImageFile').addEventListener('change', (event) => {
-    const file = event.target.files?.[0] || null;
-    updateImagePreviewFromFile(file);
   });
 
   document.getElementById('eventModal').addEventListener('click', (event) => {
@@ -2066,7 +2049,6 @@ function openImagePickerModal(context = 'editor') {
   const title = document.getElementById('imagePickerModalTitle');
   const insertBtn = document.getElementById('imagePickerInsertBtn');
   const folderFilter = document.getElementById('imagePickerFolderFilter');
-  const uploadFolder = document.getElementById('imagePickerUploadFolder');
   const searchInput = document.getElementById('imagePickerSearch');
   if (title) {
     if (context === 'event') {
@@ -2083,7 +2065,6 @@ function openImagePickerModal(context = 'editor') {
 
   const defaultFolder = getDefaultImagePickerFolder(context);
   if (folderFilter) folderFilter.value = defaultFolder;
-  if (uploadFolder) uploadFolder.value = defaultFolder || 'timeline';
   if (searchInput) searchInput.value = '';
 
   selectedImageForEditor = null;
@@ -2116,69 +2097,6 @@ function setImagePickerTab(tabName) {
   tabButtons.forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.tab === tabName);
   });
-
-  // Reset upload form when switching to upload tab
-  if (tabName === 'upload') {
-    const fileInput = document.getElementById('imagePickerFile');
-    if (fileInput) fileInput.value = '';
-  }
-}
-
-async function handleImagePickerUpload() {
-  const fileInput = document.getElementById('imagePickerFile');
-  const folderSelect = document.getElementById('imagePickerUploadFolder');
-  const file = fileInput?.files?.[0];
-
-  if (!file) {
-    showToast('Selecione uma imagem para fazer upload.', 'error');
-    return;
-  }
-
-  const folder = (folderSelect?.value || 'campus').toLowerCase();
-
-  try {
-    setSyncStatus('syncing', '📤 Fazendo upload da imagem...');
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('folder', folder);
-    formData.append('alt_text', document.getElementById('imagePickerUploadAlt')?.value || '');
-    formData.append('description', document.getElementById('imagePickerUploadDescription')?.value || '');
-
-    const result = await apiRequest('/api/media', {
-      method: 'POST',
-      body: formData,
-    });
-
-    showToast(`"${file.name}" enviado com sucesso!`, 'success');
-
-    // Set as selected image
-    selectedImageForEditor = {
-      id: result.id,
-      url: resolveAssetUrl(`/media/serve/${result.file_path}`),
-      insertUrl: `/media/serve/${result.file_path}`,
-      filename: result.filename,
-      path: `media/serve/${result.file_path}`,
-      folder: result.folder,
-      description: result.description || '',
-      altText: result.alt_text || '',
-      size: Number(result.file_size || 0),
-    };
-
-    // Switch to select tab to show the new image
-    setImagePickerTab('select');
-    await loadImagesForPicker();
-    updateImagePickerPreview();
-
-    // Enable insert button
-    const insertBtn = document.getElementById('imagePickerInsertBtn');
-    if (insertBtn) insertBtn.disabled = false;
-
-    setSyncStatus('synced', '✓ Imagem enviada');
-  } catch (error) {
-    setSyncStatus('error', '⚠ Erro ao enviar imagem');
-    showToast(error.message, 'error');
-  }
 }
 
 function insertSelectedImage() {
@@ -2192,7 +2110,6 @@ function insertSelectedImage() {
     if (eventImageField) {
       const imagePath = selectedImageForEditor.path || selectedImageForEditor.filename;
       eventImageField.value = imagePath;
-      document.getElementById('eventImageFile').value = '';
       updateImagePreviewFromPath(imagePath);
       showToast('Imagem selecionada para o evento.', 'success');
     }
@@ -2260,24 +2177,6 @@ function attachImagePickerListeners() {
   const refreshBtn = document.getElementById('imagePickerRefreshBtn');
   if (refreshBtn) {
     refreshBtn.addEventListener('click', loadImagesForPicker);
-  }
-
-  // Upload file input
-  const fileInput = document.getElementById('imagePickerFile');
-  if (fileInput) {
-    fileInput.addEventListener('change', () => {
-      const fileName = fileInput.files?.[0]?.name || '(nenhuma imagem selecionada)';
-      const label = document.querySelector(`label[for="imagePickerFile"]`);
-      if (label) {
-        label.textContent = `Escolha uma imagem: ${fileName}`;
-      }
-    });
-  }
-
-  // Upload button
-  const uploadBtn = document.getElementById('imagePickerUploadBtn');
-  if (uploadBtn) {
-    uploadBtn.addEventListener('click', handleImagePickerUpload);
   }
 
   // Insert button

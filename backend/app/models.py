@@ -71,19 +71,6 @@ class CardItem(TimestampMixin, db.Model):
     order_index = db.Column(db.Integer, default=0, nullable=False)
 
 
-class GalleryItem(TimestampMixin, db.Model):
-    __tablename__ = "gallery_item"
-
-    id = db.Column(db.Integer, primary_key=True)
-    page_id = db.Column(
-        db.Integer, db.ForeignKey("page.id", ondelete="CASCADE"), nullable=False
-    )
-    title = db.Column(db.String(255), nullable=True)
-    caption = db.Column(db.Text, nullable=True)
-    image_path = db.Column(db.String(500), nullable=False)
-    order_index = db.Column(db.Integer, default=0, nullable=False)
-
-
 class MediaFile(TimestampMixin, db.Model):
     __tablename__ = "media_file"
 
