@@ -42,6 +42,17 @@ def serialize_media_file(item: MediaFile):
     return data
 
 
+def media_file_exists(item: MediaFile) -> bool:
+    upload_root = Path(current_app.config["UPLOAD_FOLDER"]).resolve()
+
+    try:
+        full_path = (upload_root / item.file_path).resolve()
+    except Exception:
+        return False
+
+    return str(full_path).startswith(str(upload_root)) and full_path.is_file()
+
+
 @media_bp.get("")
 @login_required
 def list_media():
@@ -53,6 +64,7 @@ def list_media():
         query = query.filter_by(folder=folder)
     
     items = query.order_by(MediaFile.created_at.desc()).all()
+    items = [item for item in items if media_file_exists(item)]
     return jsonify([serialize_media_file(item) for item in items])
 
 
@@ -176,6 +188,7 @@ def list_for_editor():
         query = query.filter_by(folder=folder)
     
     items = query.order_by(MediaFile.created_at.desc()).all()
+    items = [item for item in items if media_file_exists(item)]
     
     return jsonify([
         {
@@ -206,6 +219,7 @@ def public_list_media():
         query = query.filter_by(folder=folder)
     
     items = query.order_by(MediaFile.created_at.desc()).all()
+    items = [item for item in items if media_file_exists(item)]
     return jsonify([serialize_media_file(item) for item in items])
 
 

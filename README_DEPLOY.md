@@ -5,7 +5,7 @@ Este guia cobre apenas o fluxo operacional atual (Fase 3 / CMS).
 ## Stack em uso
 
 - Serviço: `memoria-cms`
-- Compose: `docker-compose.fase3.yml`
+- Compose: `docker-compose.yml`
 - Porta: `8092 -> 5000`
 - URL pública atual: `https://ifva.duckdns.org/memoria/`
 
@@ -14,8 +14,8 @@ Este guia cobre apenas o fluxo operacional atual (Fase 3 / CMS).
 ```bash
 cd /home/ifsul/projects/site-memoria-ifsul-venancio
 
-docker-compose -f docker-compose.fase3.yml down
-docker-compose -f docker-compose.fase3.yml up --build -d
+docker-compose down
+docker-compose up --build -d
 ```
 
 ## Verificação rápida (smoke)
@@ -29,7 +29,7 @@ curl -I https://ifva.duckdns.org/memoria/api/health
 ## Logs
 
 ```bash
-docker-compose -f docker-compose.fase3.yml logs -f
+docker-compose logs -f
 ```
 
 ## Inicialização (primeira execução)
@@ -53,6 +53,6 @@ Saída dos backups: pasta `backups/`.
 
 ## Notas importantes
 
-- `docker-compose.yml` é stack legada estática; não usar para o CMS.
+- O projeto usa apenas `docker-compose.yml`.
 - Evitar instalar dependências no host; executar tudo via containers.
 - Após mudanças em JS/CSS do admin, usar versionamento de assets (`?v=...`) para evitar cache antigo.

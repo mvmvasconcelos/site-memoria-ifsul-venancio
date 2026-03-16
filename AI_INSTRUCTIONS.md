@@ -20,10 +20,9 @@
 
 - URL atual: `https://ifva.duckdns.org/memoria/`
 - Admin: `https://ifva.duckdns.org/memoria/admin`
-- Stack principal ativa: **CMS Fase 3**
-  - `docker-compose.fase3.yml`
+- Stack principal ativa: **CMS**
+   - `docker-compose.yml`
   - Serviço `memoria-cms` (Flask + SQLite)
-- Stack legada estática (`docker-compose.yml`) permanece apenas como referência histórica.
 
 ## 3) Funcionalidades já prontas
 
@@ -47,11 +46,11 @@ cd /home/ifsul/projects/site-memoria-ifsul-venancio
 
 # subir stack correta
 
-docker-compose -f docker-compose.fase3.yml up --build -d
+docker-compose up --build -d
 
 # logs
 
-docker-compose -f docker-compose.fase3.yml logs -f
+docker-compose logs -f
 ```
 
 ## 5) Verificação mínima após mudanças

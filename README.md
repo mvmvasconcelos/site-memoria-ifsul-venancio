@@ -29,14 +29,13 @@ database/                SQLite e backups locais
 uploads/                 uploads de imagens
 src/css/ src/js/         frontend público + admin
 admin.html               painel administrativo
-docker-compose.fase3.yml stack CMS (porta 8092 -> 5000)
-docker-compose.yml       stack estático legada (somente referência)
+docker-compose.yml       stack CMS (porta 8092 -> 5000)
 ```
 
 ## Como rodar (CMS/Fase 3)
 
 ```bash
-docker-compose -f docker-compose.fase3.yml up --build -d
+docker-compose up --build -d
 ```
 
 Após subir:
@@ -49,10 +48,10 @@ Após subir:
 
 ```bash
 # logs
-docker-compose -f docker-compose.fase3.yml logs -f
+docker-compose logs -f
 
 # parar
-docker-compose -f docker-compose.fase3.yml down
+docker-compose down
 
 # criar banco e usuário admin (primeira execução)
 docker exec -it memoria-cms flask --app backend/run.py init-db

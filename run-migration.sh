@@ -3,7 +3,7 @@
 
 set -e
 
-SERVICE_NAME="web"
+SERVICE_NAME="memoria-cms"
 SCRIPT_PATH="migrate_media_table.py"
 
 echo "🔍 Verificando se o serviço '$SERVICE_NAME' está rodando..."
@@ -11,12 +11,8 @@ echo "🔍 Verificando se o serviço '$SERVICE_NAME' está rodando..."
 if ! docker-compose ps $SERVICE_NAME | grep -q "Up"; then
     echo "❌ Serviço '$SERVICE_NAME' não está rodando!"
     echo ""
-    echo "Opcões:"
-    echo "1. Se estiver usando Dockerfile.fase3 (com Python):"
-    echo "   docker-compose -f docker-compose.fase3.yml up -d"
-    echo ""
-    echo "2. Se estiver usando Dockerfile atual (Nginx):"
-    echo "   Você precisa ter um serviço separado com Python rodando"
+    echo "Opção:"
+    echo "   docker-compose up -d"
     exit 1
 fi
 

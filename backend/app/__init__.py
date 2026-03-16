@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from flask import Flask, jsonify, request, send_from_directory
+from werkzeug.exceptions import RequestEntityTooLarge
 
 from .extensions import db
 from .models import User
@@ -34,7 +35,8 @@ def create_app():
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["UPLOAD_FOLDER"] = str(uploads_dir)
-    app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
+    max_content_length_mb = int(os.getenv("MAX_CONTENT_LENGTH_MB", "20"))
+    app.config["MAX_CONTENT_LENGTH"] = max_content_length_mb * 1024 * 1024
 
     db.init_app(app)
 
@@ -77,6 +79,11 @@ def create_app():
     @app.get("/api/health")
     def healthcheck():
         return jsonify({"status": "ok", "service": "memoria-cms"})
+
+    @app.errorhandler(RequestEntityTooLarge)
+    def handle_request_entity_too_large(_error):
+        max_mb = app.config["MAX_CONTENT_LENGTH"] // (1024 * 1024)
+        return jsonify({"error": f"Arquivo muito grande. Limite atual: {max_mb}MB"}), 413
 
     @app.get("/")
     def home():
