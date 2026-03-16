@@ -35,7 +35,7 @@ def create_app():
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["UPLOAD_FOLDER"] = str(uploads_dir)
-    max_content_length_mb = int(os.getenv("MAX_CONTENT_LENGTH_MB", "20"))
+    max_content_length_mb = int(os.getenv("MAX_CONTENT_LENGTH_MB", "10"))
     app.config["MAX_CONTENT_LENGTH"] = max_content_length_mb * 1024 * 1024
 
     db.init_app(app)
@@ -83,7 +83,7 @@ def create_app():
     @app.errorhandler(RequestEntityTooLarge)
     def handle_request_entity_too_large(_error):
         max_mb = app.config["MAX_CONTENT_LENGTH"] // (1024 * 1024)
-        return jsonify({"error": f"Arquivo muito grande. Limite atual: {max_mb}MB"}), 413
+        return jsonify({"error": f"Arquivo muito grande. Limite de upload: {max_mb} MB."}), 413
 
     @app.get("/")
     def home():

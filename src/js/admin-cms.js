@@ -29,25 +29,23 @@ const MANAGED_PAGE_DEFS = [
 
 function getAppBasePath() {
   const path = window.location.pathname || '';
-  console.log('[DEBUG] getAppBasePath() - window.location.pathname:', path);
   
   // Check if we're running under /memoria subpath
   if (path.startsWith('/memoria/')) {
-    console.log('[DEBUG] getAppBasePath() - returning /memoria (from /memoria/ path)');
     return '/memoria';
   }
   if (path === '/memoria') {
-    console.log('[DEBUG] getAppBasePath() - returning /memoria (exact match)');
     return '/memoria';
   }
   
   // If we're at root (nginx is stripping /memoria), return empty
   // because Flask is already at root in the container
-  console.log('[DEBUG] getAppBasePath() - returning empty string (assuming nginx subpath)');
   return '';
 }
 
 const APP_BASE_PATH = getAppBasePath();
+const MAX_MEDIA_UPLOAD_MB = 10;
+const MAX_MEDIA_UPLOAD_BYTES = MAX_MEDIA_UPLOAD_MB * 1024 * 1024;
 let pageContentEditor = null;
 let pageContentEditorInitialized = false;
 let pageEditorViewMode = 'visual';
@@ -267,7 +265,10 @@ async function apiRequest(path, options = {}) {
   const payload = isJson ? await response.json() : null;
 
   if (!response.ok) {
-    throw new Error(payload?.error || `Erro HTTP ${response.status}`);
+    const error = new Error(payload?.error || `Erro HTTP ${response.status}`);
+    error.status = response.status;
+    error.payload = payload;
+    throw error;
   }
 
   return payload;
@@ -1269,20 +1270,14 @@ async function confirmDelete() {
 
 async function loadMedia() {
   const folder = document.getElementById('mediaFolderFilter')?.value || '';
-  console.log('[LOAD_MEDIA] Starting loadMedia(), folder:', folder);
   
   try {
     setSyncStatus('syncing', '⟳ Carregando mídia...');
     const url = folder ? `/api/media/public-list?folder=${encodeURIComponent(folder)}` : '/api/media/public-list';
-    console.log('[LOAD_MEDIA] API URL:', url);
     const items = await apiRequest(url);
-    console.log('[LOAD_MEDIA] API Response:', items);
-    console.log('[LOAD_MEDIA] Number of items:', items ? items.length : 0);
     state.mediaFiles = items || [];
-    console.log('[LOAD_MEDIA] state.mediaFiles updated, length:', state.mediaFiles.length);
     
     updateDashboardCards();
-    console.log('[LOAD_MEDIA] Rendering both views (grid and table)');
     renderMediaTable();
     renderMediaGrid();
     
@@ -1292,28 +1287,21 @@ async function loadMedia() {
     }
     
     setSyncStatus('synced', '✓ Mídia carregada');
-    console.log('[LOAD_MEDIA] Finished successfully');
   } catch (error) {
-    console.error('[LOAD_MEDIA] ERROR:', error);
     setSyncStatus('error', '⚠ Erro ao carregar mídia');
     showToast(error.message, 'error');
   }
 }
 
 function renderMediaTable() {
-  console.log('[RENDER_TABLE] Starting renderMediaTable()');
   const tbody = document.getElementById('mediaTableBody');
-  console.log('[RENDER_TABLE] tbody element:', tbody);
   if (!tbody) {
-    console.error('[RENDER_TABLE] tbody not found!');
     return;
   }
 
-  console.log('[RENDER_TABLE] Processing', state.mediaFiles.length, 'items');
   const rows = (state.mediaFiles || []).map((item) => {
     const filePath = sanitize(item.file_path || '');
     const imageUrl = `${APP_BASE_PATH}/media/serve/${filePath}`;
-    console.log('[RENDER_TABLE] Item:', item.filename, '-> URL:', imageUrl);
     const filename = sanitize(item.filename || 'Sem nome');
     const folder = sanitize(item.folder || 'uploads');
     const fileSize = formatFileSize(item.file_size || 0);
@@ -1337,24 +1325,17 @@ function renderMediaTable() {
   }).join('');
 
   tbody.innerHTML = rows || '<tr><td colspan="6">Nenhuma mídia encontrada</td></tr>';
-  console.log('[RENDER_TABLE] DOM updated, tbody.innerHTML length:', tbody.innerHTML.length);
-  console.log('[RENDER_TABLE] Finished');
 }
 
 function renderMediaGrid() {
-  console.log('[RENDER_GRID] Starting renderMediaGrid()');
   const container = document.getElementById('mediaGridContainer');
-  console.log('[RENDER_GRID] container element:', container);
   if (!container) {
-    console.error('[RENDER_GRID] container not found!');
     return;
   }
 
-  console.log('[RENDER_GRID] Processing', state.mediaFiles.length, 'items');
   const items = (state.mediaFiles || []).map((item) => {
     const filePath = sanitize(item.file_path || '');
     const imageUrl = `${APP_BASE_PATH}/media/serve/${filePath}`;
-    console.log('[RENDER_GRID] Item:', item.filename, '-> URL:', imageUrl);
     const filename = sanitize(item.filename || 'Sem nome');
     const folder = sanitize(item.folder || 'uploads');
 
@@ -1376,8 +1357,6 @@ function renderMediaGrid() {
   }).join('');
 
   container.innerHTML = items || '<p style="grid-column: 1/-1; text-align: center; color: #999;">Nenhuma mídia encontrada</p>';
-  console.log('[RENDER_GRID] DOM updated, container.innerHTML length:', container.innerHTML.length);
-  console.log('[RENDER_GRID] Finished');
 }
 
 function formatFileSize(bytes) {
@@ -1422,6 +1401,16 @@ function uploadMediaFile() {
 async function handleMediaFileSelection(file) {
   if (!file) return;
 
+  if (file.size > MAX_MEDIA_UPLOAD_BYTES) {
+    const fileSize = formatFileSize(file.size);
+    showToast(
+      `Arquivo muito grande (${fileSize}). O limite para upload é ${MAX_MEDIA_UPLOAD_MB} MB.`,
+      'error'
+    );
+    document.getElementById('mediaFileInput').value = '';
+    return;
+  }
+
   const folder = document.getElementById('mediaFolderFilter')?.value || 'uploads';
   if (!['timeline', 'territorio', 'campus'].includes(folder)) {
     showToast('Selecione uma pasta válida antes de fazer upload.', 'error');
@@ -1446,7 +1435,17 @@ async function handleMediaFileSelection(file) {
     await loadMedia();
   } catch (error) {
     setSyncStatus('error', '⚠ Erro ao enviar arquivo');
-    showToast(error.message, 'error');
+
+    if (error.status === 413) {
+      const fileSize = formatFileSize(file.size);
+      showToast(
+        `Upload recusado: o arquivo "${file.name}" (${fileSize}) excede o limite de ${MAX_MEDIA_UPLOAD_MB} MB.`,
+        'error'
+      );
+      return;
+    }
+
+    showToast(error.message || 'Não foi possível enviar o arquivo.', 'error');
   }
 }
 
