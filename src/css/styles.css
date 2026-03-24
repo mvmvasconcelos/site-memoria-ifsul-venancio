@@ -551,7 +551,8 @@
     border-radius: 0.5rem;
     border: 1px solid #e5e7eb;
     max-height: 24rem;
-    object-fit: cover;
+    object-fit: contain;
+    background-color: #f8fafc;
     display: block;
   }
 
