@@ -55,12 +55,12 @@ async function loadPageMainFromCms() {
 
     const page = await response.json();
     const content = (page?.content || '').trim();
-    if (content) {
-      main.innerHTML = content;
+    if (!content) {
+      main.innerHTML = '<section><p>Erro ao carregar o conteudo desta pagina.</p></section>';
       return;
     }
 
-    main.innerHTML = '<section><p>Conteudo nao publicado no banco para esta pagina.</p></section>';
+    main.innerHTML = content;
   } catch (error) {
     console.warn(`Falha ao carregar conteúdo CMS da página ${slug}:`, error);
     main.innerHTML = '<section><p>Nao foi possivel carregar o conteudo desta pagina. Tente novamente mais tarde.</p></section>';

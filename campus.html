@@ -31,23 +31,13 @@
 </head>
 <body>
   <div id="header-placeholder"></div>
-  <main>
-    <section class="territorio-header">
-      <h1>O Câmpus em Foco</h1>
-      <div class="territorio-years" id="territorio-years">
-        <!-- Years will be populated here -->
-      </div>
-    </section>
-    <section class="territorio" id="territorio">
-      <!-- Timeline entries will be populated here -->
-    </section>
-  </main>
+  <main aria-live="polite"></main>
   <div id="footer-placeholder"></div>
   <script src="src/js/main.js?v=20260306-3"></script>
-  <script src="src/js/cards.js?v=20260309-1"></script>
+  <script src="src/js/cards.js?v=20260324-1"></script>
   <script>
-    loadHeaderFooter();
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadHeaderFooter();
       loadCardsData('campus');
     });
   </script>

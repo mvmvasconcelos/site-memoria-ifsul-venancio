@@ -24,6 +24,72 @@
   line-height: 1.6;
 }
 
+.territorio-years {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.year-btn {
+  border: 1px solid #2e7d32;
+  background: #fff;
+  color: #2e7d32;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.year-btn.active,
+.year-btn:hover {
+  background: #2e7d32;
+  color: #fff;
+}
+
+.territorio .card {
+  width: min(100%, 820px);
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  margin: 0 auto 20px;
+}
+
+.territorio .card-image {
+  width: 100%;
+  max-width: 760px;
+  height: auto;
+  border-radius: 5px;
+  display: block;
+  margin: 0 auto 12px;
+}
+
+.territorio .card-content h3 {
+  margin: 0 0 8px;
+  color: #1f2937;
+}
+
+.territorio .card-date {
+  margin: 0 0 8px;
+  color: #2e7d32;
+  font-weight: 700;
+}
+
+.territorio .card-desc {
+  margin: 0 0 8px;
+  line-height: 1.55;
+}
+
+.territorio .card-source {
+  margin: 0;
+  font-size: 0.95em;
+  color: #4b5563;
+}
+
 @media (max-width: 768px) {
   .territorio {
     align-items: flex-start;
@@ -31,5 +97,10 @@
 
   .territorio-header {
     max-width: 100%;
+  }
+
+  .territorio .card {
+    width: 100%;
+    padding: 14px;
   }
 }

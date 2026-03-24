@@ -53,13 +53,13 @@ function resolveCardImageUrl(card) {
   return '';
 }
 
-function renderCard(card) {
+function renderCard(card, yearKeyOverride) {
   const imageUrl = resolveCardImageUrl(card);
   const title = cardsSanitize(card?.title || '');
   const dateLabel = cardsSanitize(card?.date_label || '');
   const source = cardsSanitize(card?.source || '');
   const description = cardsSanitize(card?.description || '');
-  const yearKey = dateLabel || 'Sem data';
+  const yearKey = cardsSanitize(yearKeyOverride || dateLabel || 'Sem data');
 
   return `
     <div class="card" data-id="${card.id}" data-year="${yearKey}">
@@ -92,56 +92,67 @@ function populateCards(cards, pageSlug) {
   const containerYears = document.getElementById('territorio-years');
   const containerItems = document.getElementById('territorio');
 
-  if (!containerYears || !containerItems) {
-    console.error('[CARDS] Containers #territorio-years ou #territorio não encontrados');
+  if (!containerItems) {
+    console.error('[CARDS] Container #territorio não encontrado');
+    showCardsError();
     return;
   }
 
-  if (pageSlug === 'trabalhos') {
-    containerYears.innerHTML = '';
-    containerYears.style.display = 'none';
+  if (pageSlug === 'trabalhos' || pageSlug === 'campus') {
+    if (containerYears) {
+      containerYears.innerHTML = '';
+      containerYears.style.display = 'none';
+    }
     containerItems.innerHTML = cards.map((card) => renderTrabalhosCard(card)).join('');
+    return;
+  }
+
+  if (!containerYears) {
+    console.error('[CARDS] Container #territorio-years não encontrado');
+    showCardsError();
     return;
   }
 
   containerYears.style.display = '';
 
-  const grouped = {};
-  cards.forEach((card) => {
-    const year = (card?.date_label || 'Sem data').trim() || 'Sem data';
-    if (!grouped[year]) grouped[year] = [];
-    grouped[year].push(card);
-  });
+  const extractYear = (rawLabel) => {
+    const label = (rawLabel || '').trim();
+    const match = label.match(/\b(19|20)\d{2}\b/);
+    return match ? match[0] : (label || 'Sem data');
+  };
 
-  const years = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
-  containerYears.innerHTML = years
-    .map((year) => `<button class="year-btn" data-year="${cardsSanitize(year)}">${cardsSanitize(year)}</button>`)
+  const years = Array.from(new Set(cards.map((card) => extractYear(card?.date_label))))
+    .filter((year) => year && year !== 'Sem data')
+    .sort((a, b) => b.localeCompare(a));
+
+  containerYears.innerHTML = [
+    '<button class="year-btn active" data-year="__all__">Todos</button>',
+    ...years.map((year) => `<button class="year-btn" data-year="${cardsSanitize(year)}">${cardsSanitize(year)}</button>`),
+  ].join('');
+
+  // Preserve backend order (order_index asc) to respect CMS ordering.
+  containerItems.innerHTML = cards
+    .map((card) => renderCard(card, extractYear(card?.date_label)))
     .join('');
 
-  const sortedCards = [...cards].sort((a, b) => {
-    const yearA = a?.date_label || '';
-    const yearB = b?.date_label || '';
-    return yearB.localeCompare(yearA);
-  });
-
-  containerItems.innerHTML = sortedCards.map((card) => renderCard(card)).join('');
-
-  const showOnlyYear = (selectedYear) => {
+  const setYearFilter = (selectedYear) => {
     document.querySelectorAll('#territorio .card').forEach((cardElement) => {
       const cardYear = cardElement.dataset.year || 'Sem data';
-      cardElement.style.display = cardYear === selectedYear ? 'block' : 'none';
+      cardElement.style.display = selectedYear === '__all__' || cardYear === selectedYear ? 'block' : 'none';
+    });
+
+    document.querySelectorAll('.year-btn').forEach((btn) => {
+      btn.classList.toggle('active', (btn.dataset.year || '__all__') === selectedYear);
     });
   };
 
   document.querySelectorAll('.year-btn').forEach((btn) => {
     btn.addEventListener('click', function onClick() {
-      showOnlyYear(this.dataset.year || 'Sem data');
+      setYearFilter(this.dataset.year || '__all__');
     });
   });
 
-  if (years.length > 0) {
-    showOnlyYear(years[0]);
-  }
+  setYearFilter('__all__');
 }
 
 function showCardsError() {
