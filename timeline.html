@@ -15,8 +15,7 @@
   <meta property="twitter:title" content="Linha do Tempo - Memorial IFSul Campus Venâncio Aires" />
   <meta property="twitter:description" content="Descubra a história do IFSul Campus Venâncio Aires e sua implantação, resgatando memórias e celebrando a evolução da educação profissional no Brasil. Explore coleções que refletem o impacto social e geográfico do campus na região de Venâncio Aires." />
   <meta property="twitter:image" content="https://memoriaifsulvenancio.com.br/src/images/header.jpg" />
-  <link rel="stylesheet" href="src/css/styles.css?v=20260306-3">
-  <link rel="stylesheet" href="src/css/timeline.css?v=20260306-1">
+  <link rel="stylesheet" href="src/css/public.bundle.css?v=20260324-fix15">
   <title>Linha do Tempo - Memorial IFSul Campus Venâncio Aires</title>
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -25,21 +24,21 @@
 </head>
 <body>
   <div id="header-placeholder"></div>
-  <main>
-    <section class="timeline-header">
+  <main data-page="timeline">
+    <section>
       <h1>Linha do Tempo</h1>
-      <div class="timeline-years" id="timeline-years">
+      <section data-role="filter" data-page="timeline" id="timeline-years" class="filter-group">
         <!-- Years will be populated here -->
-      </div>
+      </section>
     </section>
-    <section class="timeline" id="timeline">
+    <section data-view="timeline" data-role="list" data-page="timeline" id="timeline" class="timeline">
       <!-- Timeline entries will be populated here -->
     </section>
   </main>
   <div id="footer-placeholder"></div>
   <script src="src/js/date-format.js"></script>
-  <script src="src/js/timeline.js"></script>
-  <script src="src/js/main.js?v=20260306-3"></script>
+  <script src="src/js/main.js?v=20260324-fix7"></script>
+  <script src="src/js/timeline.js?v=20260324-fix3"></script>
   <script>
     loadHeaderFooter();
   </script>

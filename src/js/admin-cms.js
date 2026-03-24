@@ -538,7 +538,7 @@ function clearPageEditorDraft(page) {
 function buildCardTemplateHtml() {
   const page = getCurrentEditingPage();
   const isCampus = page?.slug === 'campus';
-  const imagePath = isCampus ? 'src/images/campus/image1.jpg' : 'src/images/territorio/image6.png';
+  const imagePath = 'src/images/territorio/image6.png';
   const imageAlt = isCampus ? 'Imagem do campus' : 'Imagem da transformação territorial';
   const defaultDate = isCampus ? '2012' : '2005';
 

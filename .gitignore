@@ -6,3 +6,5 @@ database/*.db
 uploads/
 backups/
 info.md
+/node_modules/
+/arquivo/

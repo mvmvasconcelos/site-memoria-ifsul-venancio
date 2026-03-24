@@ -1,32 +1,57 @@
-# Dockerfile - Site Memória IFSul Venâncio Aires
-# Build: Multi-stage para otimização (se necessário no futuro)
-# Produção: Nginx Alpine servindo conteúdo estático
+# Multi-stage Dockerfile for Site Memória IFSul Venâncio Aires
+# Stage 1: Build Tailwind CSS bundle using Node.js
+# Stage 2: Runtime with Python Flask backend
 
-FROM nginx:alpine
+# ============================================================================
+# STAGE 1: BUILD - Tailwind CSS + PostCSS
+# ============================================================================
+FROM node:20-alpine AS builder
 
-# Metadados
-LABEL maintainer="IFSul"
-LABEL description="Site Memória IFSul Campus Venâncio Aires"
-LABEL version="2.0"
+WORKDIR /build
 
-# Remover configuração padrão do Nginx
-RUN rm /etc/nginx/conf.d/default.conf
+# Copy package*.json files
+COPY package.json package-lock.json* ./
 
-# Copiar configuração customizada do Nginx para o container
-COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
+# Install dependencies (use npm install instead of npm ci for flexibility)
+RUN npm install --prefer-offline --no-audit --omit=optional
 
-# Copiar todo o conteúdo do site para o diretório web do Nginx
-COPY . /usr/share/nginx/html
+# Copy source files for Tailwind processing
+COPY src/ ./src/
+COPY *.html ./
+COPY tailwind.config.js postcss.config.js ./
 
-# Garantir permissões corretas
-RUN chmod -R 755 /usr/share/nginx/html
+# Build Tailwind CSS bundle
+# Output: dist/public.bundle.css
+RUN npm run build
 
-# Expor porta 80 (interna do container)
-EXPOSE 80
+# ============================================================================
+# STAGE 2: RUNTIME - Python Flask Backend
+# ============================================================================
+FROM python:3.11-alpine
+
+WORKDIR /app
+
+# Install runtime dependencies (minimal)
+RUN apk add --no-cache bash curl
+
+# Copy Python requirements and install
+COPY backend/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# Copy entire application
+COPY . /app
+
+# Copy pre-built CSS bundle from builder stage
+COPY --from=builder /build/dist/public.bundle.css /app/src/css/public.bundle.css
+
+# Environment configuration
+ENV PYTHONUNBUFFERED=1
+ENV FLASK_APP=backend/run.py
+
+EXPOSE 5000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost/ || exit 1
+  CMD curl -f http://localhost:5000/ || exit 1
 
-# Comando padrão: iniciar Nginx em foreground
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["python", "backend/run.py"]

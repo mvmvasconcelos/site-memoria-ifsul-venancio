@@ -61,5 +61,5 @@ docker exec -it memoria-cms flask --app backend/run.py create-admin
 ## Documentação complementar
 
 - Deploy e operação: [README_DEPLOY.md](README_DEPLOY.md)
-- Plano técnico da migração: [MIGRACAO_ANALISE.md](MIGRACAO_ANALISE.md)
-- Diretrizes operacionais para IA: [AI_INSTRUCTIONS.md](AI_INSTRUCTIONS.md)
+- Histórico da migração e reconciliação: [arquivo/root](arquivo/root)
+- Scripts e relatórios legados arquivados: [arquivo/scripts](arquivo/scripts), [arquivo/reports](arquivo/reports), [arquivo/backups](arquivo/backups)

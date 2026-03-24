@@ -1,0 +1,23 @@
+{
+  "name": "site-memoria-ifsul",
+  "version": "2.0.0",
+  "description": "Site de Memória Institucional - Campus IFSul Venâncio Aires",
+  "type": "module",
+  "scripts": {
+    "build": "postcss src/css/styles.css -o dist/public.bundle.css",
+    "watch": "postcss src/css/styles.css -o dist/public.bundle.css --watch",
+    "dev": "npm run watch"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tailwindcss": "^3.4.1",
+    "postcss": "^8.4.35",
+    "postcss-cli": "^11.0.0",
+    "autoprefixer": "^10.4.17"
+  },
+  "browserslist": [
+    "defaults",
+    "not dead",
+    "> 1%"
+  ]
+}

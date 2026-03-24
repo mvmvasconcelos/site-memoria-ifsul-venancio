@@ -4,7 +4,7 @@ services:
   memoria-cms:
     build:
       context: .
-      dockerfile: Dockerfile.fase3
+      dockerfile: Dockerfile
     container_name: memoria-cms
     restart: unless-stopped
     ports:
@@ -17,7 +17,7 @@ services:
       - SECRET_KEY=${SECRET_KEY:-change-this-in-production}
       - MAX_CONTENT_LENGTH_MB=10
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5000/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
       interval: 30s
       timeout: 5s
       retries: 3

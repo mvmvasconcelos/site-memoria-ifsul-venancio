@@ -22,8 +22,7 @@
   <meta property="twitter:title" content="Transformações no Território - Memorial IFSul Campus Venâncio Aires" />
   <meta property="twitter:description" content="Descubra a história do IFSul Campus Venâncio Aires e sua implantação, resgatando memórias e celebrando a evolução da educação profissional no Brasil. Explore coleções que refletem o impacto social e geográfico do campus na região de Venâncio Aires." />
   <meta property="twitter:image" content="https://memoriaifsulvenancio.com.br/src/images/header.jpg" />
-  <link rel="stylesheet" href="src/css/styles.css?v=20260306-3">
-  <link rel="stylesheet" href="src/css/territorio.css?v=20260306-1">
+  <link rel="stylesheet" href="src/css/public.bundle.css?v=20260324-fix17">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -31,7 +30,7 @@
 </head>
 <body>
   <div id="header-placeholder"></div>
-  <main>
+  <main data-page="territorio">
     <section class="territorio-header">
       <h1>Transformações no Território</h1>
       <p>O Mapa com imagens de satélite pode comprovar o desenvolvimento do entorno das cercanias do câmpus. Ao observar a área destacada em vermelho, percebe-se a área antes da construção.</p>
@@ -44,34 +43,14 @@
 
       <p>“O Campus da Escola Técnica Federal IF Sul ao lado do Campus da Unisc consolidou o zoneamento educacional e delimitou o Distrito Industrial de forma harmônica com as áreas habitacionais consolidadas abrindo mais novas frentes de parcelamento de solo urbano residencial. A cidade cresceu bastante com infraestrutura para este zoneamento.” (Giovane Wickert, Ex-prefeito e ex-assessor da Deputada Maria do Rosário)</p>
     </section>
-    <section class="territorio" id="territorio">
+    <section class="list-container" data-view="cards" data-role="list" data-page="territorio" id="territorio">
       <!-- Timeline entries will be populated here -->
     </section>
-    <section class="territorio" id="territorio-plano-diretor">
-      <h2>Transformações no Plano Diretor do Município</h2>
-      <div class="territorio-entry">
-        <h3>Mapa Zoneamento - Antes da Implantação</h3>
-        <div class="image-container">
-          <img src="src/images/territorio/image6.png" alt="Mapa Zoneamento - Antes da Implantação">
-          <p class="date">2005</p>
-        </div>
-        <p class="legend">Fonte: Secretaria Municipal de Planejamento e Urbanismo de Venâncio Aires</p>
-        <p></p>
-      </div>
-      <div class="territorio-entry">
-        <h3>Mapa Zoneamento – Alteração de Zoneamento em virtude da utilização - Zona Especial (destaque em Rosa)</h3>
-        <div class="image-container">
-          <img src="src/images/territorio/image7.png" alt="Mapa Zoneamento – Alteração de Zoneamento em virtude da utilização - Zona Especial (destaque em Rosa)">
-          <p class="date">2018</p>
-        </div>
-        <p class="legend">Fonte: Secretaria Municipal de Planejamento e Urbanismo de Venâncio Aires</p>
-        <p></p>
-      </div>
-    </section>
+    <section class="territorio" id="territorio-plano-diretor"></section>
   </main>
   <div id="footer-placeholder"></div>
-  <script src="src/js/main.js?v=20260306-3"></script>
-  <script src="src/js/cards.js?v=20260309-1"></script>
+  <script src="src/js/main.js?v=20260324-fix7"></script>
+  <script src="src/js/cards.js?v=20260324-fix9"></script>
   <script>
     loadHeaderFooter();
     document.addEventListener('DOMContentLoaded', () => {

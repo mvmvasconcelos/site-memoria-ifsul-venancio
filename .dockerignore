@@ -57,6 +57,10 @@ Thumbs.db
 # Build artifacts
 dist/
 build/
+arquivo/
+backups/
+reports/
+backend/scripts/
 
 # Secrets (extra cautela)
 .env
