@@ -1,29 +1,33 @@
 const state = {
   timelinePageId: null,
+  currentCardsPageId: null,
   events: [],
+  cards: [],
   pages: [],
   menuItems: [],
-  historyItems: [],
   mediaFiles: [],
-  historyFilters: {
-    entityType: '',
-    action: '',
-    limit: 100,
-  },
   currentEditId: null,
   deleteId: null,
+  currentCardEditId: null,
+  deleteCardId: null,
   currentEditMediaId: null,
   deleteMediaId: null,
   eventFormInitialState: null,
   activePanel: 'dashboard',
   currentPageEditId: null,
-  imagePickerContext: null, // 'event' para formulário de eventos, 'editor' para editor de página
+  imagePickerContext: null, // 'event', 'card' ou 'editor'
 };
+
+const INSTITUTIONAL_PAGE_SLUGS = ['index', 'catalogacao', 'contact'];
+const CARD_PAGE_SLUGS = ['territorio', 'campus', 'trabalhos'];
 
 const MANAGED_PAGE_DEFS = [
   { slug: 'index', title: 'Início', type: 'page', menu_order: 0, is_visible: true },
+  { slug: 'timeline', title: 'Linha do Tempo', type: 'timeline', menu_order: 1, is_visible: true },
   { slug: 'territorio', title: 'Transformações Territoriais', type: 'cards', menu_order: 2, is_visible: true },
   { slug: 'campus', title: 'Campus', type: 'cards', menu_order: 3, is_visible: true },
+  { slug: 'trabalhos', title: 'Trabalhos', type: 'cards', menu_order: 4, is_visible: true },
+  { slug: 'catalogacao', title: 'Catalogação', type: 'page', menu_order: 5, is_visible: true },
   { slug: 'contact', title: 'Contato', type: 'page', menu_order: 6, is_visible: true },
 ];
 
@@ -132,12 +136,12 @@ function updateDashboardCards() {
   const timelineCount = document.getElementById('dashTimelineCount');
   const menuCount = document.getElementById('dashMenuCount');
   const mediaCount = document.getElementById('dashMediaCount');
-  const historyCount = document.getElementById('dashHistoryCount');
+  const pagesCount = document.getElementById('dashPagesCount');
 
   if (timelineCount) timelineCount.textContent = String(state.events.length || 0);
   if (menuCount) menuCount.textContent = String(state.menuItems.length || 0);
   if (mediaCount) mediaCount.textContent = String(state.mediaFiles.length || 0);
-  if (historyCount) historyCount.textContent = String(state.historyItems.length || 0);
+  if (pagesCount) pagesCount.textContent = String(getInstitutionalPages().length || 0);
 }
 
 function initPanelNavigation() {
@@ -154,20 +158,28 @@ function setSyncStatus(status, message) {
   sync.textContent = message;
 }
 
-function updateImagePreviewFromPath(imagePath) {
-  const preview = document.getElementById('imagePreview');
+function updateSelectionPreview(previewId, imagePath, emptyMessage = 'Nenhuma imagem selecionada') {
+  const preview = document.getElementById(previewId);
   if (!preview) return;
 
   const path = (imagePath || '').trim();
   if (!path) {
     preview.classList.add('empty');
-    preview.innerHTML = 'Nenhuma imagem selecionada';
+    preview.innerHTML = emptyMessage;
     return;
   }
 
   preview.classList.remove('empty');
   const imageUrl = resolveAssetUrl(path);
   preview.innerHTML = `<img src="${sanitize(imageUrl)}" alt="Pré-visualização" />`;
+}
+
+function updateImagePreviewFromPath(imagePath) {
+  updateSelectionPreview('imagePreview', imagePath);
+}
+
+function updateCardImagePreview(imagePath) {
+  updateSelectionPreview('cardImagePreview', imagePath);
 }
 
 function updateImagePreviewFromFile(file) {
@@ -341,31 +353,180 @@ async function loadMenu() {
   renderMenuTable();
 }
 
-async function loadHistory() {
-  const params = new URLSearchParams();
-  params.set('limit', String(state.historyFilters.limit || 100));
-  if (state.historyFilters.entityType) {
-    params.set('entity_type', state.historyFilters.entityType);
-  }
-  if (state.historyFilters.action) {
-    params.set('action', state.historyFilters.action);
+async function loadCards() {
+  renderCardPageOptions();
+
+  if (!state.currentCardsPageId) {
+    state.cards = [];
+    renderCardsTable();
+    return;
   }
 
-  state.historyItems = await apiRequest(`/api/history?${params.toString()}`);
-  renderHistoryTable();
+  setSyncStatus('syncing', '⟳ Carregando cards...');
+  state.cards = await apiRequest(`/api/cards/${state.currentCardsPageId}`);
+  renderCardsTable();
+  setSyncStatus('synced', '✓ Cards sincronizados');
 }
 
-function syncHistoryFiltersFromUI() {
-  const entitySelect = document.getElementById('historyEntityFilter');
-  const actionSelect = document.getElementById('historyActionFilter');
-  const limitSelect = document.getElementById('historyLimitFilter');
-  if (!entitySelect || !actionSelect || !limitSelect) return;
+function renderCardsTable() {
+  const tbody = document.getElementById('cardsTableBody');
+  if (!tbody) return;
 
-  state.historyFilters = {
-    entityType: (entitySelect.value || '').trim(),
-    action: (actionSelect.value || '').trim(),
-    limit: Number(limitSelect.value) || 100,
+  const emptyState = document.getElementById('cardsEmptyState');
+  const tableContainer = document.getElementById('cardsTableContainer');
+
+  if (!state.currentCardsPageId) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="no-image">Nenhuma seção com cards disponível</td>
+      </tr>
+    `;
+    if (emptyState) emptyState.style.display = 'block';
+    if (tableContainer) tableContainer.style.display = 'none';
+    return;
+  }
+
+  if (!state.cards.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="no-image">Nenhum card cadastrado para esta seção</td>
+      </tr>
+    `;
+    if (emptyState) emptyState.style.display = 'block';
+    if (tableContainer) tableContainer.style.display = 'none';
+    return;
+  }
+
+  tbody.innerHTML = state.cards
+    .map(
+      (card, index) => `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${sanitize(card.title || '-')}</td>
+        <td>
+          ${card.image_path
+            ? `<img class="event-image-thumb" src="${sanitize(resolveAssetUrl(card.image_path))}" alt="${sanitize(card.title || 'Card')}" />`
+            : '<span class="no-image">Sem imagem</span>'}
+        </td>
+        <td class="event-date">${sanitize(card.date_label || '-')}</td>
+        <td class="event-legend">${sanitize(card.source || '-')}</td>
+        <td>
+          <div class="table-actions">
+            <button class="btn-secondary btn-small" data-card-action="edit" data-card-id="${card.id}">Editar</button>
+            <button class="btn-danger btn-small" data-card-action="delete" data-card-id="${card.id}">Excluir</button>
+          </div>
+        </td>
+      </tr>
+    `
+    )
+    .join('');
+
+  if (emptyState) emptyState.style.display = 'none';
+  if (tableContainer) tableContainer.style.display = 'block';
+}
+
+function fillCardForm(card = null) {
+  document.getElementById('cardModalTitle').textContent = card ? 'Editar Card' : 'Adicionar Card';
+  document.getElementById('cardTitle').value = card?.title || '';
+  document.getElementById('cardImage').value = card?.image_path || '';
+  document.getElementById('cardDateLabel').value = card?.date_label || '';
+  document.getElementById('cardSource').value = card?.source || '';
+  document.getElementById('cardDescription').value = card?.description || '';
+  updateCardImagePreview(card?.image_path || '');
+}
+
+function openCreateCardModal() {
+  if (!state.currentCardsPageId) {
+    showToast('Selecione uma seção antes de adicionar cards.', 'error');
+    return;
+  }
+
+  state.currentCardEditId = null;
+  fillCardForm();
+  showModal('cardModal');
+}
+
+function openEditCardModal(cardId) {
+  const card = state.cards.find((item) => Number(item.id) === Number(cardId));
+  if (!card) return;
+
+  state.currentCardEditId = Number(cardId);
+  fillCardForm(card);
+  showModal('cardModal');
+}
+
+function openDeleteCardModal(cardId) {
+  const card = state.cards.find((item) => Number(item.id) === Number(cardId));
+  if (!card) return;
+
+  state.deleteCardId = Number(cardId);
+  document.getElementById('deleteCardTitle').textContent = card.title || '';
+  showModal('deleteCardModal');
+}
+
+async function saveCardFromForm(event) {
+  event.preventDefault();
+
+  if (!state.currentCardsPageId) {
+    showToast('Selecione uma seção antes de salvar cards.', 'error');
+    return;
+  }
+
+  const payload = {
+    page_id: state.currentCardsPageId,
+    title: document.getElementById('cardTitle').value.trim(),
+    image_path: document.getElementById('cardImage').value.trim() || null,
+    date_label: document.getElementById('cardDateLabel').value.trim() || null,
+    source: document.getElementById('cardSource').value.trim() || null,
+    description: document.getElementById('cardDescription').value.trim() || null,
   };
+
+  if (!payload.title) {
+    showToast('O título do card é obrigatório.', 'error');
+    return;
+  }
+
+  try {
+    setSyncStatus('syncing', '⟳ Salvando card...');
+
+    if (state.currentCardEditId) {
+      await apiRequest(`/api/cards/${state.currentCardEditId}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      });
+      showToast('Card atualizado com sucesso.', 'success');
+    } else {
+      payload.order_index = state.cards.length;
+      await apiRequest('/api/cards', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      showToast('Card criado com sucesso.', 'success');
+    }
+
+    hideModal('cardModal');
+    state.currentCardEditId = null;
+    await loadCards();
+  } catch (error) {
+    setSyncStatus('error', '⚠ Erro ao salvar card');
+    showToast(error.message, 'error');
+  }
+}
+
+async function confirmDeleteCard() {
+  if (!state.deleteCardId) return;
+
+  try {
+    setSyncStatus('syncing', '⟳ Excluindo card...');
+    await apiRequest(`/api/cards/${state.deleteCardId}`, { method: 'DELETE' });
+    hideModal('deleteCardModal');
+    state.deleteCardId = null;
+    showToast('Card excluído com sucesso.', 'success');
+    await loadCards();
+  } catch (error) {
+    setSyncStatus('error', '⚠ Erro ao excluir card');
+    showToast(error.message, 'error');
+  }
 }
 
 function formatHistoryTimestamp(isoValue) {
@@ -373,58 +534,6 @@ function formatHistoryTimestamp(isoValue) {
   const date = new Date(isoValue);
   if (Number.isNaN(date.getTime())) return isoValue;
   return date.toLocaleString('pt-BR');
-}
-
-function renderHistoryTable() {
-  const tbody = document.getElementById('historyTableBody');
-  if (!tbody) return;
-
-  if (!state.historyItems.length) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6" class="no-image">Sem registros de histórico</td>
-      </tr>
-    `;
-    updateDashboardCards();
-    return;
-  }
-
-  tbody.innerHTML = state.historyItems
-    .map(
-      (item) => `
-      <tr>
-        <td>${sanitize(formatHistoryTimestamp(item.timestamp))}</td>
-        <td>${sanitize(item.username || `user#${item.user_id}`)}</td>
-        <td>${sanitize(item.entity_type || '-')}</td>
-        <td>${sanitize(String(item.entity_id ?? '-'))}</td>
-        <td>${sanitize(item.action || '-')}</td>
-        <td>
-          <button class="btn-secondary btn-small" data-history-action="restore" data-history-id="${item.id}">Restaurar</button>
-        </td>
-      </tr>
-    `
-    )
-    .join('');
-
-  updateDashboardCards();
-}
-
-async function restoreHistoryEntry(historyId) {
-  const shouldRestore = window.confirm('Deseja restaurar este registro de histórico?');
-  if (!shouldRestore) return;
-
-  try {
-    setSyncStatus('syncing', '⟳ Restaurando...');
-    const result = await apiRequest(`/api/history/${historyId}/restore`, {
-      method: 'POST',
-    });
-    showToast(result?.message || 'Restauração aplicada com sucesso.', 'success');
-    await loadAdminData();
-    setSyncStatus('synced', '✓ Restauração aplicada');
-  } catch (error) {
-    setSyncStatus('error', '⚠ Erro na restauração');
-    showToast(error.message, 'error');
-  }
 }
 
 function buildPageOptions(selectedPageId) {
@@ -444,19 +553,46 @@ function getPageBySlug(slug) {
   return state.pages.find((page) => page.slug === slug);
 }
 
-function getEditablePages() {
-  return state.pages.filter((page) => !['timeline', 'catalogacao'].includes(page.slug));
+function getInstitutionalPages() {
+  return state.pages.filter((page) => INSTITUTIONAL_PAGE_SLUGS.includes(page.slug));
+}
+
+function getCardManagedPages() {
+  return state.pages.filter((page) => CARD_PAGE_SLUGS.includes(page.slug));
+}
+
+function renderCardPageOptions() {
+  const select = document.getElementById('cardsPageSelect');
+  if (!select) return;
+
+  const cardPages = getCardManagedPages();
+  if (!cardPages.length) {
+    select.innerHTML = '<option value="">Nenhuma seção disponível</option>';
+    state.currentCardsPageId = null;
+    return;
+  }
+
+  if (!cardPages.some((page) => Number(page.id) === Number(state.currentCardsPageId))) {
+    state.currentCardsPageId = Number(cardPages[0].id);
+  }
+
+  select.innerHTML = cardPages
+    .map((page) => {
+      const selected = Number(page.id) === Number(state.currentCardsPageId) ? 'selected' : '';
+      return `<option value="${page.id}" ${selected}>${sanitize(page.title)}</option>`;
+    })
+    .join('');
 }
 
 function renderPageManagerTable() {
   const tbody = document.getElementById('pageManagerTableBody');
   if (!tbody) return;
 
-  const editablePages = getEditablePages();
+  const editablePages = getInstitutionalPages();
   if (!editablePages.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="5" class="no-image">Nenhuma página disponível para edição</td>
+        <td colspan="4" class="no-image">Nenhuma página institucional disponível para edição</td>
       </tr>
     `;
     return;
@@ -468,10 +604,11 @@ function renderPageManagerTable() {
       <tr>
         <td>${sanitize(page.title || '-')}</td>
         <td>${sanitize(page.slug || '-')}</td>
-        <td>${sanitize(page.type || '-')}</td>
         <td>${sanitize(formatHistoryTimestamp(page.updated_at) || '-')}</td>
-        <td class="table-actions">
-          <button class="btn-secondary btn-small" data-page-action="edit" data-page-id="${page.id}">Editar</button>
+        <td>
+          <div class="table-actions">
+            <button class="btn-secondary btn-small" data-page-action="edit" data-page-id="${page.id}">Editar</button>
+          </div>
         </td>
       </tr>
     `
@@ -672,7 +809,6 @@ function ensurePageEditorStructure(wrapper, textarea) {
     toolbar.innerHTML = `
       <button type="button" class="btn-secondary btn-small" data-editor-cmd="undo">Desfazer</button>
       <button type="button" class="btn-secondary btn-small" data-editor-cmd="redo">Refazer</button>
-      <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertTemplateCard">Template Card</button>
       <button type="button" class="btn-secondary btn-small" data-editor-cmd="formatBlock" data-editor-value="h2">H2</button>
       <button type="button" class="btn-secondary btn-small" data-editor-cmd="formatBlock" data-editor-value="h3">H3</button>
       <button type="button" class="btn-secondary btn-small" data-editor-cmd="bold"><strong>B</strong></button>
@@ -1001,10 +1137,12 @@ function renderMenuTable() {
         <td><input type="text" class="menu-label" value="${sanitize(item.label || '')}" placeholder="Rótulo" /></td>
         <td><input type="text" class="menu-url" value="${sanitize(item.url || '')}" placeholder="/pagina" /></td>
         <td><input type="checkbox" class="menu-visible" ${item.is_visible ? 'checked' : ''} /></td>
-        <td class="table-actions">
-          <button class="btn-secondary btn-small" data-menu-action="up">↑</button>
-          <button class="btn-secondary btn-small" data-menu-action="down">↓</button>
-          <button class="btn-danger btn-small" data-menu-action="remove">Remover</button>
+        <td>
+          <div class="table-actions">
+            <button class="btn-secondary btn-small" data-menu-action="up">↑</button>
+            <button class="btn-secondary btn-small" data-menu-action="down">↓</button>
+            <button class="btn-danger btn-small" data-menu-action="remove">Remover</button>
+          </div>
         </td>
       </tr>
     `
@@ -1089,7 +1227,8 @@ async function loadAdminData() {
   await loadPages();
   await ensureManagedPages();
   await loadPages();
-  await Promise.all([loadEvents(), loadMenu(), loadMedia(), loadHistory()]);
+  renderCardPageOptions();
+  await Promise.all([loadEvents(), loadCards(), loadMenu(), loadMedia()]);
   initializeContentEditor();
   attachMediaEventListeners();
   updateDashboardCards();
@@ -1153,9 +1292,11 @@ function renderEvents(events) {
             : '<span class="no-image">Sem imagem</span>'}
         </td>
         <td class="event-legend">${sanitize(event.source || '')}</td>
-        <td class="table-actions">
-          <button class="btn-secondary btn-small" data-action="edit" data-id="${event.id}">Editar</button>
-          <button class="btn-danger btn-small" data-action="delete" data-id="${event.id}">Excluir</button>
+        <td>
+          <div class="table-actions">
+            <button class="btn-secondary btn-small" data-action="edit" data-id="${event.id}">Editar</button>
+            <button class="btn-danger btn-small" data-action="delete" data-id="${event.id}">Excluir</button>
+          </div>
         </td>
       </tr>
     `
@@ -1317,8 +1458,10 @@ function renderMediaTable() {
         <td>${fileSize}</td>
         <td>${createdDate}</td>
         <td>
-          <button class="btn-secondary btn-small" data-media-action="edit" data-media-id="${item.id}">✎ Editar</button>
-          <button class="btn-danger btn-small" data-media-action="delete" data-media-id="${item.id}">🗑 Deletar</button>
+          <div class="table-actions">
+            <button class="btn-secondary btn-small" data-media-action="edit" data-media-id="${item.id}">✎ Editar</button>
+            <button class="btn-danger btn-small" data-media-action="delete" data-media-id="${item.id}">🗑 Deletar</button>
+          </div>
         </td>
       </tr>
     `;
@@ -1412,7 +1555,7 @@ async function handleMediaFileSelection(file) {
   }
 
   const folder = document.getElementById('mediaFolderFilter')?.value || 'uploads';
-  if (!['timeline', 'territorio', 'campus'].includes(folder)) {
+  if (!['timeline', 'trabalhos', 'territorio', 'campus'].includes(folder)) {
     showToast('Selecione uma pasta válida antes de fazer upload.', 'error');
     document.getElementById('mediaFileInput').value = '';
     return;
@@ -1698,6 +1841,30 @@ function attachEventListeners() {
   document.getElementById('saveMenuBtn').addEventListener('click', saveMenu);
   document.getElementById('savePageContentBtn').addEventListener('click', saveSelectedPageContent);
   document.getElementById('cancelPageContentBtn').addEventListener('click', closePageContentEditor);
+  document.getElementById('cardsPageSelect').addEventListener('change', async (event) => {
+    state.currentCardsPageId = Number(event.target.value) || null;
+    await loadCards();
+  });
+  document.getElementById('addCardBtn').addEventListener('click', openCreateCardModal);
+  document.getElementById('closeCardModalBtn').addEventListener('click', () => hideModal('cardModal'));
+  document.getElementById('cancelCardBtn').addEventListener('click', () => hideModal('cardModal'));
+  document.getElementById('cardForm').addEventListener('submit', saveCardFromForm);
+  document.getElementById('selectCardMediaBtn').addEventListener('click', (event) => {
+    event.preventDefault();
+    openImagePickerForCard();
+  });
+  document.getElementById('removeCardImageBtn').addEventListener('click', () => {
+    document.getElementById('cardImage').value = '';
+    updateCardImagePreview('');
+  });
+  document.getElementById('cardImage').addEventListener('input', (event) => {
+    updateCardImagePreview(event.target.value);
+  });
+  document.getElementById('cancelDeleteCardBtn').addEventListener('click', () => {
+    state.deleteCardId = null;
+    hideModal('deleteCardModal');
+  });
+  document.getElementById('confirmDeleteCardBtn').addEventListener('click', confirmDeleteCard);
   document.getElementById('changePasswordBtn').addEventListener('click', async () => {
     const currentInput = document.getElementById('currentPasswordInput');
     const newInput = document.getElementById('newPasswordInput');
@@ -1725,29 +1892,6 @@ function attachEventListeners() {
       showToast(error.message, 'error');
     }
   });
-  document.getElementById('applyHistoryFiltersBtn').addEventListener('click', async () => {
-    try {
-      syncHistoryFiltersFromUI();
-      setSyncStatus('syncing', '⟳ Aplicando filtros do histórico...');
-      await loadHistory();
-      setSyncStatus('synced', '✓ Histórico filtrado');
-    } catch (error) {
-      setSyncStatus('error', '⚠ Erro ao filtrar histórico');
-      showToast(error.message, 'error');
-    }
-  });
-  document.getElementById('refreshHistoryBtn').addEventListener('click', async () => {
-    try {
-      syncHistoryFiltersFromUI();
-      setSyncStatus('syncing', '⟳ Carregando histórico...');
-      await loadHistory();
-      setSyncStatus('synced', '✓ Histórico atualizado');
-    } catch (error) {
-      setSyncStatus('error', '⚠ Erro ao carregar histórico');
-      showToast(error.message, 'error');
-    }
-  });
-
   document.getElementById('menuTableBody').addEventListener('click', (event) => {
     const button = event.target.closest('button[data-menu-action]');
     if (!button) return;
@@ -1815,10 +1959,23 @@ function attachEventListeners() {
     }
   });
 
+  document.getElementById('cardModal').addEventListener('click', (event) => {
+    if (event.target.id === 'cardModal') {
+      hideModal('cardModal');
+    }
+  });
+
   document.getElementById('deleteModal').addEventListener('click', (event) => {
     if (event.target.id === 'deleteModal') {
       state.deleteId = null;
       hideModal('deleteModal');
+    }
+  });
+
+  document.getElementById('deleteCardModal').addEventListener('click', (event) => {
+    if (event.target.id === 'deleteCardModal') {
+      state.deleteCardId = null;
+      hideModal('deleteCardModal');
     }
   });
 
@@ -1828,16 +1985,29 @@ function attachEventListeners() {
     }
 
     const eventModal = document.getElementById('eventModal');
+    const cardModal = document.getElementById('cardModal');
     const deleteModal = document.getElementById('deleteModal');
+    const deleteCardModal = document.getElementById('deleteCardModal');
 
     if (eventModal.classList.contains('show')) {
       closeEventModalSafely();
       return;
     }
 
+    if (cardModal.classList.contains('show')) {
+      hideModal('cardModal');
+      return;
+    }
+
     if (deleteModal.classList.contains('show')) {
       state.deleteId = null;
       hideModal('deleteModal');
+      return;
+    }
+
+    if (deleteCardModal.classList.contains('show')) {
+      state.deleteCardId = null;
+      hideModal('deleteCardModal');
       return;
     }
   });
@@ -1861,13 +2031,19 @@ function attachEventListeners() {
     }
   });
 
-  document.getElementById('historyTableBody').addEventListener('click', (event) => {
-    const button = event.target.closest('button[data-history-action="restore"]');
+  document.getElementById('cardsTableBody').addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-card-action]');
     if (!button) return;
 
-    const historyId = Number(button.dataset.historyId);
-    if (!historyId) return;
-    restoreHistoryEntry(historyId);
+    const cardId = Number(button.dataset.cardId);
+    if (!cardId) return;
+
+    if (button.dataset.cardAction === 'edit') {
+      openEditCardModal(cardId);
+    }
+    if (button.dataset.cardAction === 'delete') {
+      openDeleteCardModal(cardId);
+    }
   });
 
   document.getElementById('pageManagerTableBody').addEventListener('click', (event) => {
@@ -2033,6 +2209,12 @@ function getDefaultImagePickerFolder(context = 'editor') {
     return 'timeline';
   }
 
+  if (context === 'card') {
+    const cardPage = state.pages.find((page) => Number(page.id) === Number(state.currentCardsPageId));
+    const cardSlug = (cardPage?.slug || '').trim().toLowerCase();
+    return CARD_PAGE_SLUGS.includes(cardSlug) ? cardSlug : '';
+  }
+
   const currentPage = state.pages.find((page) => Number(page.id) === Number(state.currentPageEditId));
   const slug = (currentPage?.slug || '').trim().toLowerCase();
 
@@ -2052,13 +2234,19 @@ function openImagePickerModal(context = 'editor') {
   if (title) {
     if (context === 'event') {
       title.textContent = 'Selecionar Imagem para Evento';
+    } else if (context === 'card') {
+      title.textContent = 'Selecionar Imagem para Card';
     } else {
       title.textContent = 'Inserir Imagem no Editor';
     }
   }
 
   if (insertBtn) {
-    insertBtn.textContent = context === 'event' ? '✓ Usar no Evento' : '✓ Inserir Imagem';
+    insertBtn.textContent = context === 'event'
+      ? '✓ Usar no Evento'
+      : context === 'card'
+        ? '✓ Usar no Card'
+        : '✓ Inserir Imagem';
     insertBtn.disabled = true;
   }
 
@@ -2104,7 +2292,6 @@ function insertSelectedImage() {
   const context = state.imagePickerContext || 'editor';
 
   if (context === 'event') {
-    // Inserir na imagem do evento
     const eventImageField = document.getElementById('eventImage');
     if (eventImageField) {
       const imagePath = selectedImageForEditor.path || selectedImageForEditor.filename;
@@ -2112,8 +2299,15 @@ function insertSelectedImage() {
       updateImagePreviewFromPath(imagePath);
       showToast('Imagem selecionada para o evento.', 'success');
     }
+  } else if (context === 'card') {
+    const cardImageField = document.getElementById('cardImage');
+    if (cardImageField) {
+      const imagePath = selectedImageForEditor.path || selectedImageForEditor.filename;
+      cardImageField.value = imagePath;
+      updateCardImagePreview(imagePath);
+      showToast('Imagem selecionada para o card.', 'success');
+    }
   } else if (context === 'editor' && pageContentEditor) {
-    // Inserir no editor de página
     pageContentEditor.focus();
     document.execCommand('insertImage', false, selectedImageForEditor.insertUrl || selectedImageForEditor.url);
     syncPageEditorTextarea();
@@ -2128,6 +2322,10 @@ function insertSelectedImage() {
 
 function openImagePickerForEvent() {
   openImagePickerModal('event');
+}
+
+function openImagePickerForCard() {
+  openImagePickerModal('card');
 }
 
 function attachImagePickerListeners() {

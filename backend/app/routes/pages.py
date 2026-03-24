@@ -1,8 +1,7 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request
 
 from ..auth_utils import login_required, to_dict
 from ..extensions import db
-from ..history import log_history
 from ..models import Page
 
 pages_bp = Blueprint("pages", __name__)
@@ -78,16 +77,6 @@ def create_page():
         menu_order=int(payload.get("menu_order", 0)),
     )
     db.session.add(page)
-    db.session.flush()
-
-    log_history(
-        "page",
-        page.id,
-        "create",
-        session["user_id"],
-        old_data=None,
-        new_data=serialize_page(page),
-    )
     db.session.commit()
     return jsonify(serialize_page(page)), 201
 
@@ -99,7 +88,6 @@ def update_page(page_id):
     if not page:
         return jsonify({"error": "Página não encontrada"}), 404
 
-    old_data = serialize_page(page)
     payload = request.get_json(silent=True) or {}
 
     if "slug" in payload:
@@ -122,15 +110,6 @@ def update_page(page_id):
     if "menu_order" in payload:
         page.menu_order = int(payload.get("menu_order"))
 
-    db.session.flush()
-    log_history(
-        "page",
-        page.id,
-        "update",
-        session["user_id"],
-        old_data=old_data,
-        new_data=serialize_page(page),
-    )
     db.session.commit()
     return jsonify(serialize_page(page))
 
@@ -142,16 +121,7 @@ def delete_page(page_id):
     if not page:
         return jsonify({"error": "Página não encontrada"}), 404
 
-    old_data = serialize_page(page)
     db.session.delete(page)
-    log_history(
-        "page",
-        page_id,
-        "delete",
-        session["user_id"],
-        old_data=old_data,
-        new_data=None,
-    )
     db.session.commit()
     return jsonify({"message": "Página removida"})
 

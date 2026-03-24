@@ -6,7 +6,6 @@ from werkzeug.utils import secure_filename
 
 from ..auth_utils import login_required, to_dict
 from ..extensions import db
-from ..history import log_history
 from ..models import MediaFile
 
 media_bp = Blueprint("media", __name__)
@@ -118,9 +117,6 @@ def upload_media():
     db.session.add(media_file)
     db.session.commit()
 
-    # Log history
-    log_history("media_file", media_file.id, "create", None, serialize_media_file(media_file))
-
     return jsonify(serialize_media_file(media_file)), 201
 
 
@@ -139,8 +135,6 @@ def update_media(media_id):
     media = MediaFile.query.get_or_404(media_id)
     payload = request.get_json(silent=True) or {}
 
-    old_data = serialize_media_file(media)
-
     # Update allowed fields
     if "description" in payload:
         media.description = (payload.get("description") or "").strip() or None
@@ -148,10 +142,7 @@ def update_media(media_id):
         media.alt_text = (payload.get("alt_text") or "").strip() or None
 
     db.session.commit()
-    new_data = serialize_media_file(media)
-    log_history("media_file", media_id, "update", old_data, new_data)
-
-    return jsonify(new_data)
+    return jsonify(serialize_media_file(media))
 
 
 @media_bp.delete("/<int:media_id>")
@@ -160,8 +151,6 @@ def delete_media(media_id):
     """Delete a media file."""
     media = MediaFile.query.get_or_404(media_id)
     
-    old_data = serialize_media_file(media)
-    
     # Delete file from filesystem
     file_path = Path(current_app.config["UPLOAD_FOLDER"]) / media.file_path
     if file_path.exists():
@@ -169,8 +158,6 @@ def delete_media(media_id):
 
     db.session.delete(media)
     db.session.commit()
-
-    log_history("media_file", media_id, "delete", old_data, None)
 
     return "", 204
 

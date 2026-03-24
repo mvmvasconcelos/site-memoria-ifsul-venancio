@@ -8,7 +8,6 @@ from .extensions import db
 from .models import User
 from .routes.auth import auth_bp
 from .routes.cards import cards_bp
-from .routes.history import history_bp
 from .routes.media import media_bp, public_bp
 from .routes.menu import menu_bp
 from .routes.pages import pages_bp
@@ -44,7 +43,6 @@ def create_app():
     app.register_blueprint(pages_bp, url_prefix="/api/pages")
     app.register_blueprint(timeline_bp, url_prefix="/api/timeline")
     app.register_blueprint(cards_bp, url_prefix="/api/cards")
-    app.register_blueprint(history_bp, url_prefix="/api/history")
     app.register_blueprint(menu_bp, url_prefix="/api/menu")
     app.register_blueprint(upload_bp, url_prefix="/api/upload")
     app.register_blueprint(media_bp, url_prefix="/api/media")

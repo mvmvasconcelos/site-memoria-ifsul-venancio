@@ -1,11 +1,10 @@
 import re
 from datetime import date
 
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request
 
 from ..auth_utils import login_required, to_dict
 from ..extensions import db
-from ..history import log_history
 from ..models import TimelineItem
 
 timeline_bp = Blueprint("timeline", __name__)
@@ -93,16 +92,6 @@ def create_timeline_item():
         order_index=int(payload.get("order_index", 0)),
     )
     db.session.add(item)
-    db.session.flush()
-
-    log_history(
-        "timeline_item",
-        item.id,
-        "create",
-        session["user_id"],
-        old_data=None,
-        new_data=serialize_item(item),
-    )
     db.session.commit()
     return jsonify(serialize_item(item)), 201
 
@@ -114,7 +103,6 @@ def update_timeline_item(item_id):
     if not item:
         return jsonify({"error": "Item não encontrado"}), 404
 
-    old_data = serialize_item(item)
     payload = request.get_json(silent=True) or {}
 
     if "title" in payload:
@@ -133,15 +121,6 @@ def update_timeline_item(item_id):
     if "order_index" in payload:
         item.order_index = int(payload.get("order_index"))
 
-    db.session.flush()
-    log_history(
-        "timeline_item",
-        item.id,
-        "update",
-        session["user_id"],
-        old_data=old_data,
-        new_data=serialize_item(item),
-    )
     db.session.commit()
     return jsonify(serialize_item(item))
 
@@ -153,16 +132,7 @@ def delete_timeline_item(item_id):
     if not item:
         return jsonify({"error": "Item não encontrado"}), 404
 
-    old_data = serialize_item(item)
     db.session.delete(item)
-    log_history(
-        "timeline_item",
-        item_id,
-        "delete",
-        session["user_id"],
-        old_data=old_data,
-        new_data=None,
-    )
     db.session.commit()
     return jsonify({"message": "Item removido"})
 

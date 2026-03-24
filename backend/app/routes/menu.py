@@ -1,8 +1,7 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request
 
 from ..auth_utils import login_required, to_dict
 from ..extensions import db
-from ..history import log_history
 from ..models import MenuItem, Page
 
 menu_bp = Blueprint("menu", __name__)
@@ -67,17 +66,7 @@ def replace_menu():
             order_index=index,
         )
         db.session.add(item)
-        db.session.flush()
         created.append(serialize_menu_item(item))
-
-    log_history(
-        "menu",
-        0,
-        "update",
-        session["user_id"],
-        old_data=None,
-        new_data=created,
-    )
 
     db.session.commit()
     return jsonify(created)

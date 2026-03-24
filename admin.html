@@ -13,18 +13,6 @@
   <link rel="manifest" href="site.webmanifest">
 </head>
 <body>
-  <!-- 
-    ⚠️ ÁREA ADMINISTRATIVA DESABILITADA ⚠️
-    
-    Esta área está temporariamente desabilitada na migração para o servidor.
-    O acesso a este arquivo está bloqueado pelo Nginx (retorna 404).
-    
-    Motivo: Token GitHub exposto no código (risco de segurança).
-    
-    Próxima fase: Implementar backend com SQLite + API REST + autenticação JWT
-    
-    Data: Março 2026
-  -->
   <!-- Login Modal -->
   <div id="loginModal" class="modal">
     <div class="modal-content">
@@ -40,7 +28,7 @@
   <div id="adminInterface" style="display: none;">
     <header class="admin-header">
       <div class="header-content">
-        <h1>🎓 Admin - Timeline Memorial IFSul</h1>
+        <h1>🎓 Admin - Memorial IFSul</h1>
         <button id="logoutBtn" class="btn-secondary">Sair</button>
       </div>
     </header>
@@ -50,10 +38,10 @@
         <aside class="admin-sidebar">
           <button class="admin-nav-item active" data-panel-target="dashboard">Dashboard</button>
           <button class="admin-nav-item" data-panel-target="timeline">Linha do Tempo</button>
+          <button class="admin-nav-item" data-panel-target="cards">Seções com Cards</button>
           <button class="admin-nav-item" data-panel-target="menu">Menu</button>
-          <button class="admin-nav-item" data-panel-target="content">Gerenciar Páginas</button>
+          <button class="admin-nav-item" data-panel-target="content">Páginas Institucionais</button>
           <button class="admin-nav-item" data-panel-target="media">🖼️ Mídia</button>
-          <button class="admin-nav-item" data-panel-target="history">Histórico</button>
           <button class="admin-nav-item" data-panel-target="security">Segurança</button>
         </aside>
 
@@ -77,13 +65,12 @@
                 <strong id="dashMediaCount">0</strong>
               </article>
               <article class="dashboard-card">
-                <span>Registros no histórico</span>
-                <strong id="dashHistoryCount">0</strong>
+                <span>Páginas editáveis</span>
+                <strong id="dashPagesCount">0</strong>
               </article>
             </div>
 
             <div class="action-bar">
-              <button id="addNewBtn" class="btn-primary">➕ Adicionar Novo Evento</button>
               <button id="refreshBtn" class="btn-secondary">🔄 Recarregar</button>
               <div class="status-info">
                 <span id="totalEvents">Total: 0 eventos</span>
@@ -95,6 +82,9 @@
           <section class="admin-panel" data-panel="timeline">
             <div class="menu-section-header">
               <h2>Gerenciamento da Timeline</h2>
+              <div class="menu-actions">
+                <button id="addNewBtn" class="btn-primary">+ Adicionar Novo Evento</button>
+              </div>
             </div>
 
             <div id="loadingSpinner" class="loading-spinner" style="display: none;">
@@ -154,11 +144,50 @@
             </section>
           </section>
 
+          <section class="admin-panel" data-panel="cards">
+            <section class="menu-section cards-section">
+              <div class="menu-section-header">
+                <h2>Seções com Cards</h2>
+                <div class="menu-actions">
+                  <select id="cardsPageSelect" class="content-page-select">
+                    <option value="">Selecione uma seção...</option>
+                    <option value="territorio">Transformações Territoriais</option>
+                    <option value="campus">Campus</option>
+                    <option value="trabalhos">Trabalhos</option>
+                  </select>
+                  <button id="addCardBtn" class="btn-primary btn-small">+ Adicionar Card</button>
+                </div>
+              </div>
+
+              <div id="cardsEmptyState" style="text-align: center; padding: 30px; color: #999;">
+                Selecione uma seção acima para gerenciar seus cards.
+              </div>
+
+              <div class="table-container" id="cardsTableContainer" style="display: none;">
+                <table class="events-table cards-table">
+                  <thead>
+                    <tr>
+                      <th>Ordem</th>
+                      <th>Título</th>
+                      <th>Imagem</th>
+                      <th>Data/Ano</th>
+                      <th>Fonte</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cardsTableBody"></tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+
           <section class="admin-panel" data-panel="content">
             <section class="menu-section content-section">
               <div class="menu-section-header">
-                <h2>Gerenciar Páginas</h2>
+                <h2>Páginas Institucionais</h2>
               </div>
+
+              <p class="admin-panel-note">Edite as páginas com conteúdo institucional (início, contato, catalogação). As seções visuais do site (cards, timeline) são gerenciadas nos painéis próprios.</p>
 
               <div class="table-container">
                 <table class="events-table page-manager-table">
@@ -166,7 +195,6 @@
                     <tr>
                       <th>Título</th>
                       <th>Slug</th>
-                      <th>Tipo</th>
                       <th>Atualizado em</th>
                       <th>Ações</th>
                     </tr>
@@ -176,37 +204,18 @@
               </div>
 
               <div class="content-editor-wrapper" id="pageEditorWrapper" style="display: none; margin-top: 14px;">
-                <label id="pageEditorTitle" for="pageContentInput">Editar página</label>
-                <label for="pageTitleInput">Título da página</label>
-                <input id="pageTitleInput" type="text" placeholder="Título exibido no admin/menu" />
-                <div id="pageEditorModeBar" class="page-editor-mode-bar" aria-label="Modo de edição">
-                  <button type="button" class="btn-secondary btn-small active" data-editor-view="visual">Visual</button>
-                  <button type="button" class="btn-secondary btn-small" data-editor-view="html">HTML</button>
-                  <button type="button" class="btn-secondary btn-small" data-editor-view="preview">Preview</button>
-                  <span id="pageEditorMeta" class="page-editor-meta">0 caracteres</span>
+                <label id="pageEditorTitle" for="pageTitleInput">Editar página</label>
+                <div class="form-group">
+                  <label for="pageTitleInput">Título</label>
+                  <input id="pageTitleInput" type="text" placeholder="Título da página" />
                 </div>
-                <div id="pageEditorToolbar" class="page-editor-toolbar" aria-label="Barra de ferramentas do editor">
-                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="undo">Desfazer</button>
-                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="redo">Refazer</button>
-                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertTemplateCard">Template Card</button>
-                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="formatBlock" data-editor-value="h2">H2</button>
-                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="formatBlock" data-editor-value="h3">H3</button>
-                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="bold"><strong>B</strong></button>
-                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="italic"><em>I</em></button>
-                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="underline"><u>U</u></button>
-                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertOrderedList">Num.</button>
-                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertUnorderedList">Lista</button>
-                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="createLink">Link</button>
-                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertImage">Imagem</button>
-                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertHorizontalRule">Linha</button>
-                  <button type="button" class="btn-secondary btn-small" data-editor-cmd="removeFormat">Limpar</button>
+                <div class="form-group">
+                  <label for="pageContentInput">Conteúdo</label>
+                  <textarea id="pageContentInput" placeholder="Conteúdo em HTML" rows="10"></textarea>
                 </div>
-                <div id="pageContentEditor" class="page-wysiwyg-host" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Editor de conteúdo"></div>
-                <textarea id="pageContentInput" placeholder="Digite o conteúdo HTML da página" style="display: none;"></textarea>
-                <div id="pageContentPreview" class="page-editor-preview" style="display: none;"></div>
                 <div class="form-actions">
                   <button id="cancelPageContentBtn" type="button" class="btn-secondary">Cancelar</button>
-                  <button id="savePageContentBtn" type="button" class="btn-primary">Salvar Conteúdo</button>
+                  <button id="savePageContentBtn" type="button" class="btn-primary">Salvar</button>
                 </div>
               </div>
             </section>
@@ -253,53 +262,6 @@
 
               <div id="emptyMediaState" class="empty-state" style="display: none;">
                 <p>📭 Nenhuma mídia encontrada</p>
-              </div>
-            </section>
-          </section>
-
-          <section class="admin-panel" data-panel="history">
-            <section class="menu-section history-section">
-              <div class="menu-section-header">
-                <h2>Histórico de Alterações</h2>
-                <div class="menu-actions">
-                  <select id="historyEntityFilter" class="content-page-select">
-                    <option value="">Entidade: todas</option>
-                    <option value="page">page</option>
-                    <option value="timeline_item">timeline_item</option>
-                    <option value="card_item">card_item</option>
-                    <option value="menu">menu</option>
-                  </select>
-                  <select id="historyActionFilter" class="content-page-select">
-                    <option value="">Ação: todas</option>
-                    <option value="create">create</option>
-                    <option value="update">update</option>
-                    <option value="delete">delete</option>
-                    <option value="restore">restore</option>
-                  </select>
-                  <select id="historyLimitFilter" class="content-page-select">
-                    <option value="50">Últimos 50</option>
-                    <option value="100" selected>Últimos 100</option>
-                    <option value="200">Últimos 200</option>
-                  </select>
-                  <button id="applyHistoryFiltersBtn" class="btn-secondary">Aplicar filtros</button>
-                  <button id="refreshHistoryBtn" class="btn-secondary">Recarregar histórico</button>
-                </div>
-              </div>
-
-              <div class="table-container">
-                <table class="events-table history-table">
-                  <thead>
-                    <tr>
-                      <th>Data/Hora</th>
-                      <th>Usuário</th>
-                      <th>Entidade</th>
-                      <th>ID</th>
-                      <th>Ação</th>
-                      <th>Operação</th>
-                    </tr>
-                  </thead>
-                  <tbody id="historyTableBody"></tbody>
-                </table>
               </div>
             </section>
           </section>
@@ -390,6 +352,71 @@
       <div class="form-actions">
         <button class="btn-secondary" id="cancelDeleteBtn">Cancelar</button>
         <button class="btn-danger" id="confirmDeleteBtn">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card Modal -->
+  <div id="cardModal" class="modal">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2 id="cardModalTitle">Adicionar Card</h2>
+        <button class="close-btn" id="closeCardModalBtn">&times;</button>
+      </div>
+
+      <form id="cardForm">
+        <div class="form-group">
+          <label for="cardTitle">Título *</label>
+          <input type="text" id="cardTitle" placeholder="Título do card" required>
+        </div>
+
+        <div class="form-group">
+          <label for="cardImage">Imagem</label>
+          <div class="image-selection-container">
+            <div class="file-input-wrapper">
+              <button type="button" class="btn-secondary btn-small" id="selectCardMediaBtn">🖼️ Selecionar mídia</button>
+              <input type="hidden" id="cardImage">
+            </div>
+            <small>Selecione uma imagem já cadastrada na biblioteca de mídia</small>
+            <div class="image-actions">
+              <button type="button" class="btn-secondary btn-small" id="removeCardImageBtn">Remover imagem atual</button>
+            </div>
+            <div id="cardImagePreview" class="image-preview"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="cardDateLabel">Ano/Data</label>
+          <input type="text" id="cardDateLabel" placeholder="Ex.: 2005">
+        </div>
+
+        <div class="form-group">
+          <label for="cardSource">Fonte</label>
+          <textarea id="cardSource" placeholder="Fonte ou legenda da imagem" rows="2"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="cardDescription">Texto</label>
+          <textarea id="cardDescription" placeholder="Conteúdo principal do card" rows="4"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" id="cancelCardBtn">Cancelar</button>
+          <button type="submit" class="btn-primary" id="saveCardBtn">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Card Modal -->
+  <div id="deleteCardModal" class="modal">
+    <div class="modal-content">
+      <h2>⚠️ Confirmar Exclusão</h2>
+      <p>Tem certeza que deseja excluir este card?</p>
+      <p><strong id="deleteCardTitle"></strong></p>
+      <div class="form-actions">
+        <button class="btn-secondary" id="cancelDeleteCardBtn">Cancelar</button>
+        <button class="btn-danger" id="confirmDeleteCardBtn">Excluir</button>
       </div>
     </div>
   </div>

@@ -1,8 +1,7 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request
 
 from ..auth_utils import login_required, to_dict
 from ..extensions import db
-from ..history import log_history
 from ..models import CardItem
 
 cards_bp = Blueprint("cards", __name__)
@@ -56,16 +55,6 @@ def create_card():
         order_index=int(payload.get("order_index", 0)),
     )
     db.session.add(card)
-    db.session.flush()
-
-    log_history(
-        "card_item",
-        card.id,
-        "create",
-        session["user_id"],
-        old_data=None,
-        new_data=serialize_card(card),
-    )
     db.session.commit()
     return jsonify(serialize_card(card)), 201
 
@@ -77,7 +66,6 @@ def update_card(card_id):
     if not card:
         return jsonify({"error": "Card não encontrado"}), 404
 
-    old_data = serialize_card(card)
     payload = request.get_json(silent=True) or {}
 
     if "title" in payload:
@@ -93,15 +81,6 @@ def update_card(card_id):
     if "order_index" in payload:
         card.order_index = int(payload.get("order_index"))
 
-    db.session.flush()
-    log_history(
-        "card_item",
-        card.id,
-        "update",
-        session["user_id"],
-        old_data=old_data,
-        new_data=serialize_card(card),
-    )
     db.session.commit()
     return jsonify(serialize_card(card))
 
@@ -113,16 +92,7 @@ def delete_card(card_id):
     if not card:
         return jsonify({"error": "Card não encontrado"}), 404
 
-    old_data = serialize_card(card)
     db.session.delete(card)
-    log_history(
-        "card_item",
-        card_id,
-        "delete",
-        session["user_id"],
-        old_data=old_data,
-        new_data=None,
-    )
     db.session.commit()
     return jsonify({"message": "Card removido"})
 

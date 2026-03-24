@@ -10,10 +10,12 @@ services:
     ports:
       - "8092:5000"
     volumes:
+      - ./:/app
       - ./database:/app/database
       - ./uploads:/app/uploads
     environment:
-      - FLASK_ENV=production
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
       - SECRET_KEY=${SECRET_KEY:-change-this-in-production}
       - MAX_CONTENT_LENGTH_MB=10
     healthcheck:
