@@ -28,7 +28,7 @@
   <div id="adminInterface" style="display: none;">
     <header class="admin-header">
       <div class="header-content">
-        <h1>🎓 Admin - Memorial IFSul</h1>
+        <h1>🎓 Admin - Memorial IFSul Câmpus Venâncio Aires</h1>
         <button id="logoutBtn" class="btn-secondary">Sair</button>
       </div>
     </header>
@@ -38,9 +38,8 @@
         <aside class="admin-sidebar">
           <button class="admin-nav-item active" data-panel-target="dashboard">Dashboard</button>
           <button class="admin-nav-item" data-panel-target="timeline">Linha do Tempo</button>
-          <button class="admin-nav-item" data-panel-target="cards">Seções com Cards</button>
-          <button class="admin-nav-item" data-panel-target="menu">Menu</button>
-          <button class="admin-nav-item" data-panel-target="content">Páginas Institucionais</button>
+          <button class="admin-nav-item" data-panel-target="pages">Editar Páginas</button>
+          <button class="admin-nav-item" data-panel-target="menu">Editar Ordem do Menu</button>
           <button class="admin-nav-item" data-panel-target="media">🖼️ Mídia</button>
           <button class="admin-nav-item" data-panel-target="security">Segurança</button>
         </aside>
@@ -149,57 +148,20 @@
             </section>
           </section>
 
-          <section class="admin-panel" data-panel="cards">
-            <section class="menu-section cards-section">
+          <section class="admin-panel" data-panel="pages">
+            <section class="menu-section pages-section">
               <div class="menu-section-header">
-                <h2>Seções com Cards</h2>
-                <div class="menu-actions">
-                  <select id="cardsPageSelect" class="content-page-select">
-                    <option value="">Selecione uma seção...</option>
-                    <option value="territorio">Transformações Territoriais</option>
-                    <option value="campus">Campus</option>
-                    <option value="trabalhos">Trabalhos</option>
-                  </select>
-                  <button id="addCardBtn" class="btn-primary btn-small">+ Adicionar Card</button>
-                </div>
+                <h2>Editar Páginas</h2>
               </div>
 
-              <div id="cardsEmptyState" style="text-align: center; padding: 30px; color: #999;">
-                Selecione uma seção acima para gerenciar seus cards.
-              </div>
-
-              <div class="table-container" id="cardsTableContainer" style="display: none;">
-                <table class="events-table cards-table">
-                  <thead>
-                    <tr>
-                      <th>Ordem</th>
-                      <th>Título</th>
-                      <th>Imagem</th>
-                      <th>Data/Ano</th>
-                      <th>Fonte</th>
-                      <th>Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody id="cardsTableBody"></tbody>
-                </table>
-              </div>
-            </section>
-          </section>
-
-          <section class="admin-panel" data-panel="content">
-            <section class="menu-section content-section">
-              <div class="menu-section-header">
-                <h2>Páginas Institucionais</h2>
-              </div>
-
-              <p class="admin-panel-note">Edite as páginas com conteúdo institucional (início, contato, catalogação). As seções visuais do site (cards, timeline) são gerenciadas nos painéis próprios.</p>
-
-              <div class="table-container">
+              <!-- Unified pages table -->
+              <div class="table-container" id="unifiedPagesTableContainer">
                 <table class="events-table page-manager-table">
                   <thead>
                     <tr>
                       <th>Título</th>
                       <th>Slug</th>
+                      <th>Tipo</th>
                       <th>Atualizado em</th>
                       <th>Ações</th>
                     </tr>
@@ -208,8 +170,41 @@
                 </table>
               </div>
 
+              <!-- Cards editor (shown when editing a cards page) -->
+              <div id="cardsEditorWrapper" style="display: none; margin-top: 14px;">
+                <div class="menu-section-header" style="margin-bottom: 12px;">
+                  <h3 id="cardsEditorTitle">Cards</h3>
+                  <div class="menu-actions">
+                    <button id="addCardBtn" class="btn-primary btn-small">+ Adicionar Card</button>
+                    <button id="cancelCardsEditorBtn" type="button" class="btn-secondary btn-small">← Voltar</button>
+                  </div>
+                </div>
+                <div id="cardsEmptyState" style="text-align: center; padding: 30px; color: #999;">
+                  Nenhum card cadastrado para esta seção.
+                </div>
+                <div class="table-container" id="cardsTableContainer" style="display: none;">
+                  <table class="events-table cards-table">
+                    <thead>
+                      <tr>
+                        <th>Ordem</th>
+                        <th>Título</th>
+                        <th>Imagem</th>
+                        <th>Data/Ano</th>
+                        <th>Fonte</th>
+                        <th>Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody id="cardsTableBody"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Content editor (shown when editing an institutional page) -->
               <div class="content-editor-wrapper" id="pageEditorWrapper" style="display: none; margin-top: 14px;">
-                <label id="pageEditorTitle" for="pageTitleInput">Editar página</label>
+                <div class="menu-section-header" style="margin-bottom: 12px;">
+                  <label id="pageEditorTitle" for="pageTitleInput">Editar página</label>
+                  <button id="cancelPageContentBtn" type="button" class="btn-secondary btn-small">← Voltar</button>
+                </div>
                 <div class="form-group">
                   <label for="pageTitleInput">Título</label>
                   <input id="pageTitleInput" type="text" placeholder="Título da página" />
@@ -218,7 +213,6 @@
                   <textarea id="pageContentInput" placeholder="Conteúdo em HTML" rows="10"></textarea>
                 </div>
                 <div class="form-actions">
-                  <button id="cancelPageContentBtn" type="button" class="btn-secondary">Cancelar</button>
                   <button id="savePageContentBtn" type="button" class="btn-primary">Salvar</button>
                 </div>
               </div>

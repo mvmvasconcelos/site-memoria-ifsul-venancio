@@ -405,8 +405,6 @@ async function loadMenu() {
 }
 
 async function loadCards() {
-  renderCardPageOptions();
-
   if (!state.currentCardsPageId) {
     state.cards = [];
     renderCardsTable();
@@ -417,6 +415,10 @@ async function loadCards() {
   state.cards = await apiRequest(`/api/cards/${state.currentCardsPageId}`);
   renderCardsTable();
   setSyncStatus('synced', '✓ Cards sincronizados');
+}
+
+async function loadCardsForCurrentPage() {
+  await loadCards();
 }
 
 function renderCardsTable() {
@@ -635,36 +637,80 @@ function renderCardPageOptions() {
     .join('');
 }
 
+function getPageType(slug) {
+  return CARD_PAGE_SLUGS.includes(slug) ? 'cards' : 'content';
+}
+
 function renderPageManagerTable() {
   const tbody = document.getElementById('pageManagerTableBody');
   if (!tbody) return;
 
-  const editablePages = getInstitutionalPages();
-  if (!editablePages.length) {
+  // Show ALL managed pages (institutional + cards)
+  const allPages = [...getInstitutionalPages(), ...getCardManagedPages()];
+  allPages.sort((a, b) => (a.title || '').localeCompare(b.title || '', 'pt-BR'));
+
+  if (!allPages.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="4" class="no-image">Nenhuma página institucional disponível para edição</td>
+        <td colspan="5" class="no-image">Nenhuma página disponível para edição</td>
       </tr>
     `;
     return;
   }
 
-  tbody.innerHTML = editablePages
-    .map(
-      (page) => `
+  tbody.innerHTML = allPages
+    .map((page) => {
+      const pageType = getPageType(page.slug);
+      const typeLabel = pageType === 'cards'
+        ? '<span class="page-type-badge page-type-cards">Cards</span>'
+        : '<span class="page-type-badge page-type-content">Conteúdo</span>';
+      return `
       <tr>
         <td>${sanitize(page.title || '-')}</td>
         <td>${sanitize(page.slug || '-')}</td>
+        <td>${typeLabel}</td>
         <td>${sanitize(formatHistoryTimestamp(page.updated_at) || '-')}</td>
         <td>
           <div class="table-actions">
-            <button class="btn-secondary btn-small" data-page-action="edit" data-page-id="${page.id}">Editar</button>
+            <button class="btn-secondary btn-small" data-page-action="edit" data-page-id="${page.id}" data-page-type="${pageType}">Editar</button>
           </div>
         </td>
       </tr>
-    `
-    )
+    `;
+    })
     .join('');
+}
+
+function showUnifiedPagesTable() {
+  const tableContainer = document.getElementById('unifiedPagesTableContainer');
+  const cardsEditor = document.getElementById('cardsEditorWrapper');
+  const contentEditor = document.getElementById('pageEditorWrapper');
+  if (tableContainer) tableContainer.style.display = 'block';
+  if (cardsEditor) cardsEditor.style.display = 'none';
+  if (contentEditor) contentEditor.style.display = 'none';
+}
+
+async function openPageEditor(pageId, pageType) {
+  const page = getPageById(pageId);
+  if (!page) return;
+
+  const tableContainer = document.getElementById('unifiedPagesTableContainer');
+  if (tableContainer) tableContainer.style.display = 'none';
+
+  if (pageType === 'cards') {
+    // Open cards editor
+    state.currentCardsPageId = pageId;
+    const cardsEditor = document.getElementById('cardsEditorWrapper');
+    const titleEl = document.getElementById('cardsEditorTitle');
+    if (titleEl) titleEl.textContent = `Cards: ${page.title}`;
+    if (cardsEditor) cardsEditor.style.display = 'block';
+    await loadCardsForCurrentPage();
+  } else {
+    // Open content editor
+    await openPageContentEditor(pageId);
+    const contentEditor = document.getElementById('pageEditorWrapper');
+    if (contentEditor) contentEditor.style.display = 'block';
+  }
 }
 
 function closePageContentEditor() {
@@ -1145,7 +1191,7 @@ async function openPageContentEditor(pageId) {
 function initializeContentEditor() {
   initializePageContentEditor();
   renderPageManagerTable();
-  closePageContentEditor();
+  showUnifiedPagesTable();
 }
 
 async function saveSelectedPageContent() {
@@ -1297,8 +1343,7 @@ async function loadAdminData() {
   await loadPages();
   await ensureManagedPages();
   await loadPages();
-  renderCardPageOptions();
-  await Promise.all([loadEvents(), loadCards(), loadMenu(), loadMedia()]);
+  await Promise.all([loadEvents(), loadMenu(), loadMedia()]);
   initializeContentEditor();
   attachMediaEventListeners();
   updateDashboardCards();
@@ -1923,10 +1968,13 @@ function attachEventListeners() {
   document.getElementById('addMenuItemBtn').addEventListener('click', addMenuItem);
   document.getElementById('saveMenuBtn').addEventListener('click', saveMenu);
   document.getElementById('savePageContentBtn').addEventListener('click', saveSelectedPageContent);
-  document.getElementById('cancelPageContentBtn').addEventListener('click', closePageContentEditor);
-  document.getElementById('cardsPageSelect').addEventListener('change', async (event) => {
-    state.currentCardsPageId = Number(event.target.value) || null;
-    await loadCards();
+  document.getElementById('cancelPageContentBtn').addEventListener('click', () => {
+    closePageContentEditor();
+    showUnifiedPagesTable();
+  });
+  document.getElementById('cancelCardsEditorBtn').addEventListener('click', () => {
+    state.currentCardsPageId = null;
+    showUnifiedPagesTable();
   });
   document.getElementById('addCardBtn').addEventListener('click', openCreateCardModal);
   document.getElementById('closeCardModalBtn').addEventListener('click', () => hideModal('cardModal'));
@@ -2129,13 +2177,14 @@ function attachEventListeners() {
     }
   });
 
-  document.getElementById('pageManagerTableBody').addEventListener('click', (event) => {
+  document.getElementById('pageManagerTableBody').addEventListener('click', async (event) => {
     const button = event.target.closest('button[data-page-action="edit"]');
     if (!button) return;
 
     const pageId = Number(button.dataset.pageId);
+    const pageType = button.dataset.pageType;
     if (!pageId) return;
-    openPageContentEditor(pageId);
+    await openPageEditor(pageId, pageType);
   });
 }
 
