@@ -252,6 +252,46 @@ button {
   margin-bottom: 16px;
 }
 
+.dashboard-welcome {
+  background: white;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  border: 1px solid #dbe5dc;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.dashboard-welcome h3 {
+  margin: 0 0 8px 0;
+  color: var(--primary-color);
+  font-size: 18px;
+}
+
+.dashboard-welcome p {
+  margin: 0;
+  color: #4a5a4a;
+  font-size: 14px;
+}
+
+.dashboard-quick-links {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.dashboard-tech-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f7faf7;
+  border: 1px solid #dbe5dc;
+  border-radius: 12px;
+  padding: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .dashboard-card {
   background: white;
   border-radius: 12px;

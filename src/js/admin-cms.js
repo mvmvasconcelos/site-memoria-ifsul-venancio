@@ -134,15 +134,11 @@ function setActivePanel(panelName) {
 }
 
 function updateDashboardCards() {
-  const timelineCount = document.getElementById('dashTimelineCount');
-  const menuCount = document.getElementById('dashMenuCount');
-  const mediaCount = document.getElementById('dashMediaCount');
-  const pagesCount = document.getElementById('dashPagesCount');
-
-  if (timelineCount) timelineCount.textContent = String(state.events.length || 0);
-  if (menuCount) menuCount.textContent = String(state.menuItems.length || 0);
-  if (mediaCount) mediaCount.textContent = String(state.mediaFiles.length || 0);
-  if (pagesCount) pagesCount.textContent = String(getInstitutionalPages().length || 0);
+  const lastSyncAt = document.getElementById('lastSyncAt');
+  if (lastSyncAt) {
+    const now = new Date();
+    lastSyncAt.textContent = now.toLocaleString('pt-BR');
+  }
 }
 
 function initPanelNavigation() {
@@ -155,6 +151,7 @@ function initPanelNavigation() {
 
 function setSyncStatus(status, message) {
   const sync = document.getElementById('syncStatus');
+  if (!sync) return;
   sync.className = `sync-status ${status}`;
   sync.textContent = message;
 }
@@ -355,6 +352,7 @@ async function login(username, password) {
 
 async function logout() {
   await apiRequest('/api/auth/logout', { method: 'POST' });
+  window.location.href = APP_BASE_PATH ? `${APP_BASE_PATH}/` : '/';
 }
 
 async function changePassword(currentPassword, newPassword) {
@@ -1385,7 +1383,10 @@ function renderEvents(events) {
 
   updateTimelineSortButton();
 
-  document.getElementById('totalEvents').textContent = `Total: ${events.length} eventos`;
+  const totalEvents = document.getElementById('totalEvents');
+  if (totalEvents) {
+    totalEvents.textContent = `Total: ${events.length} eventos`;
+  }
 
   if (!events.length) {
     tbody.innerHTML = '';
@@ -1951,7 +1952,13 @@ function attachEventListeners() {
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     await logout();
-    window.location.reload();
+  });
+
+  document.querySelectorAll('[data-dashboard-target]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const target = button.dataset.dashboardTarget;
+      if (target) setActivePanel(target);
+    });
   });
 
   document.getElementById('refreshBtn').addEventListener('click', async () => {

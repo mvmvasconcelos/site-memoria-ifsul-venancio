@@ -47,34 +47,26 @@
         <section class="admin-content">
           <section class="admin-panel active" data-panel="dashboard">
             <div class="menu-section-header">
-              <h2>Visão Geral</h2>
+              <h2>Dashboard</h2>
             </div>
 
-            <div class="dashboard-cards">
-              <article class="dashboard-card">
-                <span>Eventos timeline</span>
-                <strong id="dashTimelineCount">0</strong>
-              </article>
-              <article class="dashboard-card">
-                <span>Itens de menu</span>
-                <strong id="dashMenuCount">0</strong>
-              </article>
-              <article class="dashboard-card">
-                <span>Arquivos de mídia</span>
-                <strong id="dashMediaCount">0</strong>
-              </article>
-              <article class="dashboard-card">
-                <span>Páginas editáveis</span>
-                <strong id="dashPagesCount">0</strong>
-              </article>
+            <div class="dashboard-welcome">
+              <h3>Bem-vindo ao painel administrativo</h3>
             </div>
 
-            <div class="action-bar">
-              <button id="refreshBtn" class="btn-secondary">🔄 Recarregar</button>
+            <div class="dashboard-quick-links">
+              <button type="button" class="btn-primary" data-dashboard-target="pages">Editar Páginas</button>
+              <button type="button" class="btn-secondary" data-dashboard-target="timeline">Linha do Tempo</button>
+              <button type="button" class="btn-secondary" data-dashboard-target="media">Mídia</button>
+            </div>
+
+            <div class="dashboard-tech-status">
               <div class="status-info">
-                <span id="totalEvents">Total: 0 eventos</span>
+                <span>Última sincronização:</span>
+                <span id="lastSyncAt">--</span>
                 <span id="syncStatus" class="sync-status"></span>
               </div>
+              <button id="refreshBtn" class="btn-secondary">Recarregar</button>
             </div>
           </section>
 
