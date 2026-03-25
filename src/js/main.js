@@ -299,6 +299,35 @@ const LayoutLoader = {
 };
 
 /**
+ * Timeline slide-in animation on scroll
+ */
+function setupTimelineAnimation() {
+  const timelineEntries = document.querySelectorAll('.timeline-entry');
+  
+  if (!timelineEntries.length) {
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        // Add animation class when element enters viewport
+        entry.target.classList.add('slide-in-visible');
+        // Stop observing this element after animation starts
+        observer.unobserve(entry.target);
+      }
+    });
+  }, {
+    threshold: 0.15, // Trigger when 15% of the card is visible
+    rootMargin: '0px 0px -100px 0px' // Trigger slightly before fully visible
+  });
+
+  timelineEntries.forEach((entry) => {
+    observer.observe(entry);
+  });
+}
+
+/**
  * Application bootstrap
  */
 async function initializeApp() {
@@ -308,6 +337,9 @@ async function initializeApp() {
 
     // Load page content from CMS
     await CmsLoader.loadPageContent();
+
+    // Setup timeline animations after content is loaded
+    setupTimelineAnimation();
   } catch (error) {
     console.error('Application initialization failed:', error);
   }

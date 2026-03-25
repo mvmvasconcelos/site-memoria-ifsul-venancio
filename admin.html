@@ -96,7 +96,12 @@
               <table id="eventsTable" class="events-table">
                 <thead>
                   <tr>
-                    <th>Data</th>
+                    <th>
+                      <button type="button" id="timelineDateSortBtn" class="table-sort-button" aria-label="Ordenar por data" aria-pressed="false">
+                        <span>Data</span>
+                        <span id="timelineDateSortIndicator" class="table-sort-indicator">↑</span>
+                      </button>
+                    </th>
                     <th>Título</th>
                     <th>Imagem</th>
                     <th>Legenda</th>
@@ -210,7 +215,6 @@
                   <input id="pageTitleInput" type="text" placeholder="Título da página" />
                 </div>
                 <div class="form-group">
-                  <label for="pageContentInput">Conteúdo</label>
                   <textarea id="pageContentInput" placeholder="Conteúdo em HTML" rows="10"></textarea>
                 </div>
                 <div class="form-actions">
@@ -483,6 +487,7 @@
         <!-- Tabs -->
         <div class="image-picker-tabs">
           <button class="image-picker-tab active" data-tab="select">📋 Selecionar</button>
+          <button class="image-picker-tab" data-tab="upload">📤 Upload</button>
         </div>
 
         <!-- Select Tab -->
@@ -501,6 +506,42 @@
 
           <div class="image-picker-grid" id="imagePickerGrid">
             <div class="loading">Carregando imagens...</div>
+          </div>
+        </div>
+
+        <!-- Upload Tab -->
+        <div class="image-picker-tab-content" id="imagePickerUploadTab" style="display: none;">
+          <div class="picker-upload-wrapper">
+            <div class="picker-upload-folder-row">
+              <label>Pasta:</label>
+              <select id="pickerUploadFolder" class="content-page-select">
+                <option value="timeline">Timeline</option>
+                <option value="trabalhos">Trabalhos</option>
+                <option value="territorio">Território</option>
+                <option value="campus">Campus</option>
+              </select>
+            </div>
+            <div class="picker-dropzone" id="pickerDropzone">
+              <input type="file" id="pickerFileInput" accept="image/png,image/jpeg,image/webp,image/gif" style="display: none;">
+              <div id="pickerDropzonePrompt">
+                <div style="font-size: 2rem; margin-bottom: 8px;">🖼️</div>
+                <p>Arraste a imagem aqui ou <button type="button" class="picker-browse-link" id="pickerBrowseBtn">clique para selecionar</button></p>
+                <p class="picker-dropzone-hint">PNG, JPG, WEBP, GIF</p>
+              </div>
+            </div>
+            <div id="pickerUploadPreview" style="display: none;">
+              <img id="pickerUploadPreviewImg" src="" alt="preview" style="max-height: 120px; max-width: 100%; border-radius: 4px;">
+              <span id="pickerUploadFileName" style="font-size: 13px; color: #555; display: block; margin-top: 6px;"></span>
+            </div>
+            <div id="pickerUploadProgress" style="display: none;">
+              <div class="picker-progress-bar"><div class="picker-progress-fill" id="pickerProgressFill"></div></div>
+              <span id="pickerProgressLabel" style="font-size: 12px; color: #555; display: block; margin-top: 4px;">Enviando...</span>
+            </div>
+            <div class="form-actions" style="margin-top: 4px;">
+              <button type="button" class="btn-secondary btn-small" id="pickerClearBtn" style="display: none;">Limpar</button>
+              <button type="button" class="btn-primary" id="pickerUploadBtn" disabled>📤 Fazer Upload</button>
+            </div>
+            <p id="imagePickerUploadHint" class="picker-inline-hint">Envie ou selecione uma imagem para habilitar a ação final.</p>
           </div>
         </div>
 

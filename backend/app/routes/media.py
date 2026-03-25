@@ -2,6 +2,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from flask import Blueprint, current_app, jsonify, request, send_file
+from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
 
 from ..auth_utils import login_required, to_dict
@@ -39,6 +40,20 @@ def serialize_media_file(item: MediaFile):
     data["created_at"] = item.created_at.isoformat() if item.created_at else None
     data["updated_at"] = item.updated_at.isoformat() if item.updated_at else None
     return data
+
+
+def build_unique_display_filename(original_name: str) -> str:
+    """Return a filename that is unique in DB while preserving the original name."""
+    base_name = Path(original_name).stem
+    extension = Path(original_name).suffix
+    candidate = original_name
+    counter = 2
+
+    while MediaFile.query.filter_by(filename=candidate).first() is not None:
+        candidate = f"{base_name}-{counter}{extension}"
+        counter += 1
+
+    return candidate
 
 
 def media_file_exists(item: MediaFile) -> bool:
@@ -81,11 +96,11 @@ def upload_media():
     if not is_allowed_file(file.filename):
         return jsonify({"error": "Tipo de arquivo não permitido"}), 400
 
-    folder = (request.form.get("folder") or "uploads").strip().lower()
+    folder = (request.form.get("folder") or "timeline").strip().lower()
     if folder not in ALLOWED_FOLDERS:
-        folder = "uploads"
+        folder = "timeline"
 
-    safe_folder = secure_filename(folder) or "uploads"
+    safe_folder = secure_filename(folder) or "timeline"
     upload_root = Path(current_app.config["UPLOAD_FOLDER"])
     target_folder = upload_root / safe_folder
     target_folder.mkdir(parents=True, exist_ok=True)
@@ -103,9 +118,11 @@ def upload_media():
     description = (request.form.get("description") or "").strip() or None
     alt_text = (request.form.get("alt_text") or "").strip() or None
 
+    display_filename = build_unique_display_filename(original_name)
+
     # Create database record
     media_file = MediaFile(
-        filename=original_name,
+        filename=display_filename,
         file_path=f"{safe_folder}/{generated_name}",
         folder=safe_folder,
         file_size=file_size,
@@ -114,8 +131,29 @@ def upload_media():
         alt_text=alt_text,
     )
 
-    db.session.add(media_file)
-    db.session.commit()
+    try:
+        db.session.add(media_file)
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+
+        # Last-resort fallback for race conditions between uniqueness check and commit.
+        fallback_filename = f"{Path(original_name).stem}-{uuid4().hex[:8]}{Path(original_name).suffix}"
+        media_file.filename = fallback_filename
+
+        try:
+            db.session.add(media_file)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            if destination.exists():
+                destination.unlink()
+            return jsonify({"error": "Falha ao salvar metadados da mídia"}), 500
+    except Exception:
+        db.session.rollback()
+        if destination.exists():
+            destination.unlink()
+        return jsonify({"error": "Falha ao salvar metadados da mídia"}), 500
 
     return jsonify(serialize_media_file(media_file)), 201
 

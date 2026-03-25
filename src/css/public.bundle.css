@@ -978,7 +978,7 @@ main[data-page='timeline'] .filter-group {
   }
 @media (min-width: 768px) {
     .timeline::before {
-      left: 0;
+      left: 50%;
     }
   }
 .timeline-entry {
@@ -995,7 +995,8 @@ main[data-page='timeline'] .filter-group {
   }
 @media (min-width: 768px) {
     .timeline-entry:nth-child(odd) {
-      margin-right: 50%;
+      width: calc(50% - 2.5rem);
+      margin-right: calc(50% + 2.5rem);
       text-align: right;
     }
   }
@@ -1004,7 +1005,8 @@ main[data-page='timeline'] .filter-group {
   }
 @media (min-width: 768px) {
     .timeline-entry:nth-child(even) {
-      margin-left: 50%;
+      width: calc(50% - 2.5rem);
+      margin-left: calc(50% + 2.5rem);
       text-align: left;
     }
   }
@@ -1017,13 +1019,23 @@ main[data-page='timeline'] .filter-group {
     border: 4px solid white;
     border-radius: 50%;
     left: 50%;
-    top: 1.5rem;
+    top: 50%;
     transform: translateX(-50%);
     box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.1);
   }
 @media (min-width: 768px) {
     .timeline-entry::before {
-      left: 0;
+      transform: translate(-50%, -50%);
+    }
+  }
+@media (min-width: 768px) {
+    .timeline-entry:nth-child(odd)::before {
+      left: calc(100% + 2.5rem);
+    }
+  }
+@media (min-width: 768px) {
+    .timeline-entry:nth-child(even)::before {
+      left: calc(-2.5rem);
     }
   }
 .timeline-content {
@@ -1224,6 +1236,7 @@ main[data-page='index'] h1 {
     font-size: 2.2rem;
     line-height: 1.2;
     color: #0f172a;
+  text-align: center;
   }
 main[data-page='index'] p {
     line-height: 1.75;
@@ -1237,6 +1250,7 @@ main[data-page='index'] p {
   .timeline-header h1 {
     color: #0f172a;
     margin-bottom: 1rem;
+    text-align: center;
   }
 .territorio-header p {
     line-height: 1.7;
@@ -1323,6 +1337,48 @@ main[data-page='index'] p {
 .underline {
   text-decoration-line: underline;
 }
+/* Timeline slide-in animations */
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(150px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-150px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Cards start off-screen before animation triggers */
+.timeline-entry:nth-child(odd) {
+  opacity: 0;
+  transform: translateX(-150px);
+}
+
+.timeline-entry:nth-child(even) {
+  opacity: 0;
+  transform: translateX(150px);
+}
+
+.timeline-entry.slide-in-visible:nth-child(odd) {
+  animation: slideInFromLeft 0.8s ease-out forwards;
+}
+
+.timeline-entry.slide-in-visible:nth-child(even) {
+  animation: slideInFromRight 0.8s ease-out forwards;
+}
+
 .filter {
   filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
 }

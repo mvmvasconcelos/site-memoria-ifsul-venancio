@@ -136,6 +136,7 @@
   margin-top: 0;
   margin-bottom: 20px; /* Increase bottom margin */
   color: #2e7d32; /* Greenish color */
+  text-align: center;
 }
 
 .image-container {

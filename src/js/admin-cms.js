@@ -2,6 +2,7 @@ const state = {
   timelinePageId: null,
   currentCardsPageId: null,
   events: [],
+  timelineDateSortDirection: 'asc',
   cards: [],
   pages: [],
   menuItems: [],
@@ -255,6 +256,56 @@ function formatTimelineDisplayDate(dateValue) {
     return window.MemoriaDate.formatDisplayDate(dateValue);
   }
   return (dateValue || '').trim();
+}
+
+function getTimelineDateSortKey(dateValue) {
+  const value = (dateValue || '').trim();
+  if (!value) return Number.MAX_SAFE_INTEGER;
+
+  const exactMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (exactMatch) {
+    const [, year, month, day] = exactMatch;
+    return Number(`${year}${month}${day}`);
+  }
+
+  const yearMonthMatch = value.match(/^(\d{4})-(\d{2})$/);
+  if (yearMonthMatch) {
+    const [, year, month] = yearMonthMatch;
+    return Number(`${year}${month}00`);
+  }
+
+  const yearMatch = value.match(/^(\d{4})$/);
+  if (yearMatch) {
+    return Number(`${yearMatch[1]}0000`);
+  }
+
+  return Number.MAX_SAFE_INTEGER - 1;
+}
+
+function getSortedEvents(events) {
+  const direction = state.timelineDateSortDirection === 'desc' ? 'desc' : 'asc';
+  const multiplier = direction === 'desc' ? -1 : 1;
+
+  return [...events].sort((first, second) => {
+    const dateDiff = (getTimelineDateSortKey(first.date) - getTimelineDateSortKey(second.date)) * multiplier;
+    if (dateDiff !== 0) return dateDiff;
+    return String(first.title || '').localeCompare(String(second.title || ''), 'pt-BR') * multiplier;
+  });
+}
+
+function updateTimelineSortButton() {
+  const button = document.getElementById('timelineDateSortBtn');
+  const indicator = document.getElementById('timelineDateSortIndicator');
+  const isDescending = state.timelineDateSortDirection === 'desc';
+
+  if (button) {
+    button.setAttribute('aria-pressed', String(isDescending));
+    button.setAttribute('title', isDescending ? 'Ordenado do mais recente para o mais antigo' : 'Ordenado do mais antigo para o mais recente');
+  }
+
+  if (indicator) {
+    indicator.textContent = isDescending ? '↓' : '↑';
+  }
 }
 
 async function apiRequest(path, options = {}) {
@@ -782,6 +833,9 @@ function insertCardTemplateIntoTerritorioSection(templateHtml) {
 }
 
 function ensurePageEditorStructure(wrapper, textarea) {
+  const textareaGroup = textarea.closest('.form-group') || textarea.parentElement;
+  const fieldContainer = textareaGroup?.parentElement || wrapper;
+  const insertBeforeTarget = textareaGroup || null;
   let modeBar = document.getElementById('pageEditorModeBar');
   let toolbar = document.getElementById('pageEditorToolbar');
   let editorHost = document.getElementById('pageContentEditor');
@@ -798,7 +852,11 @@ function ensurePageEditorStructure(wrapper, textarea) {
       <button type="button" class="btn-secondary btn-small" data-editor-view="preview">Preview</button>
       <span id="pageEditorMeta" class="page-editor-meta">0 caracteres</span>
     `;
-    wrapper.insertBefore(modeBar, textarea);
+    if (insertBeforeTarget) {
+      fieldContainer.insertBefore(modeBar, insertBeforeTarget);
+    } else {
+      fieldContainer.appendChild(modeBar);
+    }
   }
 
   if (!toolbar) {
@@ -821,7 +879,11 @@ function ensurePageEditorStructure(wrapper, textarea) {
       <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertHorizontalRule">Linha</button>
       <button type="button" class="btn-secondary btn-small" data-editor-cmd="removeFormat">Limpar</button>
     `;
-    wrapper.insertBefore(toolbar, textarea);
+    if (insertBeforeTarget) {
+      fieldContainer.insertBefore(toolbar, insertBeforeTarget);
+    } else {
+      fieldContainer.appendChild(toolbar);
+    }
   }
 
   if (!editorHost) {
@@ -832,7 +894,11 @@ function ensurePageEditorStructure(wrapper, textarea) {
     editorHost.setAttribute('role', 'textbox');
     editorHost.setAttribute('aria-multiline', 'true');
     editorHost.setAttribute('aria-label', 'Editor de conteúdo');
-    wrapper.insertBefore(editorHost, textarea);
+    if (insertBeforeTarget) {
+      fieldContainer.insertBefore(editorHost, insertBeforeTarget);
+    } else {
+      fieldContainer.appendChild(editorHost);
+    }
   }
 
   if (!preview) {
@@ -840,7 +906,11 @@ function ensurePageEditorStructure(wrapper, textarea) {
     preview.id = 'pageContentPreview';
     preview.className = 'page-editor-preview';
     preview.style.display = 'none';
-    wrapper.insertBefore(preview, textarea.nextSibling);
+    if (insertBeforeTarget?.nextSibling) {
+      fieldContainer.insertBefore(preview, insertBeforeTarget.nextSibling);
+    } else {
+      fieldContainer.appendChild(preview);
+    }
   }
 
   return {
@@ -1266,6 +1336,9 @@ function renderEvents(events) {
   const tbody = document.getElementById('eventsTableBody');
   const emptyState = document.getElementById('emptyState');
   const tableContainer = document.getElementById('timelineTableContainer');
+  const sortedEvents = getSortedEvents(events);
+
+  updateTimelineSortButton();
 
   document.getElementById('totalEvents').textContent = `Total: ${events.length} eventos`;
 
@@ -1280,7 +1353,7 @@ function renderEvents(events) {
   tableContainer.style.display = 'block';
   emptyState.style.display = 'none';
 
-  tbody.innerHTML = events
+  tbody.innerHTML = sortedEvents
     .map(
       (event) => `
       <tr>
@@ -1304,6 +1377,11 @@ function renderEvents(events) {
     .join('');
 
   updateDashboardCards();
+}
+
+function toggleTimelineDateSort() {
+  state.timelineDateSortDirection = state.timelineDateSortDirection === 'asc' ? 'desc' : 'asc';
+  renderEvents(state.events);
 }
 
 function fillEventForm(event = null) {
@@ -1837,6 +1915,11 @@ function attachEventListeners() {
     setLoading(false);
   });
 
+  const timelineDateSortBtn = document.getElementById('timelineDateSortBtn');
+  if (timelineDateSortBtn) {
+    timelineDateSortBtn.addEventListener('click', toggleTimelineDateSort);
+  }
+
   document.getElementById('addMenuItemBtn').addEventListener('click', addMenuItem);
   document.getElementById('saveMenuBtn').addEventListener('click', saveMenu);
   document.getElementById('savePageContentBtn').addEventListener('click', saveSelectedPageContent);
@@ -2175,6 +2258,18 @@ function updateImagePickerPreview() {
   const previewImg = document.getElementById('imagePickerPreviewImg');
   const noPreview = document.getElementById('imagePickerNoPreview');
   const infoDiv = document.getElementById('imagePickerPreviewInfo');
+  const insertBtn = document.getElementById('imagePickerInsertBtn');
+  const uploadHint = document.getElementById('imagePickerUploadHint');
+
+  if (insertBtn) {
+    insertBtn.disabled = !selectedImageForEditor;
+  }
+
+  if (uploadHint) {
+    uploadHint.textContent = selectedImageForEditor
+      ? 'Imagem pronta para uso. Clique na ação final para aplicar.'
+      : 'Envie ou selecione uma imagem para habilitar a ação final.';
+  }
 
   if (!selectedImageForEditor) {
     if (previewImg) previewImg.style.display = 'none';
@@ -2254,6 +2349,13 @@ function openImagePickerModal(context = 'editor') {
   if (folderFilter) folderFilter.value = defaultFolder;
   if (searchInput) searchInput.value = '';
 
+  // Pre-set upload folder to match context
+  const pickerUploadFolder = document.getElementById('pickerUploadFolder');
+  if (pickerUploadFolder) pickerUploadFolder.value = defaultFolder || 'timeline';
+
+  // Reset upload tab state
+  clearPickerUpload();
+
   selectedImageForEditor = null;
   updateImagePickerPreview();
   showModal('imagePickerModal');
@@ -2269,7 +2371,144 @@ function closeImagePickerModal() {
   hideModal('imagePickerModal');
   selectedImageForEditor = null;
   state.imagePickerContext = null;
+  updateImagePickerPreview();
 }
+
+// ============= IMAGE PICKER — UPLOAD TAB =============
+
+let pickerSelectedFile = null;
+
+function handlePickerFileSelected(file) {
+  pickerSelectedFile = file;
+  const preview = document.getElementById('pickerUploadPreview');
+  const previewImg = document.getElementById('pickerUploadPreviewImg');
+  const fileNameEl = document.getElementById('pickerUploadFileName');
+  const prompt = document.getElementById('pickerDropzonePrompt');
+  const uploadBtn = document.getElementById('pickerUploadBtn');
+  const clearBtn = document.getElementById('pickerClearBtn');
+
+  if (preview && previewImg && fileNameEl) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      previewImg.src = e.target.result;
+      fileNameEl.textContent = file.name;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  if (prompt) prompt.style.display = 'none';
+  if (uploadBtn) uploadBtn.disabled = false;
+  if (clearBtn) clearBtn.style.display = '';
+}
+
+function clearPickerUpload() {
+  pickerSelectedFile = null;
+  const preview = document.getElementById('pickerUploadPreview');
+  const fileInput = document.getElementById('pickerFileInput');
+  const prompt = document.getElementById('pickerDropzonePrompt');
+  const uploadBtn = document.getElementById('pickerUploadBtn');
+  const clearBtn = document.getElementById('pickerClearBtn');
+  const progress = document.getElementById('pickerUploadProgress');
+  const progressFill = document.getElementById('pickerProgressFill');
+
+  if (preview) preview.style.display = 'none';
+  if (fileInput) fileInput.value = '';
+  if (prompt) prompt.style.display = 'block';
+  if (uploadBtn) uploadBtn.disabled = true;
+  if (clearBtn) clearBtn.style.display = 'none';
+  if (progress) progress.style.display = 'none';
+  if (progressFill) {
+    progressFill.style.width = '0%';
+    progressFill.style.background = '';
+  }
+
+  if (!selectedImageForEditor) {
+    updateImagePickerPreview();
+  }
+}
+
+async function uploadImageFromPicker() {
+  if (!pickerSelectedFile) return;
+
+  const folder = document.getElementById('pickerUploadFolder')?.value || 'timeline';
+  const uploadBtn = document.getElementById('pickerUploadBtn');
+  const clearBtn = document.getElementById('pickerClearBtn');
+  const progress = document.getElementById('pickerUploadProgress');
+  const progressFill = document.getElementById('pickerProgressFill');
+  const progressLabel = document.getElementById('pickerProgressLabel');
+
+  if (uploadBtn) uploadBtn.disabled = true;
+  if (clearBtn) clearBtn.style.display = 'none';
+  if (progress) progress.style.display = 'block';
+  if (progressFill) progressFill.style.width = '30%';
+  if (progressLabel) progressLabel.textContent = 'Enviando...';
+
+  try {
+    const formData = new FormData();
+    formData.append('file', pickerSelectedFile);
+    formData.append('folder', folder);
+
+    if (progressFill) progressFill.style.width = '60%';
+
+    const response = await fetch(`${APP_BASE_PATH}/api/media`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    });
+
+    if (progressFill) progressFill.style.width = '90%';
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || `Erro ${response.status}`);
+    }
+
+    const result = await response.json();
+    if (progressFill) progressFill.style.width = '100%';
+    if (progressLabel) progressLabel.textContent = 'Upload concluído!';
+
+    // Build selectedImageForEditor from returned media record
+    const servePath = `/media/serve/${result.file_path}`;
+    selectedImageForEditor = {
+      id: result.id,
+      url: resolveAssetUrl(servePath),
+      insertUrl: servePath,
+      filename: result.filename,
+      path: `media/serve/${result.file_path}`,
+      folder: result.folder,
+      description: result.description || '',
+      altText: result.alt_text || '',
+      size: result.file_size || 0,
+    };
+
+    updateImagePickerPreview();
+
+    const insertBtn = document.getElementById('imagePickerInsertBtn');
+    if (insertBtn) insertBtn.disabled = false;
+
+    showToast(`Upload concluído: ${result.filename}`, 'success');
+
+    // Switch to select tab and reload so the new image appears
+    const folderFilter = document.getElementById('imagePickerFolderFilter');
+    if (folderFilter) folderFilter.value = result.folder;
+    setImagePickerTab('select');
+    loadImagesForPicker();
+
+    setTimeout(clearPickerUpload, 300);
+  } catch (error) {
+    if (progressLabel) progressLabel.textContent = `Erro: ${error.message}`;
+    if (progressFill) {
+      progressFill.style.width = '100%';
+      progressFill.style.background = '#e74c3c';
+    }
+    if (uploadBtn) uploadBtn.disabled = false;
+    if (clearBtn) clearBtn.style.display = '';
+    showToast(`Erro no upload: ${error.message}`, 'error');
+  }
+}
+
+
 
 function setImagePickerTab(tabName) {
   const tabs = document.querySelectorAll('.image-picker-tab-content');
@@ -2309,7 +2548,10 @@ function insertSelectedImage() {
     }
   } else if (context === 'editor' && pageContentEditor) {
     pageContentEditor.focus();
-    document.execCommand('insertImage', false, selectedImageForEditor.insertUrl || selectedImageForEditor.url);
+    const editorImageUrl = selectedImageForEditor.url
+      || resolveAssetUrl(selectedImageForEditor.insertUrl)
+      || resolveAssetUrl(selectedImageForEditor.path);
+    document.execCommand('insertImage', false, editorImageUrl);
     syncPageEditorTextarea();
     recordPageEditorHistory(getPageEditorContent());
     savePageEditorDraft();
@@ -2380,6 +2622,57 @@ function attachImagePickerListeners() {
   const insertBtn = document.getElementById('imagePickerInsertBtn');
   if (insertBtn) {
     insertBtn.addEventListener('click', insertSelectedImage);
+  }
+
+  // Upload tab — browse button
+  const pickerBrowseBtn = document.getElementById('pickerBrowseBtn');
+  const pickerFileInput = document.getElementById('pickerFileInput');
+  if (pickerBrowseBtn && pickerFileInput) {
+    pickerBrowseBtn.addEventListener('click', () => pickerFileInput.click());
+  }
+
+  // Upload tab — file input change
+  if (pickerFileInput) {
+    pickerFileInput.addEventListener('change', () => {
+      if (pickerFileInput.files.length > 0) {
+        handlePickerFileSelected(pickerFileInput.files[0]);
+      }
+    });
+  }
+
+  // Upload tab — drop zone
+  const pickerDropzone = document.getElementById('pickerDropzone');
+  if (pickerDropzone) {
+    pickerDropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      pickerDropzone.classList.add('dragover');
+    });
+    pickerDropzone.addEventListener('dragleave', () => pickerDropzone.classList.remove('dragover'));
+    pickerDropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      pickerDropzone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) handlePickerFileSelected(file);
+    });
+    pickerDropzone.addEventListener('click', (e) => {
+      // Only trigger if clicking the dropzone itself (not the browse button which handles its own click)
+      if (e.target !== pickerDropzone && e.target.id !== 'pickerDropzonePrompt' && e.target.closest('#pickerBrowseBtn')) return;
+      if (e.target.id !== 'pickerBrowseBtn' && !e.target.closest('#pickerBrowseBtn')) {
+        pickerFileInput?.click();
+      }
+    });
+  }
+
+  // Upload tab — upload button
+  const pickerUploadBtn = document.getElementById('pickerUploadBtn');
+  if (pickerUploadBtn) {
+    pickerUploadBtn.addEventListener('click', uploadImageFromPicker);
+  }
+
+  // Upload tab — clear button
+  const pickerClearBtn = document.getElementById('pickerClearBtn');
+  if (pickerClearBtn) {
+    pickerClearBtn.addEventListener('click', clearPickerUpload);
   }
 
   // Modal backdrop click

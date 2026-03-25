@@ -342,6 +342,29 @@ button {
   border-bottom: 1px solid #dbe7dc;
 }
 
+.table-sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+
+.table-sort-button:hover {
+  color: #1c5c2d;
+}
+
+.table-sort-indicator {
+  font-size: 11px;
+  line-height: 1;
+}
+
 .events-table td {
   padding: 14px 12px;
   border-bottom: 1px solid var(--border-color);
@@ -1465,6 +1488,12 @@ input[type="file"]:hover {
   color: var(--secondary-color);
 }
 
+.picker-inline-hint {
+  margin: 0;
+  font-size: 12px;
+  color: #5f6f60;
+}
+
 .image-picker-item {
   position: relative;
   cursor: pointer;
@@ -1661,4 +1690,83 @@ input[type="file"]:hover {
     flex-direction: column;
     gap: 15px;
   }
+}
+
+/* ============= IMAGE PICKER — UPLOAD TAB ============= */
+.picker-upload-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0 8px;
+}
+
+.picker-upload-folder-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.picker-upload-folder-row label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #243226;
+  white-space: nowrap;
+}
+
+.picker-dropzone {
+  border: 2px dashed #b5ccb6;
+  border-radius: 8px;
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  background: #f8fbf7;
+  transition: border-color 0.2s, background 0.2s;
+  user-select: none;
+}
+
+.picker-dropzone:hover,
+.picker-dropzone.dragover {
+  border-color: #3a7d44;
+  background: #eef5ee;
+}
+
+.picker-dropzone p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.picker-dropzone-hint {
+  font-size: 11px !important;
+  color: #aaa !important;
+}
+
+.picker-browse-link {
+  background: none;
+  border: none;
+  color: #3a7d44;
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.picker-browse-link:hover {
+  color: #2d6235;
+}
+
+.picker-progress-bar {
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.picker-progress-fill {
+  height: 100%;
+  background: #3a7d44;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  width: 0%;
 }

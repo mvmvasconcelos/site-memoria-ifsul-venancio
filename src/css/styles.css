@@ -26,8 +26,8 @@
     flex-direction: column;
   }
 
-  h1 { font-size: 2.25rem; font-weight: bold; margin-bottom: 1rem; }
-  h2 { font-size: 1.875rem; font-weight: bold; margin-bottom: 1rem; }
+  h1 { font-size: 2.25rem; font-weight: bold; margin-bottom: 1rem; text-align: center; }
+  h2 { font-size: 1.875rem; font-weight: bold; margin-bottom: 1rem; text-align: center; }
   h3 { font-size: 1.5rem; font-weight: bold; margin-bottom: 0.75rem; }
   h4 { font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem; }
   h5, h6 { font-size: 1.125rem; font-weight: bold; margin-bottom: 0.5rem; }
