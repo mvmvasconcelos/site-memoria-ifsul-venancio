@@ -281,6 +281,7 @@
   }
 
   main[data-page='territorio'] .card-image {
+    aspect-ratio: auto;
     object-fit: contain;
     background-color: #f8fafc;
   }

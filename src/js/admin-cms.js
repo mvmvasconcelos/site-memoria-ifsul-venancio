@@ -1,34 +1,29 @@
 const state = {
   timelinePageId: null,
-  currentCardsPageId: null,
   events: [],
-  timelineDateSortDirection: 'asc',
-  cards: [],
   pages: [],
   menuItems: [],
+  historyItems: [],
   mediaFiles: [],
+  historyFilters: {
+    entityType: '',
+    action: '',
+    limit: 100,
+  },
   currentEditId: null,
   deleteId: null,
-  currentCardEditId: null,
-  deleteCardId: null,
   currentEditMediaId: null,
   deleteMediaId: null,
   eventFormInitialState: null,
   activePanel: 'dashboard',
   currentPageEditId: null,
-  imagePickerContext: null, // 'event', 'card' ou 'editor'
+  imagePickerContext: null, // 'event' para formulário de eventos, 'editor' para editor de página
 };
-
-const INSTITUTIONAL_PAGE_SLUGS = ['index', 'catalogacao', 'contact'];
-const CARD_PAGE_SLUGS = ['territorio', 'campus', 'trabalhos'];
 
 const MANAGED_PAGE_DEFS = [
   { slug: 'index', title: 'Início', type: 'page', menu_order: 0, is_visible: true },
-  { slug: 'timeline', title: 'Linha do Tempo', type: 'timeline', menu_order: 1, is_visible: true },
   { slug: 'territorio', title: 'Transformações Territoriais', type: 'cards', menu_order: 2, is_visible: true },
   { slug: 'campus', title: 'Campus', type: 'cards', menu_order: 3, is_visible: true },
-  { slug: 'trabalhos', title: 'Trabalhos', type: 'cards', menu_order: 4, is_visible: true },
-  { slug: 'catalogacao', title: 'Catalogação', type: 'page', menu_order: 5, is_visible: true },
   { slug: 'contact', title: 'Contato', type: 'page', menu_order: 6, is_visible: true },
 ];
 
@@ -134,11 +129,15 @@ function setActivePanel(panelName) {
 }
 
 function updateDashboardCards() {
-  const lastSyncAt = document.getElementById('lastSyncAt');
-  if (lastSyncAt) {
-    const now = new Date();
-    lastSyncAt.textContent = now.toLocaleString('pt-BR');
-  }
+  const timelineCount = document.getElementById('dashTimelineCount');
+  const menuCount = document.getElementById('dashMenuCount');
+  const mediaCount = document.getElementById('dashMediaCount');
+  const historyCount = document.getElementById('dashHistoryCount');
+
+  if (timelineCount) timelineCount.textContent = String(state.events.length || 0);
+  if (menuCount) menuCount.textContent = String(state.menuItems.length || 0);
+  if (mediaCount) mediaCount.textContent = String(state.mediaFiles.length || 0);
+  if (historyCount) historyCount.textContent = String(state.historyItems.length || 0);
 }
 
 function initPanelNavigation() {
@@ -151,33 +150,24 @@ function initPanelNavigation() {
 
 function setSyncStatus(status, message) {
   const sync = document.getElementById('syncStatus');
-  if (!sync) return;
   sync.className = `sync-status ${status}`;
   sync.textContent = message;
 }
 
-function updateSelectionPreview(previewId, imagePath, emptyMessage = 'Nenhuma imagem selecionada') {
-  const preview = document.getElementById(previewId);
+function updateImagePreviewFromPath(imagePath) {
+  const preview = document.getElementById('imagePreview');
   if (!preview) return;
 
   const path = (imagePath || '').trim();
   if (!path) {
     preview.classList.add('empty');
-    preview.innerHTML = emptyMessage;
+    preview.innerHTML = 'Nenhuma imagem selecionada';
     return;
   }
 
   preview.classList.remove('empty');
   const imageUrl = resolveAssetUrl(path);
   preview.innerHTML = `<img src="${sanitize(imageUrl)}" alt="Pré-visualização" />`;
-}
-
-function updateImagePreviewFromPath(imagePath) {
-  updateSelectionPreview('imagePreview', imagePath);
-}
-
-function updateCardImagePreview(imagePath) {
-  updateSelectionPreview('cardImagePreview', imagePath);
 }
 
 function updateImagePreviewFromFile(file) {
@@ -255,56 +245,6 @@ function formatTimelineDisplayDate(dateValue) {
   return (dateValue || '').trim();
 }
 
-function getTimelineDateSortKey(dateValue) {
-  const value = (dateValue || '').trim();
-  if (!value) return Number.MAX_SAFE_INTEGER;
-
-  const exactMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (exactMatch) {
-    const [, year, month, day] = exactMatch;
-    return Number(`${year}${month}${day}`);
-  }
-
-  const yearMonthMatch = value.match(/^(\d{4})-(\d{2})$/);
-  if (yearMonthMatch) {
-    const [, year, month] = yearMonthMatch;
-    return Number(`${year}${month}00`);
-  }
-
-  const yearMatch = value.match(/^(\d{4})$/);
-  if (yearMatch) {
-    return Number(`${yearMatch[1]}0000`);
-  }
-
-  return Number.MAX_SAFE_INTEGER - 1;
-}
-
-function getSortedEvents(events) {
-  const direction = state.timelineDateSortDirection === 'desc' ? 'desc' : 'asc';
-  const multiplier = direction === 'desc' ? -1 : 1;
-
-  return [...events].sort((first, second) => {
-    const dateDiff = (getTimelineDateSortKey(first.date) - getTimelineDateSortKey(second.date)) * multiplier;
-    if (dateDiff !== 0) return dateDiff;
-    return String(first.title || '').localeCompare(String(second.title || ''), 'pt-BR') * multiplier;
-  });
-}
-
-function updateTimelineSortButton() {
-  const button = document.getElementById('timelineDateSortBtn');
-  const indicator = document.getElementById('timelineDateSortIndicator');
-  const isDescending = state.timelineDateSortDirection === 'desc';
-
-  if (button) {
-    button.setAttribute('aria-pressed', String(isDescending));
-    button.setAttribute('title', isDescending ? 'Ordenado do mais recente para o mais antigo' : 'Ordenado do mais antigo para o mais recente');
-  }
-
-  if (indicator) {
-    indicator.textContent = isDescending ? '↓' : '↑';
-  }
-}
-
 async function apiRequest(path, options = {}) {
   const isFormData = options.body instanceof FormData;
   const headers = {
@@ -352,7 +292,6 @@ async function login(username, password) {
 
 async function logout() {
   await apiRequest('/api/auth/logout', { method: 'POST' });
-  window.location.href = APP_BASE_PATH ? `${APP_BASE_PATH}/` : '/';
 }
 
 async function changePassword(currentPassword, newPassword) {
@@ -402,182 +341,31 @@ async function loadMenu() {
   renderMenuTable();
 }
 
-async function loadCards() {
-  if (!state.currentCardsPageId) {
-    state.cards = [];
-    renderCardsTable();
-    return;
+async function loadHistory() {
+  const params = new URLSearchParams();
+  params.set('limit', String(state.historyFilters.limit || 100));
+  if (state.historyFilters.entityType) {
+    params.set('entity_type', state.historyFilters.entityType);
+  }
+  if (state.historyFilters.action) {
+    params.set('action', state.historyFilters.action);
   }
 
-  setSyncStatus('syncing', '⟳ Carregando cards...');
-  state.cards = await apiRequest(`/api/cards/${state.currentCardsPageId}`);
-  renderCardsTable();
-  setSyncStatus('synced', '✓ Cards sincronizados');
+  state.historyItems = await apiRequest(`/api/history?${params.toString()}`);
+  renderHistoryTable();
 }
 
-async function loadCardsForCurrentPage() {
-  await loadCards();
-}
+function syncHistoryFiltersFromUI() {
+  const entitySelect = document.getElementById('historyEntityFilter');
+  const actionSelect = document.getElementById('historyActionFilter');
+  const limitSelect = document.getElementById('historyLimitFilter');
+  if (!entitySelect || !actionSelect || !limitSelect) return;
 
-function renderCardsTable() {
-  const tbody = document.getElementById('cardsTableBody');
-  if (!tbody) return;
-
-  const emptyState = document.getElementById('cardsEmptyState');
-  const tableContainer = document.getElementById('cardsTableContainer');
-
-  if (!state.currentCardsPageId) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6" class="no-image">Nenhuma seção com cards disponível</td>
-      </tr>
-    `;
-    if (emptyState) emptyState.style.display = 'block';
-    if (tableContainer) tableContainer.style.display = 'none';
-    return;
-  }
-
-  if (!state.cards.length) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6" class="no-image">Nenhum card cadastrado para esta seção</td>
-      </tr>
-    `;
-    if (emptyState) emptyState.style.display = 'block';
-    if (tableContainer) tableContainer.style.display = 'none';
-    return;
-  }
-
-  tbody.innerHTML = state.cards
-    .map(
-      (card, index) => `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${sanitize(card.title || '-')}</td>
-        <td>
-          ${card.image_path
-            ? `<img class="event-image-thumb" src="${sanitize(resolveAssetUrl(card.image_path))}" alt="${sanitize(card.title || 'Card')}" />`
-            : '<span class="no-image">Sem imagem</span>'}
-        </td>
-        <td class="event-date">${sanitize(card.date_label || '-')}</td>
-        <td class="event-legend">${sanitize(card.source || '-')}</td>
-        <td>
-          <div class="table-actions">
-            <button class="btn-secondary btn-small" data-card-action="edit" data-card-id="${card.id}">Editar</button>
-            <button class="btn-danger btn-small" data-card-action="delete" data-card-id="${card.id}">Excluir</button>
-          </div>
-        </td>
-      </tr>
-    `
-    )
-    .join('');
-
-  if (emptyState) emptyState.style.display = 'none';
-  if (tableContainer) tableContainer.style.display = 'block';
-}
-
-function fillCardForm(card = null) {
-  document.getElementById('cardModalTitle').textContent = card ? 'Editar Card' : 'Adicionar Card';
-  document.getElementById('cardTitle').value = card?.title || '';
-  document.getElementById('cardImage').value = card?.image_path || '';
-  document.getElementById('cardDateLabel').value = card?.date_label || '';
-  document.getElementById('cardSource').value = card?.source || '';
-  document.getElementById('cardDescription').value = card?.description || '';
-  updateCardImagePreview(card?.image_path || '');
-}
-
-function openCreateCardModal() {
-  if (!state.currentCardsPageId) {
-    showToast('Selecione uma seção antes de adicionar cards.', 'error');
-    return;
-  }
-
-  state.currentCardEditId = null;
-  fillCardForm();
-  showModal('cardModal');
-}
-
-function openEditCardModal(cardId) {
-  const card = state.cards.find((item) => Number(item.id) === Number(cardId));
-  if (!card) return;
-
-  state.currentCardEditId = Number(cardId);
-  fillCardForm(card);
-  showModal('cardModal');
-}
-
-function openDeleteCardModal(cardId) {
-  const card = state.cards.find((item) => Number(item.id) === Number(cardId));
-  if (!card) return;
-
-  state.deleteCardId = Number(cardId);
-  document.getElementById('deleteCardTitle').textContent = card.title || '';
-  showModal('deleteCardModal');
-}
-
-async function saveCardFromForm(event) {
-  event.preventDefault();
-
-  if (!state.currentCardsPageId) {
-    showToast('Selecione uma seção antes de salvar cards.', 'error');
-    return;
-  }
-
-  const payload = {
-    page_id: state.currentCardsPageId,
-    title: document.getElementById('cardTitle').value.trim(),
-    image_path: document.getElementById('cardImage').value.trim() || null,
-    date_label: document.getElementById('cardDateLabel').value.trim() || null,
-    source: document.getElementById('cardSource').value.trim() || null,
-    description: document.getElementById('cardDescription').value.trim() || null,
+  state.historyFilters = {
+    entityType: (entitySelect.value || '').trim(),
+    action: (actionSelect.value || '').trim(),
+    limit: Number(limitSelect.value) || 100,
   };
-
-  if (!payload.title) {
-    showToast('O título do card é obrigatório.', 'error');
-    return;
-  }
-
-  try {
-    setSyncStatus('syncing', '⟳ Salvando card...');
-
-    if (state.currentCardEditId) {
-      await apiRequest(`/api/cards/${state.currentCardEditId}`, {
-        method: 'PUT',
-        body: JSON.stringify(payload),
-      });
-      showToast('Card atualizado com sucesso.', 'success');
-    } else {
-      payload.order_index = state.cards.length;
-      await apiRequest('/api/cards', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-      showToast('Card criado com sucesso.', 'success');
-    }
-
-    hideModal('cardModal');
-    state.currentCardEditId = null;
-    await loadCards();
-  } catch (error) {
-    setSyncStatus('error', '⚠ Erro ao salvar card');
-    showToast(error.message, 'error');
-  }
-}
-
-async function confirmDeleteCard() {
-  if (!state.deleteCardId) return;
-
-  try {
-    setSyncStatus('syncing', '⟳ Excluindo card...');
-    await apiRequest(`/api/cards/${state.deleteCardId}`, { method: 'DELETE' });
-    hideModal('deleteCardModal');
-    state.deleteCardId = null;
-    showToast('Card excluído com sucesso.', 'success');
-    await loadCards();
-  } catch (error) {
-    setSyncStatus('error', '⚠ Erro ao excluir card');
-    showToast(error.message, 'error');
-  }
 }
 
 function formatHistoryTimestamp(isoValue) {
@@ -585,6 +373,58 @@ function formatHistoryTimestamp(isoValue) {
   const date = new Date(isoValue);
   if (Number.isNaN(date.getTime())) return isoValue;
   return date.toLocaleString('pt-BR');
+}
+
+function renderHistoryTable() {
+  const tbody = document.getElementById('historyTableBody');
+  if (!tbody) return;
+
+  if (!state.historyItems.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="no-image">Sem registros de histórico</td>
+      </tr>
+    `;
+    updateDashboardCards();
+    return;
+  }
+
+  tbody.innerHTML = state.historyItems
+    .map(
+      (item) => `
+      <tr>
+        <td>${sanitize(formatHistoryTimestamp(item.timestamp))}</td>
+        <td>${sanitize(item.username || `user#${item.user_id}`)}</td>
+        <td>${sanitize(item.entity_type || '-')}</td>
+        <td>${sanitize(String(item.entity_id ?? '-'))}</td>
+        <td>${sanitize(item.action || '-')}</td>
+        <td>
+          <button class="btn-secondary btn-small" data-history-action="restore" data-history-id="${item.id}">Restaurar</button>
+        </td>
+      </tr>
+    `
+    )
+    .join('');
+
+  updateDashboardCards();
+}
+
+async function restoreHistoryEntry(historyId) {
+  const shouldRestore = window.confirm('Deseja restaurar este registro de histórico?');
+  if (!shouldRestore) return;
+
+  try {
+    setSyncStatus('syncing', '⟳ Restaurando...');
+    const result = await apiRequest(`/api/history/${historyId}/restore`, {
+      method: 'POST',
+    });
+    showToast(result?.message || 'Restauração aplicada com sucesso.', 'success');
+    await loadAdminData();
+    setSyncStatus('synced', '✓ Restauração aplicada');
+  } catch (error) {
+    setSyncStatus('error', '⚠ Erro na restauração');
+    showToast(error.message, 'error');
+  }
 }
 
 function buildPageOptions(selectedPageId) {
@@ -604,50 +444,16 @@ function getPageBySlug(slug) {
   return state.pages.find((page) => page.slug === slug);
 }
 
-function getInstitutionalPages() {
-  return state.pages.filter((page) => INSTITUTIONAL_PAGE_SLUGS.includes(page.slug));
-}
-
-function getCardManagedPages() {
-  return state.pages.filter((page) => CARD_PAGE_SLUGS.includes(page.slug));
-}
-
-function renderCardPageOptions() {
-  const select = document.getElementById('cardsPageSelect');
-  if (!select) return;
-
-  const cardPages = getCardManagedPages();
-  if (!cardPages.length) {
-    select.innerHTML = '<option value="">Nenhuma seção disponível</option>';
-    state.currentCardsPageId = null;
-    return;
-  }
-
-  if (!cardPages.some((page) => Number(page.id) === Number(state.currentCardsPageId))) {
-    state.currentCardsPageId = Number(cardPages[0].id);
-  }
-
-  select.innerHTML = cardPages
-    .map((page) => {
-      const selected = Number(page.id) === Number(state.currentCardsPageId) ? 'selected' : '';
-      return `<option value="${page.id}" ${selected}>${sanitize(page.title)}</option>`;
-    })
-    .join('');
-}
-
-function getPageType(slug) {
-  return CARD_PAGE_SLUGS.includes(slug) ? 'cards' : 'content';
+function getEditablePages() {
+  return state.pages.filter((page) => !['timeline', 'catalogacao'].includes(page.slug));
 }
 
 function renderPageManagerTable() {
   const tbody = document.getElementById('pageManagerTableBody');
   if (!tbody) return;
 
-  // Show ALL managed pages (institutional + cards)
-  const allPages = [...getInstitutionalPages(), ...getCardManagedPages()];
-  allPages.sort((a, b) => (a.title || '').localeCompare(b.title || '', 'pt-BR'));
-
-  if (!allPages.length) {
+  const editablePages = getEditablePages();
+  if (!editablePages.length) {
     tbody.innerHTML = `
       <tr>
         <td colspan="5" class="no-image">Nenhuma página disponível para edição</td>
@@ -656,59 +462,21 @@ function renderPageManagerTable() {
     return;
   }
 
-  tbody.innerHTML = allPages
-    .map((page) => {
-      const pageType = getPageType(page.slug);
-      const typeLabel = pageType === 'cards'
-        ? '<span class="page-type-badge page-type-cards">Cards</span>'
-        : '<span class="page-type-badge page-type-content">Conteúdo</span>';
-      return `
+  tbody.innerHTML = editablePages
+    .map(
+      (page) => `
       <tr>
         <td>${sanitize(page.title || '-')}</td>
         <td>${sanitize(page.slug || '-')}</td>
-        <td>${typeLabel}</td>
+        <td>${sanitize(page.type || '-')}</td>
         <td>${sanitize(formatHistoryTimestamp(page.updated_at) || '-')}</td>
-        <td>
-          <div class="table-actions">
-            <button class="btn-secondary btn-small" data-page-action="edit" data-page-id="${page.id}" data-page-type="${pageType}">Editar</button>
-          </div>
+        <td class="table-actions">
+          <button class="btn-secondary btn-small" data-page-action="edit" data-page-id="${page.id}">Editar</button>
         </td>
       </tr>
-    `;
-    })
+    `
+    )
     .join('');
-}
-
-function showUnifiedPagesTable() {
-  const tableContainer = document.getElementById('unifiedPagesTableContainer');
-  const cardsEditor = document.getElementById('cardsEditorWrapper');
-  const contentEditor = document.getElementById('pageEditorWrapper');
-  if (tableContainer) tableContainer.style.display = 'block';
-  if (cardsEditor) cardsEditor.style.display = 'none';
-  if (contentEditor) contentEditor.style.display = 'none';
-}
-
-async function openPageEditor(pageId, pageType) {
-  const page = getPageById(pageId);
-  if (!page) return;
-
-  const tableContainer = document.getElementById('unifiedPagesTableContainer');
-  if (tableContainer) tableContainer.style.display = 'none';
-
-  if (pageType === 'cards') {
-    // Open cards editor
-    state.currentCardsPageId = pageId;
-    const cardsEditor = document.getElementById('cardsEditorWrapper');
-    const titleEl = document.getElementById('cardsEditorTitle');
-    if (titleEl) titleEl.textContent = `Cards: ${page.title}`;
-    if (cardsEditor) cardsEditor.style.display = 'block';
-    await loadCardsForCurrentPage();
-  } else {
-    // Open content editor
-    await openPageContentEditor(pageId);
-    const contentEditor = document.getElementById('pageEditorWrapper');
-    if (contentEditor) contentEditor.style.display = 'block';
-  }
 }
 
 function closePageContentEditor() {
@@ -770,7 +538,7 @@ function clearPageEditorDraft(page) {
 function buildCardTemplateHtml() {
   const page = getCurrentEditingPage();
   const isCampus = page?.slug === 'campus';
-  const imagePath = 'src/images/territorio/image6.png';
+  const imagePath = isCampus ? 'src/images/campus/image1.jpg' : 'src/images/territorio/image6.png';
   const imageAlt = isCampus ? 'Imagem do campus' : 'Imagem da transformação territorial';
   const defaultDate = isCampus ? '2012' : '2005';
 
@@ -877,9 +645,6 @@ function insertCardTemplateIntoTerritorioSection(templateHtml) {
 }
 
 function ensurePageEditorStructure(wrapper, textarea) {
-  const textareaGroup = textarea.closest('.form-group') || textarea.parentElement;
-  const fieldContainer = textareaGroup?.parentElement || wrapper;
-  const insertBeforeTarget = textareaGroup || null;
   let modeBar = document.getElementById('pageEditorModeBar');
   let toolbar = document.getElementById('pageEditorToolbar');
   let editorHost = document.getElementById('pageContentEditor');
@@ -896,11 +661,7 @@ function ensurePageEditorStructure(wrapper, textarea) {
       <button type="button" class="btn-secondary btn-small" data-editor-view="preview">Preview</button>
       <span id="pageEditorMeta" class="page-editor-meta">0 caracteres</span>
     `;
-    if (insertBeforeTarget) {
-      fieldContainer.insertBefore(modeBar, insertBeforeTarget);
-    } else {
-      fieldContainer.appendChild(modeBar);
-    }
+    wrapper.insertBefore(modeBar, textarea);
   }
 
   if (!toolbar) {
@@ -911,6 +672,7 @@ function ensurePageEditorStructure(wrapper, textarea) {
     toolbar.innerHTML = `
       <button type="button" class="btn-secondary btn-small" data-editor-cmd="undo">Desfazer</button>
       <button type="button" class="btn-secondary btn-small" data-editor-cmd="redo">Refazer</button>
+      <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertTemplateCard">Template Card</button>
       <button type="button" class="btn-secondary btn-small" data-editor-cmd="formatBlock" data-editor-value="h2">H2</button>
       <button type="button" class="btn-secondary btn-small" data-editor-cmd="formatBlock" data-editor-value="h3">H3</button>
       <button type="button" class="btn-secondary btn-small" data-editor-cmd="bold"><strong>B</strong></button>
@@ -923,11 +685,7 @@ function ensurePageEditorStructure(wrapper, textarea) {
       <button type="button" class="btn-secondary btn-small" data-editor-cmd="insertHorizontalRule">Linha</button>
       <button type="button" class="btn-secondary btn-small" data-editor-cmd="removeFormat">Limpar</button>
     `;
-    if (insertBeforeTarget) {
-      fieldContainer.insertBefore(toolbar, insertBeforeTarget);
-    } else {
-      fieldContainer.appendChild(toolbar);
-    }
+    wrapper.insertBefore(toolbar, textarea);
   }
 
   if (!editorHost) {
@@ -938,11 +696,7 @@ function ensurePageEditorStructure(wrapper, textarea) {
     editorHost.setAttribute('role', 'textbox');
     editorHost.setAttribute('aria-multiline', 'true');
     editorHost.setAttribute('aria-label', 'Editor de conteúdo');
-    if (insertBeforeTarget) {
-      fieldContainer.insertBefore(editorHost, insertBeforeTarget);
-    } else {
-      fieldContainer.appendChild(editorHost);
-    }
+    wrapper.insertBefore(editorHost, textarea);
   }
 
   if (!preview) {
@@ -950,11 +704,7 @@ function ensurePageEditorStructure(wrapper, textarea) {
     preview.id = 'pageContentPreview';
     preview.className = 'page-editor-preview';
     preview.style.display = 'none';
-    if (insertBeforeTarget?.nextSibling) {
-      fieldContainer.insertBefore(preview, insertBeforeTarget.nextSibling);
-    } else {
-      fieldContainer.appendChild(preview);
-    }
+    wrapper.insertBefore(preview, textarea.nextSibling);
   }
 
   return {
@@ -1189,7 +939,7 @@ async function openPageContentEditor(pageId) {
 function initializeContentEditor() {
   initializePageContentEditor();
   renderPageManagerTable();
-  showUnifiedPagesTable();
+  closePageContentEditor();
 }
 
 async function saveSelectedPageContent() {
@@ -1251,12 +1001,10 @@ function renderMenuTable() {
         <td><input type="text" class="menu-label" value="${sanitize(item.label || '')}" placeholder="Rótulo" /></td>
         <td><input type="text" class="menu-url" value="${sanitize(item.url || '')}" placeholder="/pagina" /></td>
         <td><input type="checkbox" class="menu-visible" ${item.is_visible ? 'checked' : ''} /></td>
-        <td>
-          <div class="table-actions">
-            <button class="btn-secondary btn-small" data-menu-action="up">↑</button>
-            <button class="btn-secondary btn-small" data-menu-action="down">↓</button>
-            <button class="btn-danger btn-small" data-menu-action="remove">Remover</button>
-          </div>
+        <td class="table-actions">
+          <button class="btn-secondary btn-small" data-menu-action="up">↑</button>
+          <button class="btn-secondary btn-small" data-menu-action="down">↓</button>
+          <button class="btn-danger btn-small" data-menu-action="remove">Remover</button>
         </td>
       </tr>
     `
@@ -1341,7 +1089,7 @@ async function loadAdminData() {
   await loadPages();
   await ensureManagedPages();
   await loadPages();
-  await Promise.all([loadEvents(), loadMenu(), loadMedia()]);
+  await Promise.all([loadEvents(), loadMenu(), loadMedia(), loadHistory()]);
   initializeContentEditor();
   attachMediaEventListeners();
   updateDashboardCards();
@@ -1379,14 +1127,8 @@ function renderEvents(events) {
   const tbody = document.getElementById('eventsTableBody');
   const emptyState = document.getElementById('emptyState');
   const tableContainer = document.getElementById('timelineTableContainer');
-  const sortedEvents = getSortedEvents(events);
 
-  updateTimelineSortButton();
-
-  const totalEvents = document.getElementById('totalEvents');
-  if (totalEvents) {
-    totalEvents.textContent = `Total: ${events.length} eventos`;
-  }
+  document.getElementById('totalEvents').textContent = `Total: ${events.length} eventos`;
 
   if (!events.length) {
     tbody.innerHTML = '';
@@ -1399,7 +1141,7 @@ function renderEvents(events) {
   tableContainer.style.display = 'block';
   emptyState.style.display = 'none';
 
-  tbody.innerHTML = sortedEvents
+  tbody.innerHTML = events
     .map(
       (event) => `
       <tr>
@@ -1411,11 +1153,9 @@ function renderEvents(events) {
             : '<span class="no-image">Sem imagem</span>'}
         </td>
         <td class="event-legend">${sanitize(event.source || '')}</td>
-        <td>
-          <div class="table-actions">
-            <button class="btn-secondary btn-small" data-action="edit" data-id="${event.id}">Editar</button>
-            <button class="btn-danger btn-small" data-action="delete" data-id="${event.id}">Excluir</button>
-          </div>
+        <td class="table-actions">
+          <button class="btn-secondary btn-small" data-action="edit" data-id="${event.id}">Editar</button>
+          <button class="btn-danger btn-small" data-action="delete" data-id="${event.id}">Excluir</button>
         </td>
       </tr>
     `
@@ -1423,11 +1163,6 @@ function renderEvents(events) {
     .join('');
 
   updateDashboardCards();
-}
-
-function toggleTimelineDateSort() {
-  state.timelineDateSortDirection = state.timelineDateSortDirection === 'asc' ? 'desc' : 'asc';
-  renderEvents(state.events);
 }
 
 function fillEventForm(event = null) {
@@ -1582,10 +1317,8 @@ function renderMediaTable() {
         <td>${fileSize}</td>
         <td>${createdDate}</td>
         <td>
-          <div class="table-actions">
-            <button class="btn-secondary btn-small" data-media-action="edit" data-media-id="${item.id}">✎ Editar</button>
-            <button class="btn-danger btn-small" data-media-action="delete" data-media-id="${item.id}">🗑 Deletar</button>
-          </div>
+          <button class="btn-secondary btn-small" data-media-action="edit" data-media-id="${item.id}">✎ Editar</button>
+          <button class="btn-danger btn-small" data-media-action="delete" data-media-id="${item.id}">🗑 Deletar</button>
         </td>
       </tr>
     `;
@@ -1679,7 +1412,7 @@ async function handleMediaFileSelection(file) {
   }
 
   const folder = document.getElementById('mediaFolderFilter')?.value || 'uploads';
-  if (!['timeline', 'trabalhos', 'territorio', 'campus'].includes(folder)) {
+  if (!['timeline', 'territorio', 'campus'].includes(folder)) {
     showToast('Selecione uma pasta válida antes de fazer upload.', 'error');
     document.getElementById('mediaFileInput').value = '';
     return;
@@ -1952,13 +1685,7 @@ function attachEventListeners() {
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     await logout();
-  });
-
-  document.querySelectorAll('[data-dashboard-target]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const target = button.dataset.dashboardTarget;
-      if (target) setActivePanel(target);
-    });
+    window.location.reload();
   });
 
   document.getElementById('refreshBtn').addEventListener('click', async () => {
@@ -1967,42 +1694,10 @@ function attachEventListeners() {
     setLoading(false);
   });
 
-  const timelineDateSortBtn = document.getElementById('timelineDateSortBtn');
-  if (timelineDateSortBtn) {
-    timelineDateSortBtn.addEventListener('click', toggleTimelineDateSort);
-  }
-
   document.getElementById('addMenuItemBtn').addEventListener('click', addMenuItem);
   document.getElementById('saveMenuBtn').addEventListener('click', saveMenu);
   document.getElementById('savePageContentBtn').addEventListener('click', saveSelectedPageContent);
-  document.getElementById('cancelPageContentBtn').addEventListener('click', () => {
-    closePageContentEditor();
-    showUnifiedPagesTable();
-  });
-  document.getElementById('cancelCardsEditorBtn').addEventListener('click', () => {
-    state.currentCardsPageId = null;
-    showUnifiedPagesTable();
-  });
-  document.getElementById('addCardBtn').addEventListener('click', openCreateCardModal);
-  document.getElementById('closeCardModalBtn').addEventListener('click', () => hideModal('cardModal'));
-  document.getElementById('cancelCardBtn').addEventListener('click', () => hideModal('cardModal'));
-  document.getElementById('cardForm').addEventListener('submit', saveCardFromForm);
-  document.getElementById('selectCardMediaBtn').addEventListener('click', (event) => {
-    event.preventDefault();
-    openImagePickerForCard();
-  });
-  document.getElementById('removeCardImageBtn').addEventListener('click', () => {
-    document.getElementById('cardImage').value = '';
-    updateCardImagePreview('');
-  });
-  document.getElementById('cardImage').addEventListener('input', (event) => {
-    updateCardImagePreview(event.target.value);
-  });
-  document.getElementById('cancelDeleteCardBtn').addEventListener('click', () => {
-    state.deleteCardId = null;
-    hideModal('deleteCardModal');
-  });
-  document.getElementById('confirmDeleteCardBtn').addEventListener('click', confirmDeleteCard);
+  document.getElementById('cancelPageContentBtn').addEventListener('click', closePageContentEditor);
   document.getElementById('changePasswordBtn').addEventListener('click', async () => {
     const currentInput = document.getElementById('currentPasswordInput');
     const newInput = document.getElementById('newPasswordInput');
@@ -2030,6 +1725,29 @@ function attachEventListeners() {
       showToast(error.message, 'error');
     }
   });
+  document.getElementById('applyHistoryFiltersBtn').addEventListener('click', async () => {
+    try {
+      syncHistoryFiltersFromUI();
+      setSyncStatus('syncing', '⟳ Aplicando filtros do histórico...');
+      await loadHistory();
+      setSyncStatus('synced', '✓ Histórico filtrado');
+    } catch (error) {
+      setSyncStatus('error', '⚠ Erro ao filtrar histórico');
+      showToast(error.message, 'error');
+    }
+  });
+  document.getElementById('refreshHistoryBtn').addEventListener('click', async () => {
+    try {
+      syncHistoryFiltersFromUI();
+      setSyncStatus('syncing', '⟳ Carregando histórico...');
+      await loadHistory();
+      setSyncStatus('synced', '✓ Histórico atualizado');
+    } catch (error) {
+      setSyncStatus('error', '⚠ Erro ao carregar histórico');
+      showToast(error.message, 'error');
+    }
+  });
+
   document.getElementById('menuTableBody').addEventListener('click', (event) => {
     const button = event.target.closest('button[data-menu-action]');
     if (!button) return;
@@ -2097,23 +1815,10 @@ function attachEventListeners() {
     }
   });
 
-  document.getElementById('cardModal').addEventListener('click', (event) => {
-    if (event.target.id === 'cardModal') {
-      hideModal('cardModal');
-    }
-  });
-
   document.getElementById('deleteModal').addEventListener('click', (event) => {
     if (event.target.id === 'deleteModal') {
       state.deleteId = null;
       hideModal('deleteModal');
-    }
-  });
-
-  document.getElementById('deleteCardModal').addEventListener('click', (event) => {
-    if (event.target.id === 'deleteCardModal') {
-      state.deleteCardId = null;
-      hideModal('deleteCardModal');
     }
   });
 
@@ -2123,29 +1828,16 @@ function attachEventListeners() {
     }
 
     const eventModal = document.getElementById('eventModal');
-    const cardModal = document.getElementById('cardModal');
     const deleteModal = document.getElementById('deleteModal');
-    const deleteCardModal = document.getElementById('deleteCardModal');
 
     if (eventModal.classList.contains('show')) {
       closeEventModalSafely();
       return;
     }
 
-    if (cardModal.classList.contains('show')) {
-      hideModal('cardModal');
-      return;
-    }
-
     if (deleteModal.classList.contains('show')) {
       state.deleteId = null;
       hideModal('deleteModal');
-      return;
-    }
-
-    if (deleteCardModal.classList.contains('show')) {
-      state.deleteCardId = null;
-      hideModal('deleteCardModal');
       return;
     }
   });
@@ -2169,29 +1861,22 @@ function attachEventListeners() {
     }
   });
 
-  document.getElementById('cardsTableBody').addEventListener('click', (event) => {
-    const button = event.target.closest('button[data-card-action]');
+  document.getElementById('historyTableBody').addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-history-action="restore"]');
     if (!button) return;
 
-    const cardId = Number(button.dataset.cardId);
-    if (!cardId) return;
-
-    if (button.dataset.cardAction === 'edit') {
-      openEditCardModal(cardId);
-    }
-    if (button.dataset.cardAction === 'delete') {
-      openDeleteCardModal(cardId);
-    }
+    const historyId = Number(button.dataset.historyId);
+    if (!historyId) return;
+    restoreHistoryEntry(historyId);
   });
 
-  document.getElementById('pageManagerTableBody').addEventListener('click', async (event) => {
+  document.getElementById('pageManagerTableBody').addEventListener('click', (event) => {
     const button = event.target.closest('button[data-page-action="edit"]');
     if (!button) return;
 
     const pageId = Number(button.dataset.pageId);
-    const pageType = button.dataset.pageType;
     if (!pageId) return;
-    await openPageEditor(pageId, pageType);
+    openPageContentEditor(pageId);
   });
 }
 
@@ -2314,18 +1999,6 @@ function updateImagePickerPreview() {
   const previewImg = document.getElementById('imagePickerPreviewImg');
   const noPreview = document.getElementById('imagePickerNoPreview');
   const infoDiv = document.getElementById('imagePickerPreviewInfo');
-  const insertBtn = document.getElementById('imagePickerInsertBtn');
-  const uploadHint = document.getElementById('imagePickerUploadHint');
-
-  if (insertBtn) {
-    insertBtn.disabled = !selectedImageForEditor;
-  }
-
-  if (uploadHint) {
-    uploadHint.textContent = selectedImageForEditor
-      ? 'Imagem pronta para uso. Clique na ação final para aplicar.'
-      : 'Envie ou selecione uma imagem para habilitar a ação final.';
-  }
 
   if (!selectedImageForEditor) {
     if (previewImg) previewImg.style.display = 'none';
@@ -2360,12 +2033,6 @@ function getDefaultImagePickerFolder(context = 'editor') {
     return 'timeline';
   }
 
-  if (context === 'card') {
-    const cardPage = state.pages.find((page) => Number(page.id) === Number(state.currentCardsPageId));
-    const cardSlug = (cardPage?.slug || '').trim().toLowerCase();
-    return CARD_PAGE_SLUGS.includes(cardSlug) ? cardSlug : '';
-  }
-
   const currentPage = state.pages.find((page) => Number(page.id) === Number(state.currentPageEditId));
   const slug = (currentPage?.slug || '').trim().toLowerCase();
 
@@ -2385,32 +2052,19 @@ function openImagePickerModal(context = 'editor') {
   if (title) {
     if (context === 'event') {
       title.textContent = 'Selecionar Imagem para Evento';
-    } else if (context === 'card') {
-      title.textContent = 'Selecionar Imagem para Card';
     } else {
       title.textContent = 'Inserir Imagem no Editor';
     }
   }
 
   if (insertBtn) {
-    insertBtn.textContent = context === 'event'
-      ? '✓ Usar no Evento'
-      : context === 'card'
-        ? '✓ Usar no Card'
-        : '✓ Inserir Imagem';
+    insertBtn.textContent = context === 'event' ? '✓ Usar no Evento' : '✓ Inserir Imagem';
     insertBtn.disabled = true;
   }
 
   const defaultFolder = getDefaultImagePickerFolder(context);
   if (folderFilter) folderFilter.value = defaultFolder;
   if (searchInput) searchInput.value = '';
-
-  // Pre-set upload folder to match context
-  const pickerUploadFolder = document.getElementById('pickerUploadFolder');
-  if (pickerUploadFolder) pickerUploadFolder.value = defaultFolder || 'timeline';
-
-  // Reset upload tab state
-  clearPickerUpload();
 
   selectedImageForEditor = null;
   updateImagePickerPreview();
@@ -2427,144 +2081,7 @@ function closeImagePickerModal() {
   hideModal('imagePickerModal');
   selectedImageForEditor = null;
   state.imagePickerContext = null;
-  updateImagePickerPreview();
 }
-
-// ============= IMAGE PICKER — UPLOAD TAB =============
-
-let pickerSelectedFile = null;
-
-function handlePickerFileSelected(file) {
-  pickerSelectedFile = file;
-  const preview = document.getElementById('pickerUploadPreview');
-  const previewImg = document.getElementById('pickerUploadPreviewImg');
-  const fileNameEl = document.getElementById('pickerUploadFileName');
-  const prompt = document.getElementById('pickerDropzonePrompt');
-  const uploadBtn = document.getElementById('pickerUploadBtn');
-  const clearBtn = document.getElementById('pickerClearBtn');
-
-  if (preview && previewImg && fileNameEl) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      previewImg.src = e.target.result;
-      fileNameEl.textContent = file.name;
-      preview.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-  }
-
-  if (prompt) prompt.style.display = 'none';
-  if (uploadBtn) uploadBtn.disabled = false;
-  if (clearBtn) clearBtn.style.display = '';
-}
-
-function clearPickerUpload() {
-  pickerSelectedFile = null;
-  const preview = document.getElementById('pickerUploadPreview');
-  const fileInput = document.getElementById('pickerFileInput');
-  const prompt = document.getElementById('pickerDropzonePrompt');
-  const uploadBtn = document.getElementById('pickerUploadBtn');
-  const clearBtn = document.getElementById('pickerClearBtn');
-  const progress = document.getElementById('pickerUploadProgress');
-  const progressFill = document.getElementById('pickerProgressFill');
-
-  if (preview) preview.style.display = 'none';
-  if (fileInput) fileInput.value = '';
-  if (prompt) prompt.style.display = 'block';
-  if (uploadBtn) uploadBtn.disabled = true;
-  if (clearBtn) clearBtn.style.display = 'none';
-  if (progress) progress.style.display = 'none';
-  if (progressFill) {
-    progressFill.style.width = '0%';
-    progressFill.style.background = '';
-  }
-
-  if (!selectedImageForEditor) {
-    updateImagePickerPreview();
-  }
-}
-
-async function uploadImageFromPicker() {
-  if (!pickerSelectedFile) return;
-
-  const folder = document.getElementById('pickerUploadFolder')?.value || 'timeline';
-  const uploadBtn = document.getElementById('pickerUploadBtn');
-  const clearBtn = document.getElementById('pickerClearBtn');
-  const progress = document.getElementById('pickerUploadProgress');
-  const progressFill = document.getElementById('pickerProgressFill');
-  const progressLabel = document.getElementById('pickerProgressLabel');
-
-  if (uploadBtn) uploadBtn.disabled = true;
-  if (clearBtn) clearBtn.style.display = 'none';
-  if (progress) progress.style.display = 'block';
-  if (progressFill) progressFill.style.width = '30%';
-  if (progressLabel) progressLabel.textContent = 'Enviando...';
-
-  try {
-    const formData = new FormData();
-    formData.append('file', pickerSelectedFile);
-    formData.append('folder', folder);
-
-    if (progressFill) progressFill.style.width = '60%';
-
-    const response = await fetch(`${APP_BASE_PATH}/api/media`, {
-      method: 'POST',
-      body: formData,
-      credentials: 'include',
-    });
-
-    if (progressFill) progressFill.style.width = '90%';
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err.error || `Erro ${response.status}`);
-    }
-
-    const result = await response.json();
-    if (progressFill) progressFill.style.width = '100%';
-    if (progressLabel) progressLabel.textContent = 'Upload concluído!';
-
-    // Build selectedImageForEditor from returned media record
-    const servePath = `/media/serve/${result.file_path}`;
-    selectedImageForEditor = {
-      id: result.id,
-      url: resolveAssetUrl(servePath),
-      insertUrl: servePath,
-      filename: result.filename,
-      path: `media/serve/${result.file_path}`,
-      folder: result.folder,
-      description: result.description || '',
-      altText: result.alt_text || '',
-      size: result.file_size || 0,
-    };
-
-    updateImagePickerPreview();
-
-    const insertBtn = document.getElementById('imagePickerInsertBtn');
-    if (insertBtn) insertBtn.disabled = false;
-
-    showToast(`Upload concluído: ${result.filename}`, 'success');
-
-    // Switch to select tab and reload so the new image appears
-    const folderFilter = document.getElementById('imagePickerFolderFilter');
-    if (folderFilter) folderFilter.value = result.folder;
-    setImagePickerTab('select');
-    loadImagesForPicker();
-
-    setTimeout(clearPickerUpload, 300);
-  } catch (error) {
-    if (progressLabel) progressLabel.textContent = `Erro: ${error.message}`;
-    if (progressFill) {
-      progressFill.style.width = '100%';
-      progressFill.style.background = '#e74c3c';
-    }
-    if (uploadBtn) uploadBtn.disabled = false;
-    if (clearBtn) clearBtn.style.display = '';
-    showToast(`Erro no upload: ${error.message}`, 'error');
-  }
-}
-
-
 
 function setImagePickerTab(tabName) {
   const tabs = document.querySelectorAll('.image-picker-tab-content');
@@ -2587,6 +2104,7 @@ function insertSelectedImage() {
   const context = state.imagePickerContext || 'editor';
 
   if (context === 'event') {
+    // Inserir na imagem do evento
     const eventImageField = document.getElementById('eventImage');
     if (eventImageField) {
       const imagePath = selectedImageForEditor.path || selectedImageForEditor.filename;
@@ -2594,20 +2112,10 @@ function insertSelectedImage() {
       updateImagePreviewFromPath(imagePath);
       showToast('Imagem selecionada para o evento.', 'success');
     }
-  } else if (context === 'card') {
-    const cardImageField = document.getElementById('cardImage');
-    if (cardImageField) {
-      const imagePath = selectedImageForEditor.path || selectedImageForEditor.filename;
-      cardImageField.value = imagePath;
-      updateCardImagePreview(imagePath);
-      showToast('Imagem selecionada para o card.', 'success');
-    }
   } else if (context === 'editor' && pageContentEditor) {
+    // Inserir no editor de página
     pageContentEditor.focus();
-    const editorImageUrl = selectedImageForEditor.url
-      || resolveAssetUrl(selectedImageForEditor.insertUrl)
-      || resolveAssetUrl(selectedImageForEditor.path);
-    document.execCommand('insertImage', false, editorImageUrl);
+    document.execCommand('insertImage', false, selectedImageForEditor.insertUrl || selectedImageForEditor.url);
     syncPageEditorTextarea();
     recordPageEditorHistory(getPageEditorContent());
     savePageEditorDraft();
@@ -2620,10 +2128,6 @@ function insertSelectedImage() {
 
 function openImagePickerForEvent() {
   openImagePickerModal('event');
-}
-
-function openImagePickerForCard() {
-  openImagePickerModal('card');
 }
 
 function attachImagePickerListeners() {
@@ -2678,57 +2182,6 @@ function attachImagePickerListeners() {
   const insertBtn = document.getElementById('imagePickerInsertBtn');
   if (insertBtn) {
     insertBtn.addEventListener('click', insertSelectedImage);
-  }
-
-  // Upload tab — browse button
-  const pickerBrowseBtn = document.getElementById('pickerBrowseBtn');
-  const pickerFileInput = document.getElementById('pickerFileInput');
-  if (pickerBrowseBtn && pickerFileInput) {
-    pickerBrowseBtn.addEventListener('click', () => pickerFileInput.click());
-  }
-
-  // Upload tab — file input change
-  if (pickerFileInput) {
-    pickerFileInput.addEventListener('change', () => {
-      if (pickerFileInput.files.length > 0) {
-        handlePickerFileSelected(pickerFileInput.files[0]);
-      }
-    });
-  }
-
-  // Upload tab — drop zone
-  const pickerDropzone = document.getElementById('pickerDropzone');
-  if (pickerDropzone) {
-    pickerDropzone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      pickerDropzone.classList.add('dragover');
-    });
-    pickerDropzone.addEventListener('dragleave', () => pickerDropzone.classList.remove('dragover'));
-    pickerDropzone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      pickerDropzone.classList.remove('dragover');
-      const file = e.dataTransfer.files[0];
-      if (file) handlePickerFileSelected(file);
-    });
-    pickerDropzone.addEventListener('click', (e) => {
-      // Only trigger if clicking the dropzone itself (not the browse button which handles its own click)
-      if (e.target !== pickerDropzone && e.target.id !== 'pickerDropzonePrompt' && e.target.closest('#pickerBrowseBtn')) return;
-      if (e.target.id !== 'pickerBrowseBtn' && !e.target.closest('#pickerBrowseBtn')) {
-        pickerFileInput?.click();
-      }
-    });
-  }
-
-  // Upload tab — upload button
-  const pickerUploadBtn = document.getElementById('pickerUploadBtn');
-  if (pickerUploadBtn) {
-    pickerUploadBtn.addEventListener('click', uploadImageFromPicker);
-  }
-
-  // Upload tab — clear button
-  const pickerClearBtn = document.getElementById('pickerClearBtn');
-  if (pickerClearBtn) {
-    pickerClearBtn.addEventListener('click', clearPickerUpload);
   }
 
   // Modal backdrop click
