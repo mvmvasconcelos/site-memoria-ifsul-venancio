@@ -4,7 +4,7 @@ Sistema de memória institucional do IFSul Campus Venâncio Aires.
 
 ## Status atual
 
-- Ambiente ativo: `https://ifva.duckdns.org/memoria/`
+- Ambiente ativo: `https://memoriaifsulvenancio.com.br/`
 - Stack principal em produção: **Flask + SQLite** (Fase 3)
 - Admin funcional em `.../memoria/admin`
 - Render público **DB-only** para páginas gerenciáveis (sem fallback runtime para CSV/HTML legado)
